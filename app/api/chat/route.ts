@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
         // Replace with your Mattermost server's URL and admin token
         const MM_SERVER_URL = 'http://192.168.0.105:8065';
-        const MM_ADMIN_TOKEN = '3yu3foaqw787teyi4wn4w189tr';
+        const MM_ADMIN_TOKEN = '';
 
         // Get the user's email from Supabase
 
