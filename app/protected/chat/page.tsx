@@ -1,47 +1,54 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import {createClient} from "@/utils/supabase/client";
+import React, { useEffect } from 'react';
+import { createClient } from "@/utils/supabase/client";
+import { CircularProgress, Box } from '@mui/material';
 
 export default function ChatPage() {
-    const [user, setUser] = useState(null);
-
     useEffect(() => {
         (async() => {
             const supabase = await createClient();
             const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+            try {
+                const response: Response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user }),
+                });
+    
+                const data = await response.json();
+    
+                if (data.success) {
+                    const mattermostUrl = `http://192.168.0.109:8065`;
+                    window.location.href = mattermostUrl;
+                } else {
+                    console.error('Failed to retrieve Mattermost token');
+                }
+            } catch (error) {
+                console.error('Error during Mattermost login:', error);
+            }
         })();
     }, []);
 
     return (
-        <ChatButton user={user}/>
+        <Box
+            sx={{
+                position: "fixed", // Make the box fixed to the viewport
+                top: 0,
+                left: 0,
+                width: "100vw", // Full viewport width
+                height: "100vh", // Full viewport height
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+            }}
+        >
+            <CircularProgress
+                sx={{
+                    width: "80px !important", // Set loader width
+                    height: "80px !important", // Set loader height
+                }}
+            />
+        </Box>
     );
-}
-
-function ChatButton({ user }: { user: any }) {
-    const handleChatClick = async () => {
-        try {
-            const response: Response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user }),
-            });
-
-            const data = await response.json();
-
-            if (data.token !== undefined) {
-                const mattermostUrl = `http://192.168.0.105:8065?token=${data.token}`;
-                document.cookie = `MMAUTHTOKEN=${data.token}; path=/;`;
-                document.cookie = `MMUSERID=${data.id}; path=/;`;
-                window.location.href = mattermostUrl;
-            } else {
-                console.error('Failed to retrieve Mattermost token');
-            }
-        } catch (error) {
-            console.error('Error during Mattermost login:', error);
-        }
-    };
-
-    return <button onClick={handleChatClick}>Chat</button>;
 }

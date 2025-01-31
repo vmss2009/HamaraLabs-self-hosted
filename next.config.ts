@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+    output: "standalone",
     eslint: {
-        // Disables ESLint during the build process
         ignoreDuringBuilds: true,
     },
 };
