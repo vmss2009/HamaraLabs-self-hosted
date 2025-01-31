@@ -2,7 +2,8 @@
 
 import { encodedRedirect } from "@/utils/encodeRedirect";
 import { createClient } from "@/utils/supabase/server";
-import { headers } from "next/headers";
+import { responseCookiesToRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const signInAction = async (formData: FormData) => {
@@ -103,7 +104,11 @@ export const resetPasswordAction = async (formData: FormData) => {
 };
 
 export const signOutAction = async () => {
+  const cookieStore = await cookies();
+
   const supabase = await createClient();
+  cookieStore.delete("MMAUTHTOKEN");
+  cookieStore.delete("MMUSERID");
   await supabase.auth.signOut();
   return redirect("/");
 };

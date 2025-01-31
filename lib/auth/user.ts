@@ -1,25 +1,24 @@
 'use server';
 
-import { createClient } from "@/utils/supabase/server";
+import axios from "axios";
 
 export const createUserUsingMagicLink = async (email: string, metaData: object) => {
-    const supabase = await createClient();
+    console.log(email, metaData);
+    const response = await axios.post("http://192.168.0.109:7000/supabase-functions/create-user/magic-link", { email: email, metaData: metaData });
 
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {data: metaData});
-    if (error) throw error;
+    console.log(response);
+
+    const data = response.data.data;
 
     return data;
 }
 
 export const getUserById = async (userId: string) => {
-    const supabase = await createClient();
+    const response = await axios.post("http://192.168.0.109:7000/supabase-functions/get-user-details/", { id: userId });
 
-    const { data, error } = await supabase.auth.admin.getUserById(userId);
+    console.log(response);
 
-    if (error) {
-        console.error('Error fetching user:', error);
-        throw error;
-    }
+    const data = response.data.data;
 
-    return data; // Return the user data
+    return data;
 };

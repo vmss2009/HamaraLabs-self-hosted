@@ -50,11 +50,7 @@ export async function POST(req: Request) {
             social_links: validatedData.social_links,
         }
 
-        if (
-            validatedData.in_charge?.email &&
-            validatedData.correspondent?.email &&
-            validatedData.principal?.email
-        ) {
+        if (validatedData.in_charge?.email) {
             const inChargeMetaData = {
                 role: "inCharge",
                 firstName: validatedData.in_charge.firstName,
@@ -62,6 +58,9 @@ export async function POST(req: Request) {
                 whatsapp: validatedData.in_charge.whatsapp,
             }
             const inchargeInvite: {user: User} = await createUserUsingMagicLink(validatedData.in_charge?.email as string, inChargeMetaData);
+            schoolData.in_charge = inchargeInvite.user.id;
+        }
+        if (validatedData.correspondent?.email) {
             const correspondentMetaData = {
                 role: "correspondent",
                 firstName: validatedData.correspondent.firstName,
@@ -69,6 +68,10 @@ export async function POST(req: Request) {
                 whatsapp: validatedData.correspondent.whatsapp,
             }
             const correspondentInvite: {user: User} = await createUserUsingMagicLink(validatedData.correspondent?.email as string, correspondentMetaData);
+            schoolData.correspondent = correspondentInvite.user.id;
+        }
+        if (validatedData.principal?.email) {
+
             const principalMetaData = {
                 role: "principal",
                 firstName: validatedData.principal.firstName,
@@ -76,9 +79,6 @@ export async function POST(req: Request) {
                 whatsapp: validatedData.principal.whatsapp,
             }
             const principalInvite: {user: User} = await createUserUsingMagicLink(validatedData.principal?.email as string, principalMetaData);
-
-            schoolData.in_charge = inchargeInvite.user.id;
-            schoolData.correspondent = correspondentInvite.user.id;
             schoolData.principal = principalInvite.user.id;
         }
 
