@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id
+  email          String    @unique
+  user_meta_data Json?     @default("{}")
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  students       Student[]
+}
+
+model Country {
+  id           Int      @id @default(autoincrement())
+  created_at   DateTime @default(now())
+  country_name String   @unique
+  states       State[]
+}
+
+model State {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  state_name String
+  country_id Int
+  cities     City[]
+  country    Country  @relation(fields: [country_id], references: [id])
+}
+
+model City {
+  id         Int       @id @default(autoincrement())
+  created_at DateTime  @default(now())
+  city_name  String
+  state_id   Int
+  addresses  Address[]
+  state      State     @relation(fields: [state_id], references: [id])
+}
+
+model Address {
+  id            Int      @id @default(autoincrement())
+  created_at    DateTime @default(now())
+  address_line1 String?
+  address_line2 String?
+  pincode       String
+  city_id       Int
+  city          City     @relation(fields: [city_id], references: [id])
+  schools       School[]
+}
+
+model School {
+  id                Int       @id @default(autoincrement())
+  created_at        DateTime  @default(now())
+  name              String
+  is_ATL            Boolean
+  address_id        Int
+  in_charge         Json?
+  correspondent     Json?
+  principal         Json?
+  syllabus          String[]
+  website_url       String?
+  paid_subscription Boolean
+  social_links      String[]
+  address           Address   @relation(fields: [address_id], references: [id])
+  students          Student[]
+}
+
+model Student {
+  id                    Int                           @id @default(autoincrement())
+  created_at            DateTime                      @default(now())
+  first_name            String
+  last_name             String
+  aspiration            String
+  gender                String
+  email                 String?
+  class                 String
+  section               String
+  comments              String?
+  school_id             Int
+  user_id               String?
+  school                School                        @relation(fields: [school_id], references: [id])
+  user                  User?                         @relation(fields: [user_id], references: [id])
+  customised_activities CustomisedTinkeringActivity[]
+  CustomisedCompetition CustomisedCompetition[]
+}
+
+model Subject {
+  id           Int      @id @default(autoincrement())
+  created_at   DateTime @default(now())
+  subject_name String   @unique
+  topics       Topic[]
+}
+
+model Topic {
+  id         Int        @id @default(autoincrement())
+  created_at DateTime   @default(now())
+  topic_name String
+  subject_id Int
+  subtopics  Subtopic[]
+  subject    Subject    @relation(fields: [subject_id], references: [id])
+}
+
+model Subtopic {
+  id                          Int                           @id @default(autoincrement())
+  created_at                  DateTime                      @default(now())
+  subtopic_name               String
+  topic_id                    Int
+  topic                       Topic                         @relation(fields: [topic_id], references: [id])
+  tinkering_activities        TinkeringActivity[]
+  CustomisedTinkeringActivity CustomisedTinkeringActivity[]
+}
+
+model TinkeringActivity {
+  id                          Int                           @id @default(autoincrement())
+  created_at                  DateTime                      @default(now())
+  name                        String
+  subtopic_id                 Int
+  introduction                String
+  goals                       String[]
+  materials                   String[]
+  instructions                String[]
+  tips                        String[]
+  observations                String[]
+  extensions                  String[]
+  resources                   String[]
+  subtopic                    Subtopic                      @relation(fields: [subtopic_id], references: [id])
+  CustomisedTinkeringActivity CustomisedTinkeringActivity[]
+}
+
+model Competition {
+  id                     Int                     @id @default(autoincrement())
+  name                   String
+  description            String
+  eligibility            String[]
+  requirements           String[]
+  fee                    String?
+  payment                String
+  application_end_date   DateTime
+  application_start_date DateTime
+  competition_end_date   DateTime
+  competition_start_date DateTime
+  created_at             DateTime                @default(now())
+  organised_by           String
+  reference_links        String[]
+  updated_at             DateTime                @updatedAt
+  CustomisedCompetition  CustomisedCompetition[]
+}
+
+model CustomisedTinkeringActivity {
+  id           Int               @id @default(autoincrement())
+  created_at   DateTime          @default(now())
+  name         String
+  subtopic_id  Int
+  introduction String
+  goals        String[]
+  materials    String[]
+  instructions String[]
+  tips         String[]
+  observations String[]
+  extensions   String[]
+  resources    String[]
+  base_ta_id   Int
+  student_id   Int
+  status       String[]
+  subtopic     Subtopic          @relation(fields: [subtopic_id], references: [id])
+  base_ta      TinkeringActivity @relation(fields: [base_ta_id], references: [id])
+  student      Student           @relation(fields: [student_id], references: [id])
+}
+
+model CustomisedCompetition {
+  id             Int         @id @default(autoincrement())
+  created_at     DateTime    @default(now())
+  competition_id Int
+  student_id     Int
+  status         String[]
+  competition    Competition @relation(fields: [competition_id], references: [id])
+  student        Student     @relation(fields: [student_id], references: [id])
+}
