@@ -1,6 +1,5 @@
 import React from "react";
 
-
 type Field = {
   name: string;
   label: string;
@@ -41,7 +40,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 rows={field.rows || 4}
                 required={field.required}
-                className="p-3 border border-red-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
               />
             ) : (
               <input
