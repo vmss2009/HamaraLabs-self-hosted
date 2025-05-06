@@ -40,7 +40,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 rows={field.rows || 4}
                 required={field.required}
-                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
               />
             ) : (
               <input
@@ -48,7 +48,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 type={field.type || "text"}
                 required={field.required}
-                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             )}
           </div>
