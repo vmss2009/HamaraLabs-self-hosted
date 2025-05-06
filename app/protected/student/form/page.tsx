@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TextFieldGroup from "@/app/components/forms/TextFieldGroup";
+import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 import SelectField from "@/components/forms/SelectField";
