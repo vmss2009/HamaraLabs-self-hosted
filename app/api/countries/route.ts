@@ -4,6 +4,7 @@ import { getCountries } from "@/lib/db/location/crud";
 export async function GET() {
   try {
     const countries = await getCountries();
+  
     
     return NextResponse.json(countries);
   } catch (error) {
