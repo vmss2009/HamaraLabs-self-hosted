@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
+import { use } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
+import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import { useRouter } from "next/navigation";
 
-
-export default function StudentForm() {
+export default function EditStudentForm({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const [schools, setSchools] = useState<Array<{ id: number; name: string }>>([]);
   const [error, setError] = useState<string | null>(null);
@@ -17,23 +18,48 @@ export default function StudentForm() {
   const [selectedSchool, setSelectedSchool] = useState<string>("");
   const [gender, setGender] = useState<string>("");
 
-  // Fetch schools on component mount
-  useEffect(() => { 
-    const fetchSchools = async () => {
+  // Fetch schools and student data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/schools");
-        if (!response.ok) {
+        // Fetch schools
+        const schoolsResponse = await fetch("/api/schools");
+        if (!schoolsResponse.ok) {
           throw new Error("Failed to fetch schools");
         }
-        const data = await response.json();
-        setSchools(data);
+        const schoolsData = await schoolsResponse.json();
+        setSchools(schoolsData);
+
+        // Fetch student data
+        const studentResponse = await fetch(`/api/students/${resolvedParams.id}`);
+        if (!studentResponse.ok) {
+          throw new Error("Failed to fetch student data");
+        }
+        const studentData = await studentResponse.json();
+        
+        // Set form data
+        setSelectedSchool(studentData.school_id.toString());
+        setGender(studentData.gender);
+
+        // Set form field values
+        const form = document.querySelector('form') as HTMLFormElement;
+        if (form) {
+          form.firstName.value = studentData.first_name;
+          form.lastName.value = studentData.last_name;
+          form.email.value = studentData.email;
+          form.class.value = studentData.class;
+          form.section.value = studentData.section;
+          form.aspiration.value = studentData.aspiration;
+          form.comments.value = studentData.comments || '';
+        }
       } catch (error) {
-        console.error("Error fetching schools:", error);
+        setError("Error loading data. Please try again.");
+        console.error(error);
       }
     };
 
-    fetchSchools();
-  }, []);
+    fetchData();
+  }, [resolvedParams.id]);
 
   // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
@@ -56,8 +82,8 @@ export default function StudentForm() {
         comments: formData.get("comments"),
       };
 
-      const response = await fetch("/api/students", {
-        method: "POST",
+      const response = await fetch(`/api/students/${resolvedParams.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -66,7 +92,7 @@ export default function StudentForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
+        throw new Error(errorData.message || "Failed to update student");
       }
 
       router.push("/protected/student/report");
@@ -82,19 +108,15 @@ export default function StudentForm() {
   };
 
   return (
-    <div className="flex items-center justify-center w-screen min-h-screen bg-gradient-to-br from-blue-200 via-blue-300 to-teal-400">
-      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl pb-3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            Student Registration
-          </h1>
-          <p className="mt-2 text-gray-700">
-            Fill out the form below to register a new student.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 py-10">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+          <h1 className="text-3xl font-semibold text-gray-900">Edit Student</h1>
+          <p className="text-gray-600 mt-2">Update the student information below.</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 animate-pulse">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
@@ -105,22 +127,19 @@ export default function StudentForm() {
             <SelectField
               label="Select School"
               name="school"
-              options={
-                schools.map((school) => ({
-                  value: school.id.toString(),
-                  label: school.name,
-                }))
-              }
+              options={schools.map((school) => ({
+                value: school.id.toString(),
+                label: school.name,
+              }))}
               value={selectedSchool}
               onChange={(e) => setSelectedSchool(e.target.value)}
               required
-              className="w-full px-4 py-2rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
             />
           </FormSection>
 
           {/* Basic Information */}
           <FormSection title="Basic Information">
-          <TextFieldGroup
+            <TextFieldGroup
               fields={[
                 { name: "firstName", label: "First Name", required: true },
                 { name: "lastName", label: "Last Name", required: true },
@@ -128,37 +147,42 @@ export default function StudentForm() {
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
                 { name: "aspiration", label: "Aspiration", required: true },
-                { name: "comments", label: "Comments", required: false,multiline:true, rows:3 }
-
+                { name: "comments", label: "Comments", required: false }
               ]}
-           />
-           <RadioButtonGroup
+            />
+            <RadioButtonGroup
               legend="Gender"
               name="gender"
               options={[
                 { value: "Male", label: "Male" },
                 { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" }
+                { value: "Other", label: "Other" },
               ]}
               value={gender}
               onChange={(value) => setGender(value)}
               required
-              className="mt-5"
-             
             />
-            <div className="flex justify-end mt-6">
-              <Button
-                type="submit"
-                isLoading={isLoading}
-                size="lg"
-                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-              >
-                Submit
-              </Button>
-            </div>
           </FormSection>
+
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              onClick={() => router.push("/protected/student/report")}
+              variant="outline"
+              size="lg"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+            >
+              Update Student
+            </Button>
+          </div>
         </form>
       </div>
     </div>
   );
-}
+} 
