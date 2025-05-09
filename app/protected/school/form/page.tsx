@@ -204,8 +204,14 @@ export default function SchoolForm() {
     }
   };
 
-  // Convert data for select components
-  const countryOptions = countries.map(country => ({
+  const sortedCountries = [...countries].sort((a, b) => {
+    if (a.country_name === "India") return -1;  
+    if (b.country_name === "India") return 1;
+    return 0; 
+  });
+  
+
+  const countryOptions = sortedCountries.map(country => ({
     value: country.id.toString(),
     label: country.country_name
   }));

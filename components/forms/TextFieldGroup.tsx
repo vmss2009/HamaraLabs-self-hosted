@@ -1,41 +1,61 @@
-'use client';
+import React from "react";
 
-import React from 'react';
-import { Input } from '@/components/ui/Input';
-
-interface Field {
+type Field = {
   name: string;
   label: string;
-  type?: string;
   required?: boolean;
-  placeholder?: string;
-}
+  type?: string;
+  multiline?: boolean;
+  rows?: number;
+};
 
 interface TextFieldGroupProps {
   fields: Field[];
-  className?: string;
 }
 
-const TextFieldGroup: React.FC<TextFieldGroupProps> = ({
-  fields,
-  className = '',
-}) => {
+function TextFieldGroup({ fields }: TextFieldGroupProps) {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 ${className}`}>
-      {fields.map((field) => (
-        <div key={field.name} className="w-full">
-          <Input
-            name={field.name}
-            label={field.label}
-            type={field.type || 'text'}
-            required={field.required}
-            placeholder={field.placeholder}
-            className="focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-      ))}
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      {fields.map((field) => {
+        const wrapperClasses = [
+          "flex flex-col",
+          field.name === "comments" ? "md:col-span-2" : ""
+        ].join(" ");
+
+        return (
+          <div key={field.name} className={wrapperClasses}>
+            <label
+              htmlFor={field.name}
+              className="mb-2 font-semibold text-gray-700"
+            >
+              {field.label}
+              {field.required && (
+                <span className="text-red-500 ml-1">*</span>
+              )}
+            </label>
+
+            {field.multiline ? (
+              <textarea
+                id={field.name}
+                name={field.name}
+                rows={field.rows || 4}
+                required={field.required}
+                className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+              />
+            ) : (
+              <input
+                id={field.name}
+                name={field.name}
+                type={field.type || "text"}
+                required={field.required}
+                className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
-};
+}
 
-export default TextFieldGroup; 
+export default TextFieldGroup;
