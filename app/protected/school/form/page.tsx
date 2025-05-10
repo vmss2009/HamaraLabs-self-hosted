@@ -240,7 +240,10 @@ export default function SchoolForm() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-blue-50 min-h-screen rounded-xl">
+    <div className="bg-gray-500 w-screen flex justify-center items-center">
+
+   
+    <div className="max-w-5xl m-10 mx-auto py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-blue-50 min-h-screen rounded-xl">
       <div className="mb-8 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
         <h1 className="text-3xl font-bold text-blue-800 mb-2">School Registration</h1>
         <p className="text-gray-600">Fill out the form below to register your school</p>
@@ -497,6 +500,7 @@ export default function SchoolForm() {
             </Button>
           </div>
       </form>
+    </div>
     </div>
   );
 }
