@@ -9,16 +9,23 @@ export default function CourseRegistrationForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [applicationStartDate, setApplicationStartDate] = useState<Date | null>(null);
-  const [applicationEndDate, setApplicationEndDate] = useState<Date | null>(null);
-  const [courseStartDate, setCourseStartDate] = useState<Date | null>(null);
-  const [courseEndDate, setCourseEndDate] = useState<Date | null>(null);
+  const [applicationStartDate, setApplicationStartDate] = useState("");
+  const [applicationEndDate, setApplicationEndDate] = useState("");
+  const [courseStartDate, setCourseStartDate] = useState("");
+  const [courseEndDate, setCourseEndDate] = useState("");
 
 
   const onsubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    const formatDate = (dateString: string) => {
+      if (!dateString) return null;
+      // Create a date object and convert to ISO string
+      const date = new Date(dateString);
+      return date.toISOString();
+    };
 
     try {
       if (!formRef.current) throw new Error("Form reference is not available.");
@@ -29,10 +36,10 @@ export default function CourseRegistrationForm() {
         name: formData.get("name"),
         description: formData.get("description"),
         organizedBy: formData.get("organizedBy"),
-        applicationStartDate: applicationStartDate?.toISOString().split("T")[0],
-        applicationEndDate: applicationEndDate?.toISOString().split("T")[0],
-        courseStartDate: courseStartDate?.toISOString().split("T")[0],
-        courseEndDate: courseEndDate?.toISOString().split("T")[0],
+        application_start_date: formatDate(applicationStartDate),
+        application_end_date: formatDate(applicationEndDate),
+        courseStartDate: formatDate(courseStartDate),
+        courseEndDate:  formatDate(courseEndDate),
         eligibilityFrom: formData.get("eligibilityFrom"),
         eligibilityTo: formData.get("eligibilityTo"),
         referenceLink: formData.get("referenceLink"),
