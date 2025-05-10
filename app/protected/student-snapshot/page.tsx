@@ -758,7 +758,10 @@ export default function StudentSnapshot() {
   });
 
   return (
-    <div className="p-6">
+    <div className="bg-slate-500 w-screen h-screen flex justify-center ">
+
+   
+    <div className=" p-6 ">
       {error && (
         <Alert 
           severity="error" 
@@ -769,7 +772,7 @@ export default function StudentSnapshot() {
         </Alert>
       )}
 
-      <div className="flex items-start space-x-4 mb-6">
+      <div className="mt-10 flex items-start space-x-4 mb-6">
         <div>
           <label className="block text-sm font-medium text-white mb-1">
             School:
@@ -1529,6 +1532,7 @@ export default function StudentSnapshot() {
           </Button>
         </DialogActions>
       </Dialog>
+    </div>
     </div>
   );
 } 
