@@ -271,7 +271,7 @@ export default function SchoolForm() {
                     placeholder: "Enter school name"
                   }
                 ]}
-                className="mb-4"
+             
               />
             </div>
             
@@ -304,7 +304,7 @@ export default function SchoolForm() {
                   placeholder: "Enter address line 2 (optional)"
                 }
               ]}
-              className="mb-5"
+            
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
@@ -467,7 +467,6 @@ export default function SchoolForm() {
                   placeholder: "Enter website URL"
                 }
               ]}
-              className="mb-5"
             />
             
             <RadioButtonGroup

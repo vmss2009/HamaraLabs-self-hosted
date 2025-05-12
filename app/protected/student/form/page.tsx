@@ -81,8 +81,9 @@ export default function StudentForm() {
     }
   };
 
+  // bg-gradient-to-br from-blue-200 via-blue-300 to-teal-400
   return (
-    <div className="flex items-center justify-center w-screen min-h-screen bg-gradient-to-br from-blue-200 via-blue-300 to-teal-400">
+    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-8 text-center">
           <h1 className="text-4xl pb-3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
