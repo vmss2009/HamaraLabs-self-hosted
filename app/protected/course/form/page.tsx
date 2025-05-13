@@ -49,7 +49,7 @@ export default function CourseRegistrationForm() {
       console.log("Submitted Course Data:", courseData);
 
       // API submission can be added here
-      try {
+      
         const response = await fetch('/api/courses', { 
           method: 'POST',
           headers: {
@@ -57,41 +57,22 @@ export default function CourseRegistrationForm() {
           },
           body: JSON.stringify(courseData),
         });
-
-
-        // First check if the response was ok before parsing JSON
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Server returned an error:', errorText);
-          alert('Failed to add course: ' + response.statusText);
-          return;
+          
+       if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to submit the form");
         }
-
-        const result = await response.json();
-        if (result.success) {
-          alert('Course added successfully!');
-        } else {
-          alert('Failed to add course.');
-        }
-      } catch (error) {
-        console.error('Submission error:', error);
-        alert('Something went wrong during submission.');
-      }
-
 
     }
-
     catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unexpected error occurred");
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
+      } finally {
+        setIsLoading(false);
       }
-    }
-
-    finally {
-      setIsLoading(false);
-    }
   };
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);

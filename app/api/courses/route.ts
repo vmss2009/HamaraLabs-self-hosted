@@ -40,9 +40,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, course: newCourse }, { status: 201 });
-  } catch (error) {
-    console.error('[API Error]', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(newCourse, { status: 201 });
+  } catch (error: any) {
+    console.error("Error creating course:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
   }
 }

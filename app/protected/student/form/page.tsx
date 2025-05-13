@@ -64,21 +64,21 @@ export default function StudentForm() {
         body: JSON.stringify(studentData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
-      }
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to submit the form");
+        }
 
-      router.push("/protected/student/report");
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unexpected error occurred");
+        router.push("/protected/student/report");
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // bg-gradient-to-br from-blue-200 via-blue-300 to-teal-400
