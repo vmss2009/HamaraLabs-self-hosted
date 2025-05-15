@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Create a new course
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -35,10 +36,11 @@ export async function POST(req: NextRequest) {
         eligibility_from,
         eligibility_to,
         reference_link,
-        requirements,
-        course_tags,
+        requirements: typeof requirements === 'string' ? requirements.split(',').map((r: string) => r.trim()) : requirements,
+        course_tags: typeof course_tags === 'string' ? course_tags.split(',').map((t: string) => t.trim()) : course_tags,
       },
     });
+
 
     return NextResponse.json(newCourse, { status: 201 });
   } catch (error: any) {
@@ -49,3 +51,18 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// Get all courses
+export async function GET(req: NextRequest) {
+  try {
+    const courses = await prisma.course.findMany();
+    return NextResponse.json(courses, { status: 200 });
+  } catch (error: any) {
+    console.error("Error fetching courses from DB:", error); // 👈 Log full error
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
+}
+

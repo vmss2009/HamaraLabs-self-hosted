@@ -2,187 +2,428 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
-import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import { useRouter } from "next/navigation";
 
-export default function EditStudentForm({ params }: { params: Promise<{ id: string }> }) {
+export default function EditCourseForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>([]);
+
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedSchool, setSelectedSchool] = useState<string>("");
-  const [gender, setGender] = useState<string>("");
 
-  // Fetch schools and student data on component mount
+  // Individual state variables
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [organizedBy, setOrganizedBy] = useState("");
+  const [applicationStartDate, setApplicationStartDate] = useState("");
+  const [applicationEndDate, setApplicationEndDate] = useState("");
+  const [courseStartDate, setCourseStartDate] = useState("");
+  const [courseEndDate, setCourseEndDate] = useState("");
+  const [eligibilityFrom, setEligibilityFrom] = useState("");
+  const [eligibilityTo, setEligibilityTo] = useState("");
+  const [referenceLink, setReferenceLink] = useState("");
+  const [requirements, setRequirements] = useState([""]);
+  const [courseTags, setCourseTags] = useState([""]);
+
+
+  const formatDate = (dateStr: string | undefined | null): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`; // ✅ format for input[type="date"]
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCourse = async () => {
       try {
-        // Fetch schools
-        const schoolsResponse = await fetch("/api/schools");
-        if (!schoolsResponse.ok) {
-          throw new Error("Failed to fetch schools");
-        }
-        const schoolsData = await schoolsResponse.json();
-        setSchools(schoolsData);
+        const res = await fetch(`/api/courses/${resolvedParams.id}`);
+        if (!res.ok) throw new Error("Failed to fetch course data");
+        const data = await res.json();
+        console.log(data);
 
-        // Fetch student data
-        const studentResponse = await fetch(`/api/students/${resolvedParams.id}`);
-        if (!studentResponse.ok) {
-          throw new Error("Failed to fetch student data");
-        }
-        const studentData = await studentResponse.json();
-        
-        // Set form data
-        setSelectedSchool(studentData.school_id.toString());
-        setGender(studentData.gender);
-
-        // Set form field values
-        const form = document.querySelector('form') as HTMLFormElement;
-        if (form) {
-          form.firstName.value = studentData.first_name;
-          form.lastName.value = studentData.last_name;
-          form.email.value = studentData.email;
-          form.class.value = studentData.class;
-          form.section.value = studentData.section;
-          form.aspiration.value = studentData.aspiration;
-          form.comments.value = studentData.comments || '';
-        }
-      } catch (error) {
-        setError("Error loading data. Please try again.");
-        console.error(error);
+        setName(data.name || "");
+        setDescription(data.description || "");
+        setOrganizedBy(data.organized_by || "");
+        setApplicationStartDate(formatDate(data.application_start_date));
+        setApplicationEndDate(formatDate(data.application_end_date));
+        setCourseStartDate(formatDate(data.course_start_date));
+        setCourseEndDate(formatDate(data.course_end_date));
+        setEligibilityFrom(data.eligibility_from || "");
+        setEligibilityTo(data.eligibility_to || "");
+        setReferenceLink(data.reference_link || "");
+        setRequirements(data.requirements || [""]);
+        setCourseTags(data.course_tags || [""]);
+        console.log("test", organizedBy);
+      } catch (err) {
+        setError("Failed to load course. Try again.");
+        console.error(err);
       }
     };
 
-    fetchData();
+    fetchCourse();
   }, [resolvedParams.id]);
 
-  // Form submission handler
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  // Requirement handlers
+  const handleRequirementChange = (index: number, value: string) => {
+    const newRequirements = [...requirements];
+    newRequirements[index] = value;
+    setRequirements(newRequirements);
+  };
+
+  const addRequirement = () => {
+    setRequirements([...requirements, ""]);
+  };
+
+  const removeRequirement = (index: number) => {
+    if (requirements.length === 1) return; // keep at least one input
+    setRequirements(requirements.filter((_, i) => i !== index));
+  };
+
+  // CourseTags handlers
+  const handleTagChange = (index: number, value: string) => {
+    const newTags = [...courseTags];
+    newTags[index] = value;
+    setCourseTags(newTags);
+  };
+
+  const addTag = () => {
+    setCourseTags([...courseTags, ""]);
+  };
+
+  const removeTag = (index: number) => {
+    if (courseTags.length === 1) return; // keep at least one input
+    setCourseTags(courseTags.filter((_, i) => i !== index));
+  };
+
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      const formData = new FormData(event.target as HTMLFormElement);
-      
-      const studentData = {
-        schoolId: parseInt(selectedSchool),
-        first_name: formData.get("firstName"),
-        last_name: formData.get("lastName"),
-        gender: formData.get("gender"),
-        aspiration: formData.get("aspiration"),
-        email: formData.get("email"),
-        class: formData.get("class"),
-        section: formData.get("section"),
-        comments: formData.get("comments"),
+      const formData = new FormData(e.currentTarget);
+      const updatedCourse = {
+        name: formData.get("name"),
+        description: formData.get("description"),
+        organized_by: formData.get("organizedBy"),
+        application_start_date: formData.get("applicationStartDate"),
+        application_end_date: formData.get("applicationEndDate"),
+        course_start_date: formData.get("courseStartDate"),
+        course_end_date: formData.get("courseEndDate"),
+        eligibility_from: formData.get("eligibilityFrom"),
+        eligibility_to: formData.get("eligibilityTo"),
+        reference_link: formData.get("referenceLink"),
+        requirements,
+        course_tags: courseTags,
       };
 
-      const response = await fetch(`/api/students/${resolvedParams.id}`, {
+      const res = await fetch(`/api/courses/${resolvedParams.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(studentData),
+        body: JSON.stringify(updatedCourse),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update student");
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Update failed");
       }
 
-      router.push("/protected/student/report");
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unexpected error occurred");
-      }
+      router.push("/protected/course/report");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 py-10">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
-          <h1 className="text-3xl font-semibold text-gray-900">Edit Student</h1>
-          <p className="text-gray-600 mt-2">Update the student information below.</p>
-        </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={onSubmit} className="space-y-8">
-          {/* School Selection */}
-          <FormSection title="School Information">
-            <SelectField
-              label="Select School"
-              name="school"
-              options={schools.map((school) => ({
-                value: school.id.toString(),
-                label: school.name,
-              }))}
-              value={selectedSchool}
-              onChange={(e) => setSelectedSchool(e.target.value)}
-              required
-            />
-          </FormSection>
+    <div>
 
-          {/* Basic Information */}
+
+
+      <div className="w-screen flex flex-col justify-center items-center bg-slate-400">
+        {error && <div className="text-center text-red-900 mt-5">{error}</div>}
+
+        <form
+          onSubmit={onSubmit}
+          className="w-full ml-10 mr-10 md:ml-0 md:mr-0 md:w-1/2 mx-auto my-5 px-8 py-10 bg-blue-50 text-gray-800 shadow-2xl rounded-3xl space-y-10 border border-gray-200"
+        >
+          <h2 className="text-4xl font-extrabold text-center text-indigo-700 mb-6">
+            Edit course form
+          </h2>
           <FormSection title="Basic Information">
-            <TextFieldGroup
-              fields={[
-                { name: "firstName", label: "First Name", required: true },
-                { name: "lastName", label: "Last Name", required: true },
-                { name: "email", label: "Email", type: "email", required: true },
-                { name: "class", label: "Class", required: true },
-                { name: "section", label: "Section", required: true },
-                { name: "aspiration", label: "Aspiration", required: true },
-                { name: "comments", label: "Comments", required: false }
-              ]}
-            />
-            <RadioButtonGroup
-              legend="Gender"
-              name="gender"
-              options={[
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" },
-              ]}
-              value={gender}
-              onChange={(value) => setGender(value)}
-              required
-            />
+
+            <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
+              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">Basic Information</h3>
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Course Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={description}
+                  rows={4}
+                  onChange={e => setDescription(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="organizedBy" className="block mb-2 text-sm font-medium text-gray-700">
+                  Organized By
+                </label>
+                <select
+                  id="organizedBy"
+                  name="organizedBy"
+                  value={organizedBy}
+                  onChange={(e) => setOrganizedBy(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl">
+                  <option value="">Select</option>
+                  <option value="university">University</option>
+                  <option value="company">Company</option>
+                  <option value="organization">Organization</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div>
+                  <label htmlFor="applicationStartDate" className="block text-sm font-medium text-gray-700">Application Start Date</label>
+                  <input
+                    type="date"
+                    id="applicationStartDate"
+                    name="applicationStartDate"
+                    value={applicationStartDate}
+                    onChange={e => setApplicationStartDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="applicationEndDate" className="block text-sm font-medium text-gray-700">Application End Date</label>
+                  <input
+                    type="date"
+                    id="applicationEndDate"
+                    name="applicationEndDate"
+                    value={applicationEndDate}
+                    onChange={e => setApplicationEndDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div>
+                  <label htmlFor="courseStartDate" className="block text-sm font-medium text-gray-700">Course Start Date</label>
+                  <input
+                    type="date"
+                    id="courseStartDate"
+                    name="courseStartDate"
+                    value={courseStartDate}
+                    onChange={e => setCourseStartDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="courseEndDate" className="block text-sm font-medium text-gray-700">Course End Date</label>
+                  <input
+                    type="date"
+                    id="courseEndDate"
+                    name="courseEndDate"
+                    value={courseEndDate}
+                    onChange={e => setCourseEndDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
+                  />
+                </div>
+              </div>
+
+            </div>
           </FormSection>
 
-          <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              onClick={() => router.push("/protected/student/report")}
-              variant="outline"
-              size="lg"
-            >
+          {/* Eligibility */}
+          <FormSection title="Eligibility">
+            <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
+              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Eligibility</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
+                <div>
+                  <label htmlFor="eligibilityFrom" className="block mb-2 text-sm font-medium text-gray-700">
+                    Eligibility From
+                  </label>
+                  <select
+                    id="eligibilityFrom"
+                    name="eligibilityFrom"
+                    value={eligibilityFrom}
+                    onChange={(e) => setEligibilityFrom(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  >
+                    <option value="">Select</option>
+                    <option value="10th">10th</option>
+                    <option value="12th">12th</option>
+                    <option value="graduate">Graduate</option>
+                  </select>
+                </div>
+
+
+                <div>
+                  <label htmlFor="eligibilityTo" className="block mb-2 text-sm font-medium text-gray-700">
+                    Eligibility To
+                  </label>
+                  <select
+                    id="eligibilityTo"
+                    name="eligibilityTo"
+                    value={eligibilityTo}
+                    onChange={(e) => setEligibilityTo(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  >
+                    <option value="">Select</option>
+                    <option value="12th">12th</option>
+                    <option value="graduate">Graduate</option>
+                    <option value="postgraduate">Postgraduate</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </FormSection>
+
+
+          <FormSection title="Requirements & Tags">
+            <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
+              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Additional Details</h3>
+
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
+
+                <div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-4">Requirements</h4>
+                  <div className="space-y-4">
+                    {requirements.map((requirement, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={requirement}
+                          onChange={(e) => handleRequirementChange(index, e.target.value)}
+                          placeholder={`Requirement ${index + 1}`}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
+                        />
+                        {index === requirements.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={addRequirement}
+                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
+                            aria-label="Add Requirement"
+                          >
+                            +
+                          </button>
+                        )}
+                        {requirements.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeRequirement(index)}
+                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
+                            aria-label="Remove Requirement"
+                          >
+                            −
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Course Tags Section */}
+                <div className="">
+                  <h4 className="text-lg font-medium text-gray-700 mb-4">Course Tags</h4>
+                  <div className="space-y-4">
+                    {courseTags.map((tag, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={tag}
+                          onChange={(e) => handleTagChange(index, e.target.value)}
+                          placeholder={`Tag ${index + 1}`}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
+                        />
+                        {index === courseTags.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={addTag}
+                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
+                            aria-label="Add Tag"
+                          >
+                            +
+                          </button>
+                        )}
+                        {courseTags.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeTag(index)}
+                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
+                            aria-label="Remove Tag"
+                          >
+                            −
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </FormSection>
+
+          <FormSection title="Reference">
+            <div>
+              <label htmlFor="referenceLink" className="block text-sm font-medium text-gray-700">Reference Link</label>
+              <input
+                type="url"
+                id="referenceLink"
+                name="referenceLink"
+                value={referenceLink}
+                onChange={e => setReferenceLink(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+              />
+            </div>
+          </FormSection>
+
+
+          <div className="flex justify-end gap-4">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-            >
-              Update Student
+            <Button type="submit" isLoading={isLoading}>
+              Update Course
             </Button>
           </div>
         </form>
       </div>
     </div>
   );
-} 
+}

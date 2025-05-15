@@ -18,6 +18,8 @@ export default function CourseRegistrationForm() {
   const [eligibilityFrom, setEligibilityFrom] = useState("");
   const [eligibilityTo, setEligibilityTo] = useState("");
   const [referenceLink, setReferenceLink] = useState("");
+  const [requirements, setRequirements] = useState([""]);
+  const [courseTags, setCourseTags] = useState([""]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return null;
@@ -31,20 +33,20 @@ export default function CourseRegistrationForm() {
     setError(null);
 
     try {
-      const courseData = {
-        name,
-        description,
-        organized_by: organizedBy,
-        application_start_date: formatDate(applicationStartDate),
-        application_end_date: formatDate(applicationEndDate),
-        course_start_date: formatDate(courseStartDate),
-        course_end_date: formatDate(courseEndDate),
-        eligibility_from: eligibilityFrom,
-        eligibility_to: eligibilityTo,
-        reference_link: referenceLink,
-        requirements: requirements.filter((r) => r.trim() !== ""),
-        course_tags: courseTags.filter((tag) => tag.trim() !== ""),
-      };
+        const courseData = {
+          name,
+          description,
+          organized_by: organizedBy,
+          application_start_date: formatDate(applicationStartDate),
+          application_end_date: formatDate(applicationEndDate),
+          course_start_date: formatDate(courseStartDate),
+          course_end_date: formatDate(courseEndDate),
+          eligibility_from: eligibilityFrom,
+          eligibility_to: eligibilityTo,
+          reference_link: referenceLink,
+          requirements: requirements.filter((r) => r.trim() !== ""),
+          course_tags: courseTags.filter((tag) => tag.trim() !== ""),
+        };
 
       console.log("Submitted Course Data:", courseData);
 
@@ -74,8 +76,7 @@ export default function CourseRegistrationForm() {
         setIsLoading(false);
       }
   };
-  const [requirements, setRequirements] = useState([""]);
-  const [courseTags, setCourseTags] = useState([""]);
+ 
 
   const handleRequirementChange = (index: number, value: string) => {
     const updated = [...requirements];
