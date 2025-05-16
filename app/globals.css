@@ -3,6 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* hide-scrollbar.css */
+
+.no-scrollbar {
+  /* for Firefox */
+  scrollbar-width: none;
+  /* for IE, Edge */
+  -ms-overflow-style: none;
+}
+
+/* for Chrome, Safari, Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 
 :root {
   --background: #ffffff;
