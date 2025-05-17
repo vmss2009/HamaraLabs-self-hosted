@@ -96,7 +96,8 @@ export default function CompetitionForm() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="bg-gray-500 w-screen">
+    <div className="container mx-auto py-8 flex justify-center items-center">
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Competition</h1>
@@ -321,6 +322,7 @@ export default function CompetitionForm() {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 } 

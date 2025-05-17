@@ -168,8 +168,10 @@ export default function TinkeringActivityForm() {
   };
   
   return (
-    <div className="container mx-auto py-8">
-      <div className="bg-white rounded-xl shadow-sm p-6">
+
+     <div className="bg-gray-500 w-screen "> 
+    <div className="container mx-auto py-8 flex justify-center items-center">
+      <div className=" bg-white  rounded-xl shadow-sm p-6 ">
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Tinkering Activity</h1>
           <p className="text-gray-600 mt-2">Fill out the form below to add a new tinkering activity.</p>
@@ -398,6 +400,7 @@ export default function TinkeringActivityForm() {
           </div>
         </form>
       </div>
+    </div>  
     </div>
   );
 } 

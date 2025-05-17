@@ -151,7 +151,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
 
       <div className="w-screen flex flex-col justify-center items-center bg-slate-400">
-        {error && <div className="text-center text-red-900 mt-5">{error}</div>}
+        {error && <div className="text-center text-base font-bold text-red-800 mt-5">{error}</div>}
 
         <form
           onSubmit={onSubmit}

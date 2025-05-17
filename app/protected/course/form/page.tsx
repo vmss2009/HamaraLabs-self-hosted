@@ -111,15 +111,22 @@ export default function CourseRegistrationForm() {
   return (
 
     <div className="w-screen flex flex-col justify-center items-center bg-slate-400">
-      {error && (
+      {/* {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 animate-pulse">
-          {error}
+          {error}Hello
         </div>
-      )}
+      )} */}
+       
+        <div className="text-red-800 font-bold px-4 py-5 text-lg ">
+          Invalid error
+          
+        </div>
+      
+
 
       <form
         onSubmit={onSubmit}
-        className="w-full ml-10 mr-10 md:ml-0 md:mr-0 md:w-1/2 mx-auto my-5 px-8 py-10 bg-blue-50 text-gray-800 shadow-2xl rounded-3xl space-y-10 border border-gray-200"
+        className="w-full ml-10 mr-10 md:ml-0 md:mr-0 md:w-1/2 mx-auto my-1 px-8 py-10 bg-blue-50 text-gray-800 shadow-2xl rounded-3xl space-y-10 border border-gray-200"
       >
         <h2 className="text-4xl font-extrabold text-center text-indigo-700 mb-6">
           Course Registration

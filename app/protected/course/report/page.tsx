@@ -31,12 +31,12 @@ export default function CourseReport() {
       }
       let data = await response.json();
 
-      // Transform the fields into strings to display properly in the grid
-      data = data.map((course: any) => ({
-        ...course,
-        requirements: Array.isArray(course.requirements) ? course.requirements.join(", ") : course.requirements,
-        course_tags: Array.isArray(course.course_tags) ? course.course_tags.join(", ") : course.course_tags,
-      }));
+      // // Transform the fields into strings to display properly in the grid
+      // data = data.map((course: any) => ({
+      //   ...course,
+      //   requirements: Array.isArray(course.requirements) ? course.requirements.join(", ") : course.requirements,
+      //   course_tags: Array.isArray(course.course_tags) ? course.course_tags.join(", ") : course.course_tags,
+      // }));
 
       setCourses(data);
     } catch (error) {
@@ -126,170 +126,181 @@ export default function CourseReport() {
 
 
   return (
-   <div className="bg-gray-500 flex justify-center h-screen w-auto">
-    <div className="pt-20 pl-20">
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto ">
-        <DataGrid
-          rows={courses}
-          columns={columns}
-          loading={loading}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          pageSizeOptions={[5, 10, 25, 50]}
-          disableRowSelectionOnClick
-          autoHeight
-          onRowClick={handleRowClick}
-          sx={{
-            borderRadius: "12px",
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f3f4f6",
-              color: "#1f2937",
+    <div className="bg-gray-500 flex justify-center h-screen w-auto">
+      <div className="pt-20 pl-20">
+        <div className="bg-white rounded-xl shadow-sm overflow-x-auto ">
+          <DataGrid
+            rows={courses}
+            columns={columns}
+            loading={loading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50]}
+            disableRowSelectionOnClick
+            autoHeight
+            onRowClick={handleRowClick}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
+          />
+        </div>
+
+        <Drawer
+          anchor="right"
+          open={drawerOpen}
+          onClose={closeDrawer}
+          PaperProps={{
+            sx: {
+              width: "40%",
+              padding: 3,
+              backgroundColor: "#ffffff",
             },
           }}
-          slots={{
-            toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                <GridToolbarColumnsButton />
-              </GridToolbarContainer>
-            ),
-          }}
-        />
+        >
+          {selectedRow ? (
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
+                Course Details
+              </Typography>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Name:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.name)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Description:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.description)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Organized By:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.organized_by)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Application Start Date:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.application_start_date)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Application End Date:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.application_end_date)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Course Start Date:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.course_start_date)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Course End Date:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.course_end_date)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Eligibility From:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.eligibility_from)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Eligibility To:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.eligibility_to)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Reference Link:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.reference_link)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Requirements:
+                </Typography>
+                {Array.isArray(selectedRow.requirements) ? (
+                  (selectedRow.requirements as string[]).map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <Typography>{formatValue(selectedRow.requirements)}</Typography>
+                )}
+
+              </Box>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  Course Tags:
+                </Typography>
+                 {Array.isArray(selectedRow.course_tags) ? (
+                  (selectedRow.course_tags as string[]).map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <Typography>{formatValue(selectedRow.course_tags)}</Typography>
+                )}
+
+               </Box>
+
+
+            </Box>
+          ) : (
+            <Typography variant="body1">No course selected.</Typography>
+          )}
+        </Drawer>
       </div>
-
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={closeDrawer}
-        PaperProps={{
-          sx: {
-            width: "40%",
-            padding: 3,
-            backgroundColor: "#ffffff",
-          },
-        }}
-      >
-        {selectedRow ? (
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
-              Course Details
-            </Typography>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Name:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.name)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Description:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.description)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Organized By:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.organized_by)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Application Start Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.application_start_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Application End Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.application_end_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Course Start Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.course_start_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Course End Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.course_end_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Eligibility From:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.eligibility_from)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Eligibility To:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.eligibility_to)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Reference Link:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.reference_link)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Requirements:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.requirements)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Course Tags:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.course_tags)}
-              </Typography>
-            </Box>
-
-          </Box>
-        ) : (
-          <Typography variant="body1">No course selected.</Typography>
-        )}
-      </Drawer>
     </div>
-     </div>
   );
 }
