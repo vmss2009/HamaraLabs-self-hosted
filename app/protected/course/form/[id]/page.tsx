@@ -336,11 +336,12 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
           </FormSection>
 
 
+
           <FormSection title="Requirements & Tags">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Additional Details</h3>
 
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                 <div>
                   <h4 className="text-lg font-medium text-gray-700 mb-4">Requirements</h4>
