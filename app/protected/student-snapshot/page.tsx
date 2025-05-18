@@ -758,7 +758,7 @@ export default function StudentSnapshot() {
   });
 
   return (
-    <div className="bg-gray-500 w-screen h-screen flex justify-center ">
+    <div className="bg-slate-400 w-screen h-screen flex justify-center ">
 
    
     <div className=" p-6 ">
