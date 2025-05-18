@@ -143,7 +143,7 @@ export default function CourseRegistrationForm() {
 
       <form
         onSubmit={onSubmit}
-       className="space-y-8"
+       className="space-y-8 text-black"
       >
        
         {/* Basic Info */}
