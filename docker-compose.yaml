@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: hamaralabs
+      POSTGRES_PASSWORD: hamaralabs
+      POSTGRES_DB: hamaralabs
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  app:
+    image: ghcr.io/vmss2009/hamaralabs:v5
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env  # Load environment variables from .env file
+
+volumes:
+  db-data:
