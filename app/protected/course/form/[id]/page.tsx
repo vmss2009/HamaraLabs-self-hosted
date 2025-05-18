@@ -146,20 +146,42 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
   return (
 
 
-    <div>
+     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
+      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit course form</h1>
+        <p className="text-gray-600">Update the course form below</p>
+      </div>
+      
 
-
-
-      <div className="w-screen flex flex-col justify-center items-center bg-slate-400">
-        {error && <div className="text-center text-base font-bold text-red-800 mt-5">{error}</div>}
+      {error && (
+           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
+          </div>
+      )} 
 
         <form
           onSubmit={onSubmit}
-          className="w-full ml-10 mr-10 md:ml-0 md:mr-0 md:w-1/2 mx-auto my-5 px-8 py-10 bg-blue-50 text-gray-800 shadow-2xl rounded-3xl space-y-10 border border-gray-200"
+          className="space-y-8 text-black"
         >
-          <h2 className="text-4xl font-extrabold text-center text-indigo-700 mb-6">
-            Edit course form
-          </h2>
+    
           <FormSection title="Basic Information">
 
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">

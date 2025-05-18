@@ -169,20 +169,39 @@ export default function TinkeringActivityForm() {
   
   return (
 
-     <div className="bg-gray-500 w-screen "> 
-    <div className="container mx-auto py-8 flex justify-center items-center">
-      <div className=" bg-white  rounded-xl shadow-sm p-6 ">
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
+        <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Tinkering Activity</h1>
           <p className="text-gray-600 mt-2">Fill out the form below to add a new tinkering activity.</p>
         </div>
-        
+
+
         {error && (
-          <div className="bg-red-50 text-red-500 p-4 rounded-md mb-6">
-            {error}
+          <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
           </div>
         )}
-        
+
+      
+
         <form onSubmit={onSubmit} className="space-y-8">
           <FormSection title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
@@ -258,8 +277,10 @@ export default function TinkeringActivityForm() {
             </div>
           </FormSection>
           
-          <FormSection title="Activity Details">
+          <FormSection title="Activity Details" className="">
             <DynamicFieldArray
+              className="mb-5"
+              placeholder="Goal"
               values={goals}
               onChange={(index, value) => {
                 const newGoals = [...goals];
@@ -279,6 +300,8 @@ export default function TinkeringActivityForm() {
             />
             
             <DynamicFieldArray
+              placeholder="Material"
+              className="mb-5"
               values={materials}
               onChange={(index, value) => {
                 const newMaterials = [...materials];
@@ -298,6 +321,8 @@ export default function TinkeringActivityForm() {
             />
             
             <DynamicFieldArray
+            placeholder="Instruction"
+              className="mb-5"
               values={instructions}
               onChange={(index, value) => {
                 const newInstructions = [...instructions];
@@ -317,6 +342,8 @@ export default function TinkeringActivityForm() {
             />
             
             <DynamicFieldArray
+              className="mb-5"
+              placeholder="Tip"
               values={tips}
               onChange={(index, value) => {
                 const newTips = [...tips];
@@ -335,6 +362,8 @@ export default function TinkeringActivityForm() {
             />
             
             <DynamicFieldArray
+              className="mb-5"
+              placeholder="Observation"
               values={observations}
               onChange={(index, value) => {
                 const newObservations = [...observations];
@@ -353,6 +382,8 @@ export default function TinkeringActivityForm() {
             />
             
             <DynamicFieldArray
+              className="mb-5"
+              placeholder="Extension"
               values={extensions}
               onChange={(index, value) => {
                 const newExtensions = [...extensions];
@@ -371,6 +402,8 @@ export default function TinkeringActivityForm() {
             />
             
             <DynamicFieldArray
+              className="mb-5"
+              placeholder="Resourse"
               values={resources}
               onChange={(index, value) => {
                 const newResources = [...resources];
@@ -401,6 +434,6 @@ export default function TinkeringActivityForm() {
         </form>
       </div>
     </div>  
-    </div>
+   
   );
 } 

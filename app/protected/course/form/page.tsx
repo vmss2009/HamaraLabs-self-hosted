@@ -33,50 +33,50 @@ export default function CourseRegistrationForm() {
     setError(null);
 
     try {
-        const courseData = {
-          name,
-          description,
-          organized_by: organizedBy,
-          application_start_date: formatDate(applicationStartDate),
-          application_end_date: formatDate(applicationEndDate),
-          course_start_date: formatDate(courseStartDate),
-          course_end_date: formatDate(courseEndDate),
-          eligibility_from: eligibilityFrom,
-          eligibility_to: eligibilityTo,
-          reference_link: referenceLink,
-          requirements: requirements.filter((r) => r.trim() !== ""),
-          course_tags: courseTags.filter((tag) => tag.trim() !== ""),
-        };
+      const courseData = {
+        name,
+        description,
+        organized_by: organizedBy,
+        application_start_date: formatDate(applicationStartDate),
+        application_end_date: formatDate(applicationEndDate),
+        course_start_date: formatDate(courseStartDate),
+        course_end_date: formatDate(courseEndDate),
+        eligibility_from: eligibilityFrom,
+        eligibility_to: eligibilityTo,
+        reference_link: referenceLink,
+        requirements: requirements.filter((r) => r.trim() !== ""),
+        course_tags: courseTags.filter((tag) => tag.trim() !== ""),
+      };
 
       console.log("Submitted Course Data:", courseData);
 
       // API submission can be added here
-      
-        const response = await fetch('/api/courses', { 
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(courseData),
-        });
-          
-       if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to submit the form");
-        }
+
+      const response = await fetch('/api/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(courseData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit the form");
+      }
 
     }
     catch (error) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("An unexpected error occurred");
-        }
-      } finally {
-        setIsLoading(false);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred");
       }
+    } finally {
+      setIsLoading(false);
+    }
   };
- 
+
 
   const handleRequirementChange = (index: number, value: string) => {
     const updated = [...requirements];
@@ -110,28 +110,42 @@ export default function CourseRegistrationForm() {
 
   return (
 
-    <div className="w-screen flex flex-col justify-center items-center bg-slate-400">
-      {/* {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 animate-pulse">
-          {error}Hello
-        </div>
-      )} */}
-       
-        <div className="text-red-800 font-bold px-4 py-5 text-lg ">
-          Invalid error
-          
-        </div>
+     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
+      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h1 className="text-3xl font-bold text-blue-800 mb-2">Course Registration</h1>
+        <p className="text-gray-600">Fill out the form below to register your course</p>
+      </div>
       
 
+      {error && (
+           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
+          </div>
+      )} 
 
       <form
         onSubmit={onSubmit}
-        className="w-full ml-10 mr-10 md:ml-0 md:mr-0 md:w-1/2 mx-auto my-1 px-8 py-10 bg-blue-50 text-gray-800 shadow-2xl rounded-3xl space-y-10 border border-gray-200"
+       className="space-y-8"
       >
-        <h2 className="text-4xl font-extrabold text-center text-indigo-700 mb-6">
-          Course Registration
-        </h2>
-
+       
         {/* Basic Info */}
         <FormSection title="Basic Information">
           <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
@@ -372,6 +386,7 @@ export default function CourseRegistrationForm() {
           </Button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

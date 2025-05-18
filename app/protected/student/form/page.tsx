@@ -83,22 +83,44 @@ export default function StudentForm() {
 
   // bg-gradient-to-br from-blue-200 via-blue-300 to-teal-400
   return (
-    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+   <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl pb-3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h1 className="text-3xl font-bold text-blue-800 mb-2"> Student Registration</h1>
+        <p className="text-gray-600">Fill out the form below to register a new student.</p>
+      </div>
+      
+
+      {error && (
+           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
+          </div>
+      )} 
+
+         {/* <h1 className="text-4xl pb-3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
             Student Registration
           </h1>
           <p className="mt-2 text-gray-700">
             Fill out the form below to register a new student.
           </p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 animate-pulse">
-            {error}
-          </div>
-        )}
+        </div> */}
 
         <form onSubmit={onSubmit} className="space-y-8">
           {/* School Selection */}
