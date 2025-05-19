@@ -112,7 +112,7 @@ export default function EditStudentForm({ params }: { params: Promise<{ id: stri
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
       <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
         <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit student form</h1>
-        <p className="text-gray-600">Update the course form below</p>
+        <p className="text-gray-600">Update the student information below</p>
       </div>
       
 
