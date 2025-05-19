@@ -25,7 +25,7 @@ export default function CompetitionForm() {
   const [competitionEndDate, setCompetitionEndDate] = useState("");
   const [payment, setPayment] = useState("free");
   const [fee, setFee] = useState("");
-  
+
   // State for dynamic field arrays
   const [eligibility, setEligibility] = useState<string[]>([]);
   const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
@@ -66,7 +66,7 @@ export default function CompetitionForm() {
         payment,
         fee: payment === "paid" ? fee : null
       };
-      
+
       const response = await fetch("/api/competitions", {
         method: "POST",
         headers: {
@@ -74,12 +74,12 @@ export default function CompetitionForm() {
         },
         body: JSON.stringify(competitionData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit the form");
       }
-      
+
       setSuccess(true);
       setTimeout(() => {
         router.push("/protected/competition/report");
@@ -96,25 +96,43 @@ export default function CompetitionForm() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
+        <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Competition</h1>
           <p className="text-gray-600 mt-2">Fill out the form below to add a new competition.</p>
         </div>
-        
+
+
         {error && (
-          <div className="bg-red-50 text-red-500 p-4 rounded-md mb-6">
-            {error}
+          <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
           </div>
         )}
-        
+
         {success && (
           <div className="bg-green-50 text-green-500 p-4 rounded-md mb-6">
             Competition created successfully! Redirecting...
           </div>
         )}
-        
+
         <form onSubmit={onSubmit} className="space-y-8">
           <FormSection title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
@@ -129,7 +147,7 @@ export default function CompetitionForm() {
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="w-full md:col-span-2">
                 <Input
                   id="competition-organised-by"
@@ -141,7 +159,7 @@ export default function CompetitionForm() {
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="w-full md:col-span-2">
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">
                   Description <span className="text-red-600">*</span>
@@ -157,7 +175,7 @@ export default function CompetitionForm() {
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">
@@ -173,7 +191,7 @@ export default function CompetitionForm() {
                   className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">
                   Application End Date <span className="text-red-600">*</span>
@@ -188,7 +206,7 @@ export default function CompetitionForm() {
                   className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">
                   Competition Start Date <span className="text-red-600">*</span>
@@ -203,7 +221,7 @@ export default function CompetitionForm() {
                   className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">
                   Competition End Date <span className="text-red-600">*</span>
@@ -218,7 +236,7 @@ export default function CompetitionForm() {
                   className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">
                   Payment Type <span className="text-red-600">*</span>
@@ -235,7 +253,7 @@ export default function CompetitionForm() {
                   <option value="paid">Paid</option>
                 </select>
               </div>
-              
+
               {payment === "paid" && (
                 <div>
                   <Input
@@ -252,9 +270,11 @@ export default function CompetitionForm() {
               )}
             </div>
           </FormSection>
-          
+
           <FormSection title="Competition Details">
             <DynamicFieldArray
+            className="mb-5"
+            placeholder="Eligibility"
               values={eligibility}
               onChange={(index, value) => {
                 const newEligibility = [...eligibility];
@@ -272,8 +292,10 @@ export default function CompetitionForm() {
               name="eligibility"
               required
             />
-            
+
             <DynamicFieldArray
+            className="mb-5"
+            placeholder="ReferenceLink"
               values={referenceLinks}
               onChange={(index, value) => {
                 const newReferenceLinks = [...referenceLinks];
@@ -290,8 +312,10 @@ export default function CompetitionForm() {
               fieldLabel="Link"
               name="referenceLinks"
             />
-            
+
             <DynamicFieldArray
+            className="mb-5"
+            placeholder="Requirement"
               values={requirements}
               onChange={(index, value) => {
                 const newRequirements = [...requirements];
@@ -309,7 +333,7 @@ export default function CompetitionForm() {
               name="requirements"
             />
           </FormSection>
-          
+
           <div className="flex justify-end space-x-4">
             <Button
               type="submit"
@@ -322,5 +346,6 @@ export default function CompetitionForm() {
         </form>
       </div>
     </div>
+
   );
 } 

@@ -8,10 +8,12 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <SessionProvider>
-    <div className="flex">
-      <Drawer />
-      <main className="ml-10 p-6">{children}</main>
-    </div>
-  </SessionProvider>;
+  return (
+    <SessionProvider>
+      <div className="flex">
+        <Drawer />
+        <main className="">{children}</main>
+      </div>
+    </SessionProvider>
+  );
 }

@@ -338,8 +338,10 @@ export default function TinkeringActivityReport() {
   ];
 
   return (
-    <div className="p-4">
+    <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
 
+    
+        <div className="pt-20 ">
       {missingRelationships && (
         <Alert 
           severity="warning" 
@@ -700,6 +702,7 @@ export default function TinkeringActivityReport() {
           </Button>
         </DialogActions>
       </Dialog>
+    </div>
     </div>
   );
 }

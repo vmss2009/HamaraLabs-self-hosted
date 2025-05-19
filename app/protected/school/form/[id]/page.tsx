@@ -316,17 +316,36 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
   ];
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-blue-50 min-h-screen rounded-xl">
-      <div className="mb-8 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit School</h1>
+    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
+      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit school</h1>
         <p className="text-gray-600">Update the school information below</p>
       </div>
       
+
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
-      )}
+           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
+          </div>
+      )} 
       
       <form onSubmit={onSubmit} className="space-y-6">
         <FormSection 
@@ -344,7 +363,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
                     placeholder: "Enter school name"
                   }
                 ]}
-                className="mb-4"
+              
               />
             </div>
             
@@ -377,7 +396,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
                   placeholder: "Enter address line 2 (optional)"
                 }
               ]}
-              className="mb-5"
+          
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
@@ -540,7 +559,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
                   placeholder: "Enter website URL"
                 }
               ]}
-              className="mb-5"
+             
             />
             
             <RadioButtonGroup
@@ -554,6 +573,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
             
             <DynamicFieldArray
               values={socialLinks}
+              placeholder="SocialLink"
               onChange={handleSocialLinkChange}
               onAdd={addSocialLink}
               onRemove={removeSocialLink}
@@ -581,6 +601,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           </Button>
         </div>
       </form>
+    </div>
     </div>
   );
 } 
