@@ -286,7 +286,10 @@ export default function CompetitionReport() {
   ];
 
   return (
-    <div className="p-4">
+    <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
+
+    
+        <div className="pt-20 ">
       {error && (
         <Alert 
           severity="error" 
@@ -620,6 +623,7 @@ export default function CompetitionReport() {
           </Button>
         </DialogActions>
       </Dialog>
+    </div>
     </div>
   );
 } 

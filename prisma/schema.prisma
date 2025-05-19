@@ -150,6 +150,25 @@ model Competition {
   CustomisedCompetition  CustomisedCompetition[]
 }
 
+model Course {
+  id                       Int      @id @default(autoincrement())
+  name                     String
+  description              String
+  organized_by             String
+  application_start_date   DateTime
+  application_end_date     DateTime
+  course_start_date        DateTime
+  course_end_date          DateTime
+  eligibility_from         String
+  eligibility_to           String
+  reference_link           String
+  requirements             String[] // ⬅️ new field
+  course_tags              String[] // ⬅️ new field
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+}
+
+
 model CustomisedTinkeringActivity {
   id           Int               @id @default(autoincrement())
   created_at   DateTime          @default(now())

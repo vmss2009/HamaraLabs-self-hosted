@@ -242,7 +242,10 @@ export default function Page() {
     };
 
     return (
-        <div className="p-4">
+        <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
+
+    
+        <div className="pt-20 ">
             <div className="bg-white rounded-xl shadow-sm">
                 <DataGrid
                     rows={schools}
@@ -453,5 +456,6 @@ export default function Page() {
                 )}
             </Drawer>
         </div>
+            </div>
     );
 } 

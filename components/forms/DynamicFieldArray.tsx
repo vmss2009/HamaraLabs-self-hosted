@@ -1,9 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { MdOutlineDeleteOutline, MdAdd } from 'react-icons/md';
 
 interface DynamicFieldArrayProps {
   values?: string[];
@@ -29,23 +26,23 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
   className = '',
   label,
   name,
-  placeholder = 'Enter value',
+  placeholder = '',
   required = false,
 }) => {
-  const [internalValues, setInternalValues] = useState<string[]>(values);
-  
-  const displayValues = values || internalValues;
-  
+  const [internalValues, setInternalValues] = useState<string[]>(values.length > 0 ? values : ['']);
+
+  const displayValues = values.length > 0 ? values : internalValues;
+
   const handleChange = (index: number, value: string) => {
     if (onChange) {
       onChange(index, value);
     } else {
-      const newValues = [...internalValues];
-      newValues[index] = value;
-      setInternalValues(newValues);
+      const updated = [...internalValues];
+      updated[index] = value;
+      setInternalValues(updated);
     }
   };
-  
+
   const handleAdd = () => {
     if (onAdd) {
       onAdd();
@@ -53,70 +50,68 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
       setInternalValues([...internalValues, '']);
     }
   };
-  
+
   const handleRemove = (index: number) => {
     if (onRemove) {
       onRemove(index);
     } else {
-      const newValues = [...internalValues];
-      newValues.splice(index, 1);
-      setInternalValues(newValues);
+      const updated = [...internalValues];
+      updated.splice(index, 1);
+      setInternalValues(updated);
     }
   };
-  
+
   const displayLabel = legend || label || 'Field';
   const displayFieldLabel = fieldLabel || label || 'Item';
-  
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="flex justify-between items-center">
-        <div className="text-sm font-medium text-gray-800">
-          {displayLabel}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </div>
-        <Button 
-          type="button" 
-          onClick={handleAdd} 
-          variant="outline" 
-          size="sm"
-          className="flex items-center gap-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-        >
-          <MdAdd className="h-4 w-4" />
-          Add {displayFieldLabel}
-        </Button>
-      </div>
-      
-      {displayValues.map((value, index) => (
-        <div key={index} className="flex gap-3 items-center bg-gray-50 p-3 rounded-md">
-          <div className="flex-grow">
-            <Input
+    <div className={`space-y-4 text-black ${className}`}>
+      <h4 className="text-lg font-bold text-gray-700 mb-4">
+        {displayLabel}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </h4>
+
+      <div className="space-y-4">
+        {displayValues.map((value, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <input
+              type="text"
               name={name}
               value={value}
               onChange={(e) => handleChange(index, e.target.value)}
               placeholder={`${placeholder} ${index + 1}`}
-              className="border-gray-300 bg-white"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl"
               required={required}
             />
+
+            {/* Add button only for last item */}
+            {index === displayValues.length - 1 && (
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
+                aria-label="Add"
+              >
+                +
+              </button>
+            )}
+
+            {/* Remove button shown when more than 1 item */}
+            {displayValues.length > 1 && (
+              <button
+                type="button"
+                onClick={() => handleRemove(index)}
+                className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
+                aria-label="Remove"
+              >
+                −
+              </button>
+            )}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => handleRemove(index)}
-            className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200"
-          >
-            <MdOutlineDeleteOutline className="h-5 w-5" />
-          </Button>
-        </div>
-      ))}
-      
-      {displayValues.length === 0 && (
-        <div className="text-sm text-gray-600 italic bg-gray-50 p-4 rounded-md border border-gray-200">
-          No {displayFieldLabel.toLowerCase()}s added yet. Click the button above to add one.
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 };
 
-export default DynamicFieldArray; 
+export default DynamicFieldArray;

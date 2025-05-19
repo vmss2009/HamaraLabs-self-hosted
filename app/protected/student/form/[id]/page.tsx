@@ -108,18 +108,36 @@ export default function EditStudentForm({ params }: { params: Promise<{ id: stri
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 py-10">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
-          <h1 className="text-3xl font-semibold text-gray-900">Edit Student</h1>
-          <p className="text-gray-600 mt-2">Update the student information below.</p>
-        </div>
+   <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+      <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
+      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit student form</h1>
+        <p className="text-gray-600">Update the course form below</p>
+      </div>
+      
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+      {error && (
+           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="text-sm">
+              <p className="text-red-500">{error}</p>
+            </div>
           </div>
-        )}
+      )} 
 
         <form onSubmit={onSubmit} className="space-y-8">
           {/* School Selection */}

@@ -129,7 +129,8 @@ export default function StudentReport() {
   ];
 
   return (
-    <div className="p-4">
+    <div className="bg-gray-500 flex justify-center h-screen w-auto">
+    <div className="pt-20 pl-20">
       <div className="bg-white rounded-xl shadow-sm">
         <DataGrid
           rows={students}
@@ -283,6 +284,7 @@ export default function StudentReport() {
           <Typography variant="body1" sx={{ color: "#1f2937" }}>No data available</Typography>
         )}
       </Drawer>
+    </div>
     </div>
   );
 } 
