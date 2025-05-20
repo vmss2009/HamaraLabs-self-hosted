@@ -114,13 +114,7 @@ export default function StudentForm() {
           </div>
       )} 
 
-         {/* <h1 className="text-4xl pb-3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            Student Registration
-          </h1>
-          <p className="mt-2 text-gray-700">
-            Fill out the form below to register a new student.
-          </p>
-        </div> */}
+       
 
         <form onSubmit={onSubmit} className="space-y-8">
           {/* School Selection */}

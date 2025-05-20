@@ -35,7 +35,7 @@ export async function PUT(
     const updateData: CourseUpdateInput = {
       name: body.name,
       description: body.description,
-      organized_by: body.organized_by,
+      organized_by: body.organizedBy,
       application_start_date: new Date(body.application_start_date),
       application_end_date: new Date(body.application_end_date),
       course_start_date: new Date(body.course_start_date),

@@ -6,6 +6,9 @@ import { CourseCreateInput } from "@/lib/db/courses/type";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    body.organized_by = body.organized_by || body.organizedBy;
+
+    console.log("🛎️ Incoming body:", JSON.stringify(body, null, 2));
 
     // Required fields
     const requiredFields = [
