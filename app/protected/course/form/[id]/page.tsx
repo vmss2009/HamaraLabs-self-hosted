@@ -101,13 +101,13 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
   };
 
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(event.currentTarget);
       const updatedCourse = {
         name: formData.get("name"),
         description: formData.get("description"),
