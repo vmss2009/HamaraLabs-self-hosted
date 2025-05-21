@@ -4,21 +4,15 @@ import { useState } from "react";
 import React, { ChangeEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
+import { useRouter } from "next/navigation";
+
 
 export default function CourseRegistrationForm() {
 
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [organizedBy, setOrganizedBy] = useState("");
-  const [applicationStartDate, setApplicationStartDate] = useState("");
-  const [applicationEndDate, setApplicationEndDate] = useState("");
-  const [courseStartDate, setCourseStartDate] = useState("");
-  const [courseEndDate, setCourseEndDate] = useState("");
-  const [eligibilityFrom, setEligibilityFrom] = useState("");
-  const [eligibilityTo, setEligibilityTo] = useState("");
-  const [referenceLink, setReferenceLink] = useState("");
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
@@ -28,28 +22,29 @@ export default function CourseRegistrationForm() {
     return date.toISOString();
   };
 
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+ const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
+      const formData = new FormData(e.currentTarget);
       const courseData = {
-        name,
-        description,
-        organized_by: organizedBy,
-        application_start_date: formatDate(applicationStartDate),
-        application_end_date: formatDate(applicationEndDate),
-        course_start_date: formatDate(courseStartDate),
-        course_end_date: formatDate(courseEndDate),
-        eligibility_from: eligibilityFrom,
-        eligibility_to: eligibilityTo,
-        reference_link: referenceLink,
-        requirements: requirements.filter((r) => r.trim() !== ""),
-        course_tags: courseTags.filter((tag) => tag.trim() !== ""),
+        name: formData.get("name"),
+        description:formData.get("description"),
+        organizedBy,
+        application_start_date: formData.get("applicationStartDate"),
+        application_end_date: formData.get("applicationEndDate"),
+        course_start_date: formData.get("courseStartDate"),
+        course_end_date: formData.get("courseEndDate"),
+        eligibility_from: formData.get("eligibilityFrom"),
+        eligibility_to: formData.get("eligibilityTo"),
+        reference_link: formData.get("referenceLink"),
+        requirements,
+        course_tags: courseTags,
       };
 
-      console.log("Submitted Course Data:", courseData);
+     
 
       // API submission can be added here
 
@@ -60,11 +55,13 @@ export default function CourseRegistrationForm() {
         },
         body: JSON.stringify(courseData),
       });
+       console.log("Submitted Course Data:", courseData);
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit the form");
       }
+       router.push("/protected/course/report");
 
     }
     catch (error) {
@@ -171,8 +168,9 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <label className="block mb-2 text-sm font-medium text-gray-700">Course Name</label>
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  name="name"
+                
+               
                   required
                   placeholder="Enter course name"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
@@ -182,8 +180,9 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
                 <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                
+                  name="description"
+                 
                   required
                   rows={4}
                   placeholder="Enter description"
@@ -210,6 +209,7 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 {isExternal && (
                   <input
                     type="text"
+                   
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -226,8 +226,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   <label className="block mb-2 text-sm font-medium text-gray-700">Application Start Date</label>
                   <input
                     type="date"
-                    value={applicationStartDate}
-                    onChange={(e) => setApplicationStartDate(e.target.value)}
+                     name="applicationStartDate"
+                  
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   />
                 </div>
@@ -235,8 +235,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   <label className="block mb-2 text-sm font-medium text-gray-700">Application End Date</label>
                   <input
                     type="date"
-                    value={applicationEndDate}
-                    onChange={(e) => setApplicationEndDate(e.target.value)}
+                     name="applicationEndDate"
+                   
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   />
                 </div>
@@ -247,8 +247,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   <label className="block mb-2 text-sm font-medium text-gray-700">Course Start Date</label>
                   <input
                     type="date"
-                    value={courseStartDate}
-                    onChange={(e) => setCourseStartDate(e.target.value)}
+                    name="courseStartDate"
+                  
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   />
                 </div>
@@ -256,8 +256,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   <label className="block mb-2 text-sm font-medium text-gray-700">Course End Date</label>
                   <input
                     type="date"
-                    value={courseEndDate}
-                    onChange={(e) => setCourseEndDate(e.target.value)}
+                    name="courseEndDate"
+                  
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   />
                 </div>
@@ -273,8 +273,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <div>
                   <label className="block mb-2 text-sm font-medium text-gray-700">From</label>
                   <select
-                    value={eligibilityFrom}
-                    onChange={(e) => setEligibilityFrom(e.target.value)}
+                  name="eligibilityFrom"
+                   
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -290,8 +290,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <div>
                   <label className="block mb-2 text-sm font-medium text-gray-700">To</label>
                   <select
-                    value={eligibilityTo}
-                    onChange={(e) => setEligibilityTo(e.target.value)}
+                  name="eligibilityTo"
+                    
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -404,8 +404,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
               <label className="block mb-2 text-sm font-medium text-gray-700">Reference Link</label>
               <input
                 type="url"
-                value={referenceLink}
-                onChange={(e) => setReferenceLink(e.target.value)}
+                name="referenceLink"
+              
                 required
                 placeholder="Enter reference link"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"

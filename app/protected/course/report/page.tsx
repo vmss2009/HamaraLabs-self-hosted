@@ -31,12 +31,7 @@ export default function CourseReport() {
       }
       let data = await response.json();
 
-      // // Transform the fields into strings to display properly in the grid
-      // data = data.map((course: any) => ({
-      //   ...course,
-      //   requirements: Array.isArray(course.requirements) ? course.requirements.join(", ") : course.requirements,
-      //   course_tags: Array.isArray(course.course_tags) ? course.course_tags.join(", ") : course.course_tags,
-      // }));
+    
 
       setCourses(data);
     } catch (error) {
@@ -100,6 +95,7 @@ export default function CourseReport() {
       headerName: "Course Tags",
       width: 200,
     },
+    { field: "reference_link", headerName: "Reference Link", width: 200 },
 
     {
       field: "actions",
