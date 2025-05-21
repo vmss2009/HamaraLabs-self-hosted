@@ -66,10 +66,27 @@ export default function CourseReport() {
 
   const closeDrawer = () => setDrawerOpen(false);
 
-  const formatValue = (value: any): string => {
-    if (!value) return "N/A";
-    if (Array.isArray(value)) return value.join(", ");
-    if (typeof value === "object") return JSON.stringify(value);
+  const formatValue = (value: any): React.ReactNode => {
+    if (value === null || value === undefined) return "N/A";
+    if (Array.isArray(value)) {
+      return (
+        <ul className="list-disc pl-5">
+          {value.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
+    if (typeof value === "object") {
+      // Special handling for nested objects
+      if (value.subtopic_name) return value.subtopic_name;
+      if (value.topic_name) return value.topic_name;
+      if (value.subject_name) return value.subject_name;
+      // For other objects, format as before
+      return Object.entries(value)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ");
+    }
     return String(value);
   };
 
@@ -266,28 +283,18 @@ export default function CourseReport() {
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
                   Requirements:
                 </Typography>
-                {Array.isArray(selectedRow.requirements) ? (
-                  (selectedRow.requirements as string[]).map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))
-                ) : (
-                  <Typography>{formatValue(selectedRow.requirements)}</Typography>
-                )}
-
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.requirements)}
+                </Typography>
               </Box>
 
               <Box sx={{ marginBottom: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
                   Course Tags:
                 </Typography>
-                 {Array.isArray(selectedRow.course_tags) ? (
-                  (selectedRow.course_tags as string[]).map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))
-                ) : (
-                  <Typography>{formatValue(selectedRow.course_tags)}</Typography>
-                )}
-
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatValue(selectedRow.course_tags)}
+                </Typography>
                </Box>
 
 

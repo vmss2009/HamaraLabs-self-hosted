@@ -16,12 +16,6 @@ export default function CourseRegistrationForm() {
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toISOString();
-  };
-
  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -32,7 +26,7 @@ export default function CourseRegistrationForm() {
       const courseData = {
         name: formData.get("name"),
         description:formData.get("description"),
-        organizedBy,
+        organized_by: organizedBy,
         application_start_date: formData.get("applicationStartDate"),
         application_end_date: formData.get("applicationEndDate"),
         course_start_date: formData.get("courseStartDate"),
@@ -43,8 +37,6 @@ export default function CourseRegistrationForm() {
         requirements,
         course_tags: courseTags,
       };
-
-     
 
       // API submission can be added here
 
