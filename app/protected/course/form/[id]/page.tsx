@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
+import React, { ChangeEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 
@@ -100,17 +101,17 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
   };
 
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(event.currentTarget);
       const updatedCourse = {
         name: formData.get("name"),
         description: formData.get("description"),
-        organized_by: formData.get("organizedBy"),
+        organizedBy,
         application_start_date: formData.get("applicationStartDate"),
         application_end_date: formData.get("applicationEndDate"),
         course_start_date: formData.get("courseStartDate"),
@@ -122,6 +123,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         course_tags: courseTags,
       };
 
+
       const res = await fetch(`/api/courses/${resolvedParams.id}`, {
         method: "PUT",
         headers: {
@@ -129,6 +131,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         },
         body: JSON.stringify(updatedCourse),
       });
+      console.log("Submitted Course Data:", updatedCourse);
 
       if (!res.ok) {
         const errData = await res.json();
@@ -143,19 +146,45 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const [isExternal, setIsExternal] = useState(false);
+
+  useEffect(() => {
+    const handleSelect = () => {
+      if (organizedBy !== "AIM") {
+        setIsExternal(true);
+
+      } else {
+        setIsExternal(false);
+      }
+    };
+    handleSelect();
+  }, [organizedBy]);
+
+
+  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === "External") {
+      setIsExternal(true);
+      setOrganizedBy(""); // reset to let user type
+    } else {
+      setIsExternal(false);
+      setOrganizedBy(val);
+    }
+  };
+
   return (
 
 
-     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
-      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit course form</h1>
-        <p className="text-gray-600">Update the course form below</p>
-      </div>
-      
+        <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit course form</h1>
+          <p className="text-gray-600">Update the course form below</p>
+        </div>
 
-      {error && (
-           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+
+        {error && (
+          <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
             <div className="flex-shrink-0">
               <svg
                 className="w-6 h-6 text-red-500"
@@ -175,13 +204,13 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
               <p className="text-red-500">{error}</p>
             </div>
           </div>
-      )} 
+        )}
 
         <form
           onSubmit={onSubmit}
           className="space-y-8 text-black"
         >
-    
+
           <FormSection title="Basic Information">
 
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
@@ -211,23 +240,37 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                   required
                 />
               </div>
+
               <div>
-                <label htmlFor="organizedBy" className="block mb-2 text-sm font-medium text-gray-700">
-                  Organized By
-                </label>
+                <label className="block mb-2 text-sm font-medium text-gray-700">Organized By</label>
+
                 <select
-                  id="organizedBy"
-                  name="organizedBy"
-                  value={organizedBy}
-                  onChange={(e) => setOrganizedBy(e.target.value)}
+                  value={isExternal ? "External" : organizedBy}
+
+                  onChange={handleSelectChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl">
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                >
                   <option value="">Select</option>
-                  <option value="university">University</option>
-                  <option value="company">Company</option>
-                  <option value="organization">Organization</option>
+                  <option value="AIM">AIM</option>
+                  <option value="External">
+                    External
+                  </option>
                 </select>
+
+                {isExternal && (
+                  <input
+                    type="text"
+
+                    value={organizedBy}
+                    onChange={(e) => setOrganizedBy(e.target.value)}
+                    placeholder="Enter external organizer name"
+                    className="w-full  px-4 py-3 border border-gray-300 rounded-xl"
+                    required
+                  />
+                )}
               </div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
@@ -306,9 +349,13 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
+                    <option value="6th">6th</option>
+                    <option value="7th">7th</option>
+                    <option value="8th">8th</option>
+                    <option value="9th">9th</option>
                     <option value="10th">10th</option>
+                    <option value="11th">11th</option>
                     <option value="12th">12th</option>
-                    <option value="graduate">Graduate</option>
                   </select>
                 </div>
 
@@ -326,9 +373,13 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
+                    <option value="6th">6th</option>
+                    <option value="7th">7th</option>
+                    <option value="8th">8th</option>
+                    <option value="9th">9th</option>
+                    <option value="10th">10th</option>
+                    <option value="11th">11th</option>
                     <option value="12th">12th</option>
-                    <option value="graduate">Graduate</option>
-                    <option value="postgraduate">Postgraduate</option>
                   </select>
                 </div>
               </div>
