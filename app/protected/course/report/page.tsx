@@ -444,7 +444,6 @@ export default function CourseReport() {
                   {formatValue(selectedRow.requirements)}
                 </Typography>
               </Box>
-
               <Box sx={{ marginBottom: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
                   Course Tags:
