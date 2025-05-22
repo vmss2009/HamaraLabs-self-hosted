@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
-import { 
-  getCustomisedCompetitionById, 
-  updateCustomisedCompetition, 
-  deleteCustomisedCompetition,
-  getCustomisedCompetitions
-} from "@/lib/db/customised-competition/crud";
-import { CustomisedCompetitionCreateInput } from "@/lib/db/customised-competition/type";
+import {
+  getCustomisedCourseById,
+  updateCustomisedCourse,
+  deleteCustomisedCourse,
+  getCustomisedCourses
+} from "@/lib/db/customised-course/crud";
+import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
 
 export async function GET(
   request: Request,
   { params }: any
 ) {
   try {
-    // If id is 'list', fetch all competitions for the student
     if (params.id === 'list') {
       const { searchParams } = new URL(request.url);
-      const student_id = searchParams.get('student_id');
-      
+      const student_id = searchParams.get("student_id");
+
       if (!student_id) {
         return NextResponse.json(
           { error: "Student ID is required" },
@@ -24,25 +23,24 @@ export async function GET(
         );
       }
 
-      const customisedCompetitions = await getCustomisedCompetitions({ student_id: parseInt(student_id) });
-      return NextResponse.json(customisedCompetitions);
+      const customisedCourses = await getCustomisedCourses({ student_id: parseInt(student_id) });
+      return NextResponse.json(customisedCourses);
     }
 
-    // Otherwise, fetch a single competition by ID
-    const customisedCompetition = await getCustomisedCompetitionById(parseInt(params.id));
-    
-    if (!customisedCompetition) {
+    const customisedCourse = await getCustomisedCourseById(parseInt(params.id));
+
+    if (!customisedCourse) {
       return NextResponse.json(
-        { error: "Customised competition not found" },
+        { error: "Customised course not found" },
         { status: 404 }
       );
     }
-    
-    return NextResponse.json(customisedCompetition);
+
+    return NextResponse.json(customisedCourse);
   } catch (error) {
-    console.error("Error fetching customised competition:", error);
+    console.error("Error fetching customised course:", error);
     return NextResponse.json(
-      { error: "Failed to fetch customised competition" },
+      { error: "Failed to fetch customised course" },
       { status: 500 }
     );
   }
@@ -55,25 +53,24 @@ export async function PUT(
   try {
     const id = parseInt(params.id);
     const data = await request.json();
-    
-    // Validate required fields
-    if (!data.competition_id || !data.student_id) {
+
+    if (!data.course_id || !data.student_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
-    
-    const customisedCompetition = await updateCustomisedCompetition(
+
+    const customisedCourse = await updateCustomisedCourse(
       id,
-      data as Partial<CustomisedCompetitionCreateInput>
+      data as Partial<CustomisedCourseCreateInput>
     );
-    
-    return NextResponse.json(customisedCompetition);
+
+    return NextResponse.json(customisedCourse);
   } catch (error) {
-    console.error("Error updating customised competition:", error);
+    console.error("Error updating customised course:", error);
     return NextResponse.json(
-      { error: "Failed to update customised competition" },
+      { error: "Failed to update customised course" },
       { status: 500 }
     );
   }
@@ -85,13 +82,13 @@ export async function DELETE(
 ) {
   try {
     const id = parseInt(params.id);
-    await deleteCustomisedCompetition(id);
-    
-    return NextResponse.json({ message: "Customised competition deleted successfully" });
+    await deleteCustomisedCourse(id);
+
+    return NextResponse.json({ message: "Customised course deleted successfully" });
   } catch (error) {
-    console.error("Error deleting customised competition:", error);
+    console.error("Error deleting customised course:", error);
     return NextResponse.json(
-      { error: "Failed to delete customised competition" },
+      { error: "Failed to delete customised course" },
       { status: 500 }
     );
   }
@@ -104,8 +101,7 @@ export async function PATCH(
   try {
     const id = parseInt(params.id, 10);
     const body = await request.json();
-    
-    // Validate that status is provided
+
     if (!body.status || !Array.isArray(body.status)) {
       return NextResponse.json(
         { error: "Status must be an array" },
@@ -113,17 +109,16 @@ export async function PATCH(
       );
     }
 
-    // Update the customized competition
-    const updatedCompetition = await updateCustomisedCompetition(id, {
+    const updatedCourse = await updateCustomisedCourse(id, {
       status: body.status,
     });
 
-    return NextResponse.json(updatedCompetition);
+    return NextResponse.json(updatedCourse);
   } catch (error) {
-    console.error("Error updating customised competition:", error);
+    console.error("Error updating customised course:", error);
     return NextResponse.json(
-      { error: "Failed to update customised competition" },
+      { error: "Failed to update customised course" },
       { status: 500 }
     );
   }
-} 
+}

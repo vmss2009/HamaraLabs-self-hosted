@@ -42,6 +42,7 @@ export default function CourseReport() {
   const [selectedSchool, setSelectedSchool] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [schools, setSchools] = useState([]);
+  const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
    const [assignLoading, setAssignLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -82,6 +83,7 @@ export default function CourseReport() {
 
       setCourses(data);
     } catch (error) {
+      setError("Error loading competitions");
       console.error("Error fetching courses:", error);
     } finally {
       setLoading(false);
@@ -298,6 +300,38 @@ export default function CourseReport() {
   return (
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
       <div className="pt-20 pl-20">
+
+         {error && (
+                <Alert 
+                  severity="error" 
+                  className="mb-4"
+                  sx={{ 
+                    borderRadius: '8px',
+                    backgroundColor: '#FFEBEE',
+                    border: '1px solid #FFCDD2',
+                    padding: '10px 16px'
+                  }}
+                >
+                  {error}
+                </Alert>
+              )}
+        
+              {success && (
+                <Alert 
+                  severity="success" 
+                  className="mb-4"
+                  sx={{ 
+                    borderRadius: '8px',
+                    backgroundColor: '#E3F2E8',
+                    border: '1px solid #A5D6A7',
+                    padding: '10px 16px'
+                  }}
+                >
+                  {success}
+                </Alert>
+              )}
+
+            
         <div className="bg-white rounded-xl shadow-sm overflow-x-auto ">
           <DataGrid
             rows={courses}
