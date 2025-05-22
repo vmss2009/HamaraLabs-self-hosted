@@ -86,6 +86,7 @@ model Student {
   user                  User?                         @relation(fields: [user_id], references: [id])
   customised_activities CustomisedTinkeringActivity[]
   CustomisedCompetition CustomisedCompetition[]
+  CustomisedCourse     CustomisedCourse[] // <-- Add this line
 }
 
 model Subject {
@@ -151,21 +152,33 @@ model Competition {
 }
 
 model Course {
-  id                       Int      @id @default(autoincrement())
-  name                     String
-  description              String
-  organized_by             String
-  application_start_date   DateTime
-  application_end_date     DateTime
-  course_start_date        DateTime
-  course_end_date          DateTime
-  eligibility_from         String
-  eligibility_to           String
-  reference_link           String
-  requirements             String[] // ⬅️ new field
-  course_tags              String[] // ⬅️ new field
-  created_at               DateTime @default(now())
-  updated_at               DateTime @updatedAt
+  id                     Int                @id @default(autoincrement())
+  name                   String
+  description            String
+  organized_by           String
+  application_start_date DateTime
+  application_end_date   DateTime
+  course_start_date      DateTime
+  course_end_date        DateTime
+  eligibility_from       String
+  eligibility_to         String
+  reference_link         String
+  requirements           String[] // ⬅️ new field
+  course_tags            String[] // ⬅️ new field
+  created_at             DateTime           @default(now())
+  updated_at             DateTime           @updatedAt
+  CustomisedCourse      CustomisedCourse[] // <-- Add this line
+}
+
+model CustomisedCourse {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  course_id  Int
+  student_id Int
+  status     String[]
+
+  course  Course  @relation(fields: [course_id], references: [id])
+  student Student @relation(fields: [student_id], references: [id])
 }
 
 
