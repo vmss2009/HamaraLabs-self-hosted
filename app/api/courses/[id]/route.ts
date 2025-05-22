@@ -6,7 +6,7 @@ import { CourseUpdateInput } from "@/lib/db/courses/type";
 // Get course by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const courseId = parseInt(params.id);
@@ -26,7 +26,7 @@ export async function GET(
 // Update course by ID
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const courseId = parseInt(params.id);
@@ -62,7 +62,7 @@ export async function PUT(
 // Delete course by ID
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const courseId = parseInt(params.id);
