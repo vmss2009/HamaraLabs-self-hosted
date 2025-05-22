@@ -29,6 +29,9 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 
+
+
+
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
@@ -341,7 +344,7 @@ export default function TinkeringActivityReport() {
     <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
 
     
-        <div className="pt-20 ">
+      <div className="pt-20 ">
       {missingRelationships && (
         <Alert 
           severity="warning" 
