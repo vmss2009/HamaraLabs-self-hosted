@@ -500,7 +500,7 @@ export default function CourseReport() {
           maxWidth="sm"
           fullWidth
         >
-          <DialogTitle>Assign Tinkering Activity</DialogTitle>
+          <DialogTitle>Assign Course</DialogTitle>
           <DialogContent>
             {assignError && (
               <Alert severity="error" className="mb-4">
@@ -516,6 +516,8 @@ export default function CourseReport() {
                   className="w-full p-2 border rounded-md"
                   value={selectedSchool}
                   onChange={(e) => setSelectedSchool(e.target.value)}
+                  disabled={assignLoading}
+
                 >
                   <option value="">Select a school</option>
                   {schools.map((school: any) => (
@@ -539,7 +541,7 @@ export default function CourseReport() {
                   onChange={(_, newValue) => {
                     setSelectedStudents(newValue.map(student => student.id));
                   }}
-                  disabled={!selectedSchool}
+                  disabled={!selectedSchool || assignLoading}
                   renderOption={(props, option, { selected }) => {
                     const { key, ...otherProps } = props;
                     return (
