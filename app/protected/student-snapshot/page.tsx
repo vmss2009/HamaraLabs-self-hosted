@@ -842,8 +842,13 @@ export default function StudentSnapshot() {
       width: 220,
       renderCell: (params) => {
         const link = params.row?.course?.reference_link;
-        return link ? <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Link</a> : "N/A";
-      },
+        return link ? (
+          <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+            {link}
+          </a>
+        ) : "N/A";
+      }
+
     },
 
     {
@@ -1572,6 +1577,28 @@ export default function StudentSnapshot() {
                         ? `${formatValue(selectedRow.course.eligibility_from)} - ${formatValue(selectedRow.course.eligibility_to)}`
                         : "N/A"}
                     </Typography>
+                  </Box>
+
+                  <Box sx={{ marginBottom: 3 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                      Reference link
+                    </Typography>
+                    {selectedRow.course?.reference_link ? (
+                      <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                        <a
+                          href={selectedRow.course.reference_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#2563eb", textDecoration: "underline" }} // Tailwind blue-600
+                        >
+                          {selectedRow.course.reference_link}
+                        </a>
+                      </Typography>
+                    ) : (
+                      <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                        N/A
+                      </Typography>
+                    )}
                   </Box>
 
 
