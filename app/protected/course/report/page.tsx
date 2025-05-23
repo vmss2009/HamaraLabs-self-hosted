@@ -178,7 +178,7 @@ export default function CourseReport() {
       setSelectedStudents([]);
       setSelectedSchool('');
       setSelectedActivity(null);
-      setSuccess('Competition assigned successfully');
+      setSuccess('Course assigned successfully');
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error('Error assigning competition:', error);

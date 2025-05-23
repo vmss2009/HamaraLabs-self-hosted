@@ -510,116 +510,127 @@ export default function StudentSnapshot() {
       field: 'id',
       headerName: 'ID',
       width: 80,
-      renderCell: (params) => (
-        <div className="flex items-center justify-center w-full h-full">
-          {params.row?.id ?? 'N/A'}
-        </div>
-      ),
+      renderCell: (params) => params.row?.id ?? "N/A",
+
     },
+
     {
       field: 'name',
       headerName: 'Activity Name',
       width: 200,
-      renderCell: (params) => (
-        <div className="whitespace-pre-line break-words p-2 flex items-center justify-center w-full h-full text-center">
-          {params.value}
-        </div>
-      ),
+      renderCell: (params) =>
+        params.value ?? "N/A",
+
+
     },
     {
       field: 'introduction',
       headerName: 'Introduction',
       width: 200,
-      renderCell: (params) => (
-        <div className="whitespace-pre-line break-words p-2 flex items-center justify-center w-full h-full text-center">
-          {params.value}
-        </div>
-      ),
+      renderCell: (params) =>
+        params.value ?? "N/A",
+
     },
     {
       field: 'subject',
       headerName: 'Subject',
       width: 150,
-      renderCell: (params) => (
-        <div className="flex items-center justify-center w-full h-full text-center">
-          {params.row?.subtopic?.topic?.subject?.subject_name ?? 'N/A'}
-        </div>
-      ),
+      renderCell: (params) =>
+        params.row?.subtopic?.topic?.subject?.subject_name ?? 'N/A'
+
+
     },
     {
       field: 'topic',
       headerName: 'Topic',
       width: 150,
-      renderCell: (params) => (
-        <div className="flex items-center justify-center w-full h-full text-center">
-          {params.row?.subtopic?.topic?.topic_name ?? 'N/A'}
-        </div>
-      ),
+      renderCell: (params) =>
+        params.row?.subtopic?.topic?.topic_name ?? 'N/A'
+
     },
     {
       field: 'subtopic',
       headerName: 'Subtopic',
       width: 150,
-      renderCell: (params) => (
-        <div className="flex items-center justify-center w-full h-full text-center">
-          {params.row?.subtopic?.subtopic_name ?? 'N/A'}
-        </div>
-      ),
+      renderCell: (params) =>
+        params.row?.subtopic?.subtopic_name ?? 'N/A'
+
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 150,
-      renderCell: (params) => {
-        const statusArray = params.row?.status;
-        return (
-          <div className="flex items-center justify-center w-full h-full text-center">
-            {Array.isArray(statusArray) && statusArray.length > 0
-              ? statusArray[statusArray.length - 1]
-              : 'N/A'}
-          </div>
-        );
-      },
+      width: 300,
+      renderCell: (params) =>
+        Array.isArray(params.row?.status) && params.row.status.length > 0
+          ? params.row.status[params.row.status.length - 1]
+          : 'N/A',
+
     },
     {
-      field: 'actions',
+      field: 'tinkering_actions',
       headerName: 'Actions',
       type: 'actions',
       width: 200,
       renderCell: (params) => (
-        <div className="flex items-center justify-center gap-2 w-full h-full">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            className="whitespace-nowrap min-w-max"
+        // <div>Charan sala is there</div>
+        <div className="flex items-center justify-center space-x-2 w-full h-full">
+          {/* Modify Button */}
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-4 py-1.5 text-sm shadow transition duration-200"
             onClick={(e) => {
               e.stopPropagation();
               handleModifyStatus(params.row, 'tinkering');
             }}
           >
-            Modify status
-          </Button>
+            Modify
+          </button>
+
+          {/* Edit Icon */}
           <GridActionsCellItem
-            key="edit"
-            icon={<EditIcon />}
+            icon={
+              <EditIcon
+                sx={{
+                  fontSize: 22,
+                  color: '#4b5563', // Tailwind gray-600
+                  transition: 'color 0.2s ease-in-out',
+                  '&:hover': {
+                    color: '#111827', // Tailwind gray-900
+                  },
+                }}
+              />
+            }
             label="Edit"
             onClick={(e) => {
               e.stopPropagation();
               handleEditTinkeringActivity(params.row);
             }}
+            showInMenu={false}
           />
+
+          {/* Delete Icon */}
           <GridActionsCellItem
-            key="delete"
-            icon={<DeleteOutlineIcon />}
+            icon={
+              <DeleteOutlineIcon
+                sx={{
+                  fontSize: 22,
+                  color: '#ef4444', // Tailwind red-500
+                  transition: 'color 0.2s ease-in-out',
+                  '&:hover': {
+                    color: '#b91c1c', // Tailwind red-700
+                  },
+                }}
+              />
+            }
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();
               handleDeleteTinkeringActivity(params.row);
             }}
-            color="error"
-          />,
+            showInMenu={false}
+          />
         </div>
+
+
       ),
     },
   ];
@@ -628,7 +639,7 @@ export default function StudentSnapshot() {
     { field: "id", headerName: "ID", width: 80 },
 
     {
-      field: "name",
+      field: 'competition_actions',
       headerName: "Competition",
       width: 200,
       renderCell: (params) =>
@@ -646,7 +657,7 @@ export default function StudentSnapshot() {
     {
       field: "status",
       headerName: "Status",
-      width: 180,
+      width: 300,
       renderCell: (params) => {
         const statusArray = params.row?.status;
         return Array.isArray(statusArray) && statusArray.length > 0
@@ -708,27 +719,40 @@ export default function StudentSnapshot() {
       type: 'actions',
       width: 200,
       getActions: (params) => [
-        <Button
-          variant="default"
-          color="primary"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleModifyStatus(params.row, 'competition');
-          }}
-        >
-          Modify status
-        </Button>,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteOutlineIcon />}
-          label="Delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteCompetition(params.row);
-          }}
-          color="error"
-        />,
+        <div className="flex items-center space-x-2">
+          {/* Modify Button */}
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-4 py-1.5 text-sm shadow transition duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleModifyStatus(params.row, 'courses');
+            }}
+          >
+            Modify
+          </button>
+
+          {/* Delete Icon */}
+          <GridActionsCellItem
+            key="delete"
+            icon={
+              <DeleteOutlineIcon
+                sx={{
+                  color: '#ef4444', // red-500
+                  transition: 'color 0.2s ease-in-out',
+                  '&:hover': {
+                    color: '#dc2626', // red-600
+                  },
+                }}
+              />
+            }
+            label="Delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteCourse(params.row);
+            }}
+            showInMenu={false}
+          />
+        </div>
       ],
     },
   ];
@@ -736,7 +760,7 @@ export default function StudentSnapshot() {
     { field: "id", headerName: "ID", width: 80 },
 
     {
-      field: "name",
+      field: 'course_actions',
       headerName: "Course",
       width: 200,
       renderCell: (params) => params.row?.course?.name ?? "N/A",
@@ -752,7 +776,7 @@ export default function StudentSnapshot() {
     {
       field: "status",
       headerName: "Status",
-      width: 180,
+      width: 300,
       renderCell: (params) => {
         const statusArray = params.row?.status;
         return Array.isArray(statusArray) && statusArray.length > 0
@@ -848,27 +872,41 @@ export default function StudentSnapshot() {
       type: 'actions',
       width: 200,
       getActions: (params) => [
-        <Button
-          variant="default"
-          color="primary"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleModifyStatus(params.row, 'courses');
-          }}
-        >
-          Modify status
-        </Button>,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteOutlineIcon />}
-          label="Delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteCourse(params.row);
-          }}
-          color="error"
-        />,
+        <div className="flex items-center space-x-2">
+          {/* Modify Button */}
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-4 py-1.5 text-sm shadow transition duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleModifyStatus(params.row, 'courses');
+            }}
+          >
+            Modify
+          </button>
+
+          {/* Delete Icon */}
+          <GridActionsCellItem
+            key="delete"
+            icon={
+              <DeleteOutlineIcon
+                sx={{
+                  color: '#ef4444', // red-500
+                  transition: 'color 0.2s ease-in-out',
+                  '&:hover': {
+                    color: '#dc2626', // red-600
+                  },
+                }}
+              />
+            }
+            label="Delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteCourse(params.row);
+            }}
+            showInMenu={false}
+          />
+        </div>
+
       ],
     },
   ];
@@ -1038,37 +1076,33 @@ export default function StudentSnapshot() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="bg-gray-50 h-auto rounded-xl shadow-sm ">
           {activeTab === 'tinkering' ? (
             <DataGrid
               rows={sortedTinkeringActivities}
               columns={tinkeringActivityColumns}
               loading={loading}
               initialState={{
-                pagination: { paginationModel: { pageSize: 5 } },
+                pagination: { paginationModel: { pageSize: 10 } },
               }}
               pageSizeOptions={[5, 10, 25, 50]}
               disableRowSelectionOnClick
               getRowId={(row) => row.id}
-              getRowHeight={() => 'auto'}
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
               sx={{
-                
-                borderRadius: "12px",
+                borderRadius: "20px",
+                backgroundColor: '#f3f4f6',
                 '& .MuiDataGrid-cell': {
-                  whiteSpace: 'normal !important',
-                  wordWrap: 'break-word',
-                  alignItems: 'center',
                   color: '#1f2937',
+                  paddingTop: '10px', // 👈 Add horizontal padding
+                  paddingBottom: '10px',
+
                 },
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f3f4f6',
                   color: '#1f2937',
-                },
-                '& .MuiDataGrid-row:hover': {
-                  backgroundColor: 'inherit !important',
                 },
                 '& .bg-green-100': {
                   backgroundColor: '#abebc6 !important',
@@ -1103,6 +1137,8 @@ export default function StudentSnapshot() {
                 borderRadius: "12px",
                 '& .MuiDataGrid-cell': {
                   color: '#1f2937',
+                  paddingTop: '10px', // 👈 Add horizontal padding
+                  paddingBottom: '10px',
                 },
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f3f4f6',
@@ -1133,9 +1169,13 @@ export default function StudentSnapshot() {
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
               sx={{
-                borderRadius: "12px",
+                borderRadius: "20px",
+                backgroundColor: '#f3f4f6',
                 '& .MuiDataGrid-cell': {
                   color: '#1f2937',
+                  paddingTop: '10px', // 👈 Add horizontal padding
+                  paddingBottom: '10px',
+
                 },
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f3f4f6',
