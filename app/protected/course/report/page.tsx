@@ -44,7 +44,7 @@ export default function CourseReport() {
   const [schools, setSchools] = useState([]);
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
-   const [assignLoading, setAssignLoading] = useState(false);
+  const [assignLoading, setAssignLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
 
@@ -187,8 +187,8 @@ export default function CourseReport() {
       setAssignLoading(false);
     }
   };
-  
-  
+
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
 
@@ -283,7 +283,7 @@ export default function CourseReport() {
             icon={<EditIcon />}
             label="Edit"
             onClick={() => router.push(`/protected/course/form/${params.row.id}`)}
-          /> 
+          />
           <GridActionsCellItem
             key="delete"
             icon={<DeleteOutlineIcon />}
@@ -301,37 +301,37 @@ export default function CourseReport() {
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
       <div className="pt-20 pl-20">
 
-         {error && (
-                <Alert 
-                  severity="error" 
-                  className="mb-4"
-                  sx={{ 
-                    borderRadius: '8px',
-                    backgroundColor: '#FFEBEE',
-                    border: '1px solid #FFCDD2',
-                    padding: '10px 16px'
-                  }}
-                >
-                  {error}
-                </Alert>
-              )}
-        
-              {success && (
-                <Alert 
-                  severity="success" 
-                  className="mb-4"
-                  sx={{ 
-                    borderRadius: '8px',
-                    backgroundColor: '#E3F2E8',
-                    border: '1px solid #A5D6A7',
-                    padding: '10px 16px'
-                  }}
-                >
-                  {success}
-                </Alert>
-              )}
+        {error && (
+          <Alert
+            severity="error"
+            className="mb-4"
+            sx={{
+              borderRadius: '8px',
+              backgroundColor: '#FFEBEE',
+              border: '1px solid #FFCDD2',
+              padding: '10px 16px'
+            }}
+          >
+            {error}
+          </Alert>
+        )}
 
-            
+        {success && (
+          <Alert
+            severity="success"
+            className="mb-4"
+            sx={{
+              borderRadius: '8px',
+              backgroundColor: '#E3F2E8',
+              border: '1px solid #A5D6A7',
+              padding: '10px 16px'
+            }}
+          >
+            {success}
+          </Alert>
+        )}
+
+
         <div className="bg-white rounded-xl shadow-sm overflow-x-auto ">
           <DataGrid
             rows={courses}
@@ -374,6 +374,7 @@ export default function CourseReport() {
             },
           }}
         >
+
           {selectedRow ? (
             <Box>
               <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
@@ -474,18 +475,33 @@ export default function CourseReport() {
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
                   Requirements:
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                 {Array.isArray(selectedRow.requirements) ? (
+                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
                   {formatValue(selectedRow.requirements)}
                 </Typography>
+                 ) : (
+                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                    {formatValue(selectedRow.requirements)}
+                  </Typography>
+                )}
+
               </Box>
+
+             
               <Box sx={{ marginBottom: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
                   Course Tags:
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.course_tags)}
-                </Typography>
-               </Box>
+               {Array.isArray(selectedRow.course_tags) ? (
+                  <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
+                    {formatValue(selectedRow.course_tags)}
+                  </Typography>
+                ) : (
+                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                    {formatValue(selectedRow.course_tags)}
+                  </Typography>
+                )}
+              </Box>
 
 
             </Box>

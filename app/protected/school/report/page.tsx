@@ -248,6 +248,7 @@ export default function Page() {
         <div className="pt-20 ">
             <div className="bg-white rounded-xl shadow-sm">
                 <DataGrid
+                  
                     rows={schools}
                     columns={columns}
                     loading={loading}
@@ -255,6 +256,7 @@ export default function Page() {
                         pagination: { paginationModel: { pageSize: 10 } },
                     }}
                     pageSizeOptions={[5, 10, 25, 50, 100]}
+                    disableRowSelectionOnClick
                     columnVisibilityModel={columnVisibilityModel}
                     onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
                     onRowClick={handleRowClick}

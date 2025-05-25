@@ -40,6 +40,17 @@ const COMPETITION_STATUS_OPTIONS = [
   "Competition completed"
 ];
 
+const COURSE_STATUS_OPTIONS = [
+  "On hold",
+  "Mentor neededeed",
+  "Started completing",
+  "Ongoing",
+  "Nearly completed",
+  "In review",
+  "Review completed",
+  "Course completed"
+];
+
 export default function StudentSnapshot() {
   const [schools, setSchools] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
@@ -251,6 +262,15 @@ export default function StudentSnapshot() {
     setStatusDialogOpen(true);
   };
 
+  const STATUS_OPTIONS_MAP = {
+    tinkering: TINKERING_STATUS_OPTIONS,
+    competition: COMPETITION_STATUS_OPTIONS,
+    courses: COURSE_STATUS_OPTIONS,
+  };
+
+
+  const statusOptions = STATUS_OPTIONS_MAP[statusType] || [];
+
   const getLatestStatus = (item: any) => {
     const statusArray = item?.status;
     if (Array.isArray(statusArray) && statusArray.length > 0) {
@@ -275,38 +295,53 @@ export default function StudentSnapshot() {
   };
 
   const handleStatusSubmit = async () => {
-    if (!selectedActivity || !selectedStatus) return;
+    if (!selectedActivity || !selectedStatus) {
+      alert("Missing activity or status");
+      return;
+    }
 
     try {
-      // Get the current status array
+      // Get current status array or initialize empty array
       const currentStatus = selectedActivity.status || [];
 
-      // Format the current date and time
+      // Format date and build updated status list
       const currentDate = new Date();
       const formattedDate = formatStatusDate(currentDate);
-
-      // Append the new status to the array with timestamp
       const updatedStatus = [...currentStatus, `${selectedStatus} - ${formattedDate}`];
 
-      // Determine the API endpoint based on the type
-      const endpoint = statusType === 'tinkering'
-        ? `/api/customised-tinkering-activities/${selectedActivity.id}`
-        : `/api/customised-competitions/${selectedActivity.id}`;
+      // Determine endpoint based on statusType
+      let endpoint = "";
+      if (statusType === "tinkering") {
+        endpoint = `/api/customised-tinkering-activities/${selectedActivity.id}`;
+      } else if (statusType === "competition") {
+        endpoint = `/api/customised-competitions/${selectedActivity.id}`;
+      } else if (statusType === "courses") {
+        endpoint = `/api/customised-courses/${selectedActivity.id}`;
+      } else {
+        throw new Error("Invalid status type");
+      }
 
-      // Update the activity with the new status
+      console.log("PATCH Endpoint:", endpoint);
+      console.log("Request Body:", JSON.stringify({ status: updatedStatus }));
+
+      // Send PATCH request
       const response = await fetch(endpoint, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: updatedStatus }),
       });
 
+      const responseText = await response.text();
+      console.log("Response Status:", response.status);
+      console.log("Response Body:", responseText);
+
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        throw new Error(`Failed to update status: ${response.status} - ${responseText}`);
       }
 
-      // Refresh the data based on the type
+      // Trigger appropriate fetch to reload data
       const fetchActions: Record<string, () => void> = {
         tinkering: fetchTinkeringActivities,
         competition: fetchCompetitions,
@@ -314,15 +349,17 @@ export default function StudentSnapshot() {
       };
 
       fetchActions[statusType]?.();
-      // Close the dialog
+
+      // Cleanup state
       setStatusDialogOpen(false);
       setSelectedActivity(null);
       setSelectedStatus("");
     } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status. Please try again.');
+      console.error("Error updating status:", error);
+      alert("Failed to update status. Check console for details.");
     }
   };
+
 
   const parseStatusDate = (status: string) => {
     // Extract the date part after the hyphen
@@ -575,15 +612,23 @@ export default function StudentSnapshot() {
         // <div>Charan sala is there</div>
         <div className="flex items-center justify-center space-x-2 w-full h-full">
           {/* Modify Button */}
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-4 py-1.5 text-sm shadow transition duration-200"
+          {/* <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-sm px-4 py-1.5 text-sm shadow transition duration-200"
+           
+          >
+            Modify
+          </button> */}
+          <Button
+            variant="default"
+            color="primary"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               handleModifyStatus(params.row, 'tinkering');
             }}
           >
             Modify
-          </button>
+          </Button>
 
           {/* Edit Icon */}
           <GridActionsCellItem
@@ -721,16 +766,17 @@ export default function StudentSnapshot() {
       getActions: (params) => [
         <div className="flex items-center space-x-2">
           {/* Modify Button */}
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-4 py-1.5 text-sm shadow transition duration-200"
+          <Button
+            variant="default"
+            color="primary"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              handleModifyStatus(params.row, 'courses');
+              handleModifyStatus(params.row, 'competition');
             }}
           >
             Modify
-          </button>
-
+          </Button>
           {/* Delete Icon */}
           <GridActionsCellItem
             key="delete"
@@ -879,15 +925,17 @@ export default function StudentSnapshot() {
       getActions: (params) => [
         <div className="flex items-center space-x-2">
           {/* Modify Button */}
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-4 py-1.5 text-sm shadow transition duration-200"
+           <Button
+            variant="default"
+            color="primary"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               handleModifyStatus(params.row, 'courses');
             }}
           >
             Modify
-          </button>
+          </Button>
 
           {/* Delete Icon */}
           <GridActionsCellItem
@@ -1138,6 +1186,8 @@ export default function StudentSnapshot() {
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}
+              getRowClassName={getRowClassName}
+
               sx={{
                 borderRadius: "12px",
                 '& .MuiDataGrid-cell': {
@@ -1148,6 +1198,12 @@ export default function StudentSnapshot() {
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f3f4f6',
                   color: '#1f2937',
+                },
+                '& .bg-green-100': {
+                  backgroundColor: '#abebc6 !important',
+                  '&:hover': {
+                    backgroundColor: '#abebc6 !important',
+                  },
                 },
               }}
               slots={{
@@ -1626,7 +1682,7 @@ export default function StudentSnapshot() {
             <FormControl component="fieldset" sx={{ mt: 2 }}>
               <FormLabel component="legend">Select Status</FormLabel>
               <RadioGroup value={selectedStatus} onChange={handleStatusChange}>
-                {(statusType === 'tinkering' ? TINKERING_STATUS_OPTIONS : COMPETITION_STATUS_OPTIONS)
+                {statusOptions
                   .filter(status => status !== getLatestStatus(selectedActivity))
                   .map((status) => (
                     <FormControlLabel
@@ -1637,6 +1693,8 @@ export default function StudentSnapshot() {
                     />
                   ))}
               </RadioGroup>
+
+
               {getLatestStatus(selectedActivity) && (
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                   Current status: <strong>{getLatestStatus(selectedActivity)}</strong>
