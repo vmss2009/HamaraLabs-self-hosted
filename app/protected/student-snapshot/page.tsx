@@ -279,7 +279,16 @@ export default function StudentSnapshot() {
     return null;
   };
 
+  useEffect(() => {
+    if (selectedActivity?.status?.length > 0) {
+      const latest = selectedActivity.status[selectedActivity.status.length - 1];
+      const statusOnly = latest.split(" - ")[0];
+      setSelectedStatus(statusOnly);
+    }
+  }, [selectedActivity]);
+
   const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
     setSelectedStatus(event.target.value);
   };
 
@@ -627,7 +636,7 @@ export default function StudentSnapshot() {
               handleModifyStatus(params.row, 'tinkering');
             }}
           >
-            Modify
+            Modify Status
           </Button>
 
           {/* Edit Icon */}
@@ -775,7 +784,7 @@ export default function StudentSnapshot() {
               handleModifyStatus(params.row, 'competition');
             }}
           >
-            Modify
+            Modify Status
           </Button>
           {/* Delete Icon */}
           <GridActionsCellItem
@@ -925,7 +934,7 @@ export default function StudentSnapshot() {
       getActions: (params) => [
         <div className="flex items-center space-x-2">
           {/* Modify Button */}
-           <Button
+          <Button
             variant="default"
             color="primary"
             size="sm"
@@ -934,7 +943,7 @@ export default function StudentSnapshot() {
               handleModifyStatus(params.row, 'courses');
             }}
           >
-            Modify
+            Modify Status
           </Button>
 
           {/* Delete Icon */}
