@@ -77,6 +77,11 @@ export default function StudentSnapshot() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
+  const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
+
+
+
+  const latestStatus = selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(" - ")[0] || "";
 
   // Fetch schools on component mount
   useEffect(() => {
@@ -279,17 +284,21 @@ export default function StudentSnapshot() {
     return null;
   };
 
+
+
   useEffect(() => {
     if (selectedActivity?.status?.length > 0) {
       const latest = selectedActivity.status[selectedActivity.status.length - 1];
       const statusOnly = latest.split(" - ")[0];
       setSelectedStatus(statusOnly);
+      setIsSubmitEnabled(false); // disable initially
     }
   }, [selectedActivity]);
 
   const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-    setSelectedStatus(event.target.value);
+    const newStatus = event.target.value;
+    setSelectedStatus(newStatus);
+    setIsSubmitEnabled(newStatus !== latestStatus); // enable only if different from latest
   };
 
   const formatStatusDate = (date: Date) => {
@@ -636,7 +645,7 @@ export default function StudentSnapshot() {
               handleModifyStatus(params.row, 'tinkering');
             }}
           >
-            Modify Status
+            Modify status
           </Button>
 
           {/* Edit Icon */}
@@ -784,7 +793,7 @@ export default function StudentSnapshot() {
               handleModifyStatus(params.row, 'competition');
             }}
           >
-            Modify Status
+            Modify status
           </Button>
           {/* Delete Icon */}
           <GridActionsCellItem
@@ -943,7 +952,7 @@ export default function StudentSnapshot() {
               handleModifyStatus(params.row, 'courses');
             }}
           >
-            Modify Status
+            Modify status
           </Button>
 
           {/* Delete Icon */}
@@ -1691,16 +1700,15 @@ export default function StudentSnapshot() {
             <FormControl component="fieldset" sx={{ mt: 2 }}>
               <FormLabel component="legend">Select Status</FormLabel>
               <RadioGroup value={selectedStatus} onChange={handleStatusChange}>
-                {statusOptions
-                  .filter(status => status !== getLatestStatus(selectedActivity))
-                  .map((status) => (
-                    <FormControlLabel
-                      key={status}
-                      value={status}
-                      control={<Radio />}
-                      label={status}
-                    />
-                  ))}
+                {statusOptions.map((status) => (
+                  <FormControlLabel
+                    key={status}
+                    value={status}
+                    control={<Radio />}
+                    label={status}
+                    disabled={status === latestStatus} // disable current status radio button
+                  />
+                ))}
               </RadioGroup>
 
 
@@ -1717,7 +1725,7 @@ export default function StudentSnapshot() {
               onClick={handleStatusSubmit}
               variant="default"
               color="primary"
-              disabled={!selectedStatus}
+              disabled={!isSubmitEnabled}
             >
               Submit
             </Button>
