@@ -161,8 +161,6 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <input
                   type="text"
                   name="name"
-                
-               
                   required
                   placeholder="Enter course name"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
@@ -173,8 +171,7 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
                 <textarea
                 
-                  name="description"
-                 
+                  name="description"  
                   required
                   rows={4}
                   placeholder="Enter description"
