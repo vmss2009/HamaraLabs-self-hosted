@@ -1,19 +1,47 @@
 import { prisma } from "@/lib/db/prisma";
 import { StudentCreateInput, StudentFilter } from "../type";
+import { z } from "zod";
 
-export async function createStudent(data: StudentCreateInput) {
+// Define the Zod schema for student validation
+export const studentSchema = z.object({
+  first_name: z.string().trim().min(1, "First name is required"),
+  last_name: z.string().trim().min(1, "Last name is required"),
+  aspiration: z.string().trim().min(1, "Aspiration is required"),
+gender: z.string()
+  .transform(val => val.toLowerCase())
+  .pipe(z.enum(["male", "female", "other"])),
+
+  email: z.string().email("Invalid email address"),
+  class: z.string().trim().min(1, "Class is required"),
+  section: z.string().trim().min(1, "Section is required"),
+  comments: z.string().optional().nullable(),
+  schoolId: z.number().int().positive("schoolId must be a positive integer"),
+});
+
+export async function createStudent(data: any) {
   try {
+    // Validate input using Zod
+    const result = studentSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      throw new Error(errorMessages[0]);
+    }
+
+    // Use the validated data
+    const validatedData = result.data;
+
     const student = await prisma.student.create({
       data: {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        aspiration: data.aspiration,
-        gender: data.gender,
-        email: data.email,
-        class: data.class,
-        section: data.section,
-        comments: data.comments,
-        school_id: data.schoolId
+        first_name: validatedData.first_name,
+        last_name: validatedData.last_name,
+        aspiration: validatedData.aspiration,
+        gender: validatedData.gender,
+        email: validatedData.email,
+        class: validatedData.class,
+        section: validatedData.section,
+        comments: validatedData.comments,
+        school_id: validatedData.schoolId,
       }
     });
     
@@ -23,6 +51,7 @@ export async function createStudent(data: StudentCreateInput) {
     throw error;
   }
 }
+
 
 export async function getStudents(filter?: StudentFilter) {
   try {
@@ -88,32 +117,44 @@ export async function getStudentById(id: number) {
   }
 }
 
-export async function updateStudent(id: number, data: StudentCreateInput) {
+export async function updateStudent(id: number, data: any) {
   try {
-    const student = await prisma.student.update({
+    // Validate partial update data
+    const result = studentSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      console.error("Validation failed:", errorMessages);
+      throw new Error(errorMessages[0]);
+    }
+
+    const validatedData = result.data;
+
+    const updatedStudent = await prisma.student.update({
       where: { id },
       data: {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        aspiration: data.aspiration,
-        gender: data.gender,
-        email: data.email,
-        class: data.class,
-        section: data.section,
-        comments: data.comments,
-        school_id: data.schoolId
+        first_name: validatedData.first_name,
+        last_name: validatedData.last_name,
+        aspiration: validatedData.aspiration,
+        gender: validatedData.gender,
+        email: validatedData.email,
+        class: validatedData.class,
+        section: validatedData.section,
+        comments: validatedData.comments,
+        school_id: validatedData.schoolId,
       },
       include: {
-        school: true
+        school: true,
       }
     });
-    
-    return student;
+
+    return updatedStudent;
   } catch (error) {
     console.error(`Error updating student with id ${id}:`, error);
     throw error;
   }
 }
+
 
 export async function deleteStudent(id: number) {
   try {

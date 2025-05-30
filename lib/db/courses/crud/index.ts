@@ -3,26 +3,61 @@ import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 import { CourseCreateInput, CourseUpdateInput, CourseFilter } from "../type";
 
-export async function createCourse(data: CourseCreateInput) {
+import { z } from "zod";
+
+
+
+export const courseSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  description: z.string().trim().min(1, "Description is required"),
+  organized_by: z.string().trim().min(1, "Organized by is required"),
+  application_start_date: z.coerce.date(),
+  application_end_date: z.coerce.date(),
+  course_start_date: z.coerce.date(),
+  course_end_date: z.coerce.date(),
+  eligibility_from: z.string().trim().min(1, "Eligibility from is required"),
+  eligibility_to: z.string().trim().min(1, "Eligibility to is required"),
+ reference_link: z.string().trim().url("Reference link must be a valid URL").optional().or(z.literal("")),
+ requirements: z.array(
+  z.string()
+    .transform(val => val.trim())
+    .refine(val => val.length > 0, { message: "Requirement cannot be empty or spaces only" })
+),
+course_tags: z.array(
+  z.string()
+    .transform(val => val.trim())
+    .refine(val => val.length > 0, { message: "Course tag cannot be empty or spaces only" })
+),
+
+});
+
+
+export async function createCourse(data: any) {
     try {
-        const formattedData: Prisma.CourseCreateInput = {
-            name: data.name,
-            description: data.description,
-            organized_by: data.organized_by,
-            application_start_date: new Date(data.application_start_date),
-            application_end_date: new Date(data.application_end_date),
-            course_start_date: new Date(data.course_start_date),
-            course_end_date: new Date(data.course_end_date),
-            eligibility_from: data.eligibility_from,
-            eligibility_to: data.eligibility_to,
-            reference_link: data.reference_link || "",
-            requirements: data.requirements,
-            course_tags: data.course_tags,
+
+        const result = courseSchema.safeParse(data);
+
+        if (!result.success) {
+            const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+            console.error("Validation failed:", errorMessages);
+            throw new Error(errorMessages[0]);
+        }
+
+        const { id, ...sanitizedData } = result.data as any;
+
+        const formattedData = {
+            ...sanitizedData,
+            application_start_date: new Date(sanitizedData.application_start_date),
+            application_end_date: new Date(sanitizedData.application_end_date),
+            course_start_date: new Date(sanitizedData.course_start_date),
+            course_end_date: new Date(sanitizedData.course_end_date),
+            reference_link: sanitizedData.reference_link || "",
         };
 
         const course = await prisma.course.create({
             data: formattedData,
         });
+
 
         return course;
     } catch (error) {
@@ -30,6 +65,7 @@ export async function createCourse(data: CourseCreateInput) {
         throw error;
     }
 }
+
 
 export async function getCourses(filter?: CourseFilter) {
     try {
@@ -72,36 +108,35 @@ export async function getCourseById(id: number) {
     }
 }
 
-export async function updateCourse(id: number, data: CourseUpdateInput) {
-    try {
-        const formattedData: Prisma.CourseUpdateInput = {
-            ...data,
-        };
+export async function updateCourse(id: number, data: any) {
+  try {
+    // Validate all data using full schema
+    const result = courseSchema.safeParse(data);
 
-        if (data.application_start_date) {
-            formattedData.application_start_date = new Date(data.application_start_date);
-        }
-        if (data.application_end_date) {
-            formattedData.application_end_date = new Date(data.application_end_date);
-        }
-        if (data.course_start_date) {
-            formattedData.course_start_date = new Date(data.course_start_date);
-        }
-        if (data.course_end_date) {
-            formattedData.course_end_date = new Date(data.course_end_date);
-        }
-
-        const course = await prisma.course.update({
-            where: { id },
-            data: formattedData,
-        });
-
-        return course;
-    } catch (error) {
-        console.error(`Error updating course with ID ${id}:`, error);
-        throw error;
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      console.error("Validation failed:", errorMessages);
+      throw new Error(errorMessages[0]);
     }
+
+    // Use validated data
+    const validatedData = result.data;
+
+    // Dates are already coerced into Date objects by z.coerce.date()
+
+    const updatedCourse = await prisma.course.update({
+      where: { id },
+      data: validatedData,
+    });
+
+    return updatedCourse;
+
+  } catch (error) {
+    console.error(`Error updating course with ID ${id}:`, error);
+    throw error;
+  }
 }
+
 
 export async function deleteCourse(id: number) {
     try {

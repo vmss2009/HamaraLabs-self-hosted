@@ -57,13 +57,13 @@ export async function POST(req: NextRequest) {
 
     const course = await createCourse(courseData);
     return NextResponse.json(course, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating course:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
-      { status: 500 }
-    );
-  }
+  }  catch (error) {
+  console.error("Error creating competition:", error);
+  return NextResponse.json(
+    {error: error instanceof Error ? error.message : "Failed to create competition", },
+    { status: 400 } // Use 400 for validation errors
+  );
+}
 }
 
 export async function GET() {

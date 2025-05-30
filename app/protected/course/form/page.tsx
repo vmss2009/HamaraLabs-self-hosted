@@ -58,7 +58,7 @@ export default function CourseRegistrationForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
+        throw new Error(errorData.error || "Failed to submit the form");
       }
       router.push("/protected/course/report");
 
@@ -144,10 +144,7 @@ export default function CourseRegistrationForm() {
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
                 <textarea
-
                   name="description"
-
-                  required
                   rows={4}
                   placeholder="Enter description"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none"
@@ -160,7 +157,7 @@ export default function CourseRegistrationForm() {
                 <select
                   value={isExternal ? "External" : organizedBy}
                   onChange={handleSelectChange}
-                  required
+                 
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                 >
                   <option value="">Select</option>
@@ -340,7 +337,7 @@ export default function CourseRegistrationForm() {
                 type="url"
                 name="referenceLink"
 
-                required
+               
                 placeholder="Enter reference link"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"
               />

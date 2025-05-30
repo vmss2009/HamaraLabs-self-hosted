@@ -66,7 +66,7 @@ export default function StudentForm() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to submit the form");
+          throw new Error(errorData.error || "Failed to submit the form");
         }
 
         router.push("/protected/student/report");

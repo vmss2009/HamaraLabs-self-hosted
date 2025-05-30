@@ -13,6 +13,7 @@ export interface SchoolCreateInput {
   social_links: string[];
 }
 
+
 export interface SchoolWithAddress extends PrismaSchool {
   address: {
     id: number;

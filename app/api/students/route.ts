@@ -72,14 +72,15 @@ export async function POST(request: Request) {
       comments: data.comments,
       schoolId: schoolId
     };
+    console.log("Student data",studentInput);
     
     const student = await createStudent(studentInput);
     return NextResponse.json(student);
-  } catch (error) {
-    console.error("Error creating student:", error);
-    return NextResponse.json(
-      { error: "Failed to create student" },
-      { status: 500 }
-    );
-  }
+  }  catch (error) {
+  console.error("Error creating competition:", error);
+  return NextResponse.json(
+    {error: error instanceof Error ? error.message : "Failed to create competition", },
+    { status: 400 } // Use 400 for validation errors
+  );
+}
 } 

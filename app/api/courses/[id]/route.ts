@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCourseById,updateCourse,deleteCourse } from "@/lib/db/courses/crud";
+import { getCourseById, updateCourse, deleteCourse } from "@/lib/db/courses/crud";
 import { CourseUpdateInput } from "@/lib/db/courses/type";
 
 
@@ -53,9 +53,14 @@ export async function PUT(
 
     const updated = await updateCourse(courseId, updateData);
     return NextResponse.json(updated, { status: 200 });
-  } catch (error: any) {
-    console.error("Error updating course:", error);
-    return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error("Error creating competition:", error);
+
+    
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to create competition", },
+      { status: 400 } // Use 400 for validation errors
+    );
   }
 }
 

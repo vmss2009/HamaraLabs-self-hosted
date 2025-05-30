@@ -117,7 +117,7 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update the competition");
+        throw new Error(errorData.error || "Failed to update the competition");
       }
       
       router.push("/protected/competition/report");
@@ -342,6 +342,7 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
               legend="Requirements"
               fieldLabel="Requirement"
               name="requirements"
+              required
             />
           </FormSection>
           

@@ -105,7 +105,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || "Update failed");
+        throw new Error(errData.error || "Update failed");
       }
 
       router.push("/protected/course/report");
@@ -189,12 +189,14 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                 <Input
                   id="competition-name"
                   name="name"
+                  value={name}
                   label="Course Name"
                   required
                   placeholder="Enter course name"
+                  onChange={ (e)=> setName(e.target.value)}
                   className="focus:border-blue-500 focus:ring-blue-500"
-                />
-
+                /> 
+                
               </div>
 
               <div>
@@ -206,7 +208,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                   rows={4}
                   onChange={e => setDescription(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none"
-                  required
+                  
                 />
               </div>
 
@@ -300,7 +302,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                     name="eligibilityFrom"
                     value={eligibilityFrom}
                     onChange={(e) => setEligibilityFrom(e.target.value)}
-                    required
+                   
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -324,9 +326,10 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                     name="eligibilityTo"
                     value={eligibilityTo}
                     onChange={(e) => setEligibilityTo(e.target.value)}
-                    required
+                    
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
+                    
                     <option value="">Select</option>
                     <option value="6th">6th</option>
                     <option value="7th">7th</option>

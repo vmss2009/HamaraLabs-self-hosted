@@ -123,10 +123,11 @@ export async function PUT(
 
     return NextResponse.json(updatedCompetition);
   } catch (error) {
-    console.error("Error updating competition:", error);
-    return NextResponse.json(
-      { error: "Failed to update competition" },
-      { status: 500 }
-    );
-  }
+  console.error("Error creating competition:", error);
+
+  return NextResponse.json(
+    {error: error instanceof Error ? error.message : "Failed to create competition", },
+    { status: 400 } // Use 400 for validation errors
+  );
+}
 } 

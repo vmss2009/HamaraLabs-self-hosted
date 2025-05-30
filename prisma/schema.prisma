@@ -44,7 +44,7 @@ model City {
 model Address {
   id            Int      @id @default(autoincrement())
   created_at    DateTime @default(now())
-  address_line1 String?
+  address_line1 String
   address_line2 String?
   pincode       String
   city_id       Int

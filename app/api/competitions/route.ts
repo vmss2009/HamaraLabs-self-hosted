@@ -5,20 +5,20 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Validate required fields
-    const requiredFields = [
-      "name",
-      "description",
-      "organised_by",
-      "application_start_date",
-      "application_end_date",
-      "competition_start_date",
-      "competition_end_date",
-      "eligibility",
-      "reference_links",
-      "requirements",
-      "payment"
-    ];
+      // Validate required fields
+      const requiredFields = [
+        "name",
+        "description",
+        "organised_by",
+        "application_start_date",
+        "application_end_date",
+        "competition_start_date",
+        "competition_end_date",
+        "eligibility",
+        "reference_links",
+        "requirements",
+        "payment"
+      ];
 
     for (const field of requiredFields) {
       if (!body[field]) {
@@ -50,13 +50,14 @@ export async function POST(request: Request) {
 
     const competition = await createCompetition(competitionData);
     return NextResponse.json(competition);
-  } catch (error) {
-    console.error("Error creating competition:", error);
-    return NextResponse.json(
-      { error: "Failed to create competition" },
-      { status: 500 }
-    );
-  }
+ } catch (error) {
+  console.error("Error creating competition:", error);
+
+  return NextResponse.json(
+    {error: error instanceof Error ? error.message : "Failed to create competition", },
+    { status: 400 } // Use 400 for validation errors
+  );
+}
 }
 
 export async function GET() {

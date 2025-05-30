@@ -45,11 +45,6 @@ export default function CompetitionForm() {
         return date.toISOString();
       };
 
-      // Log the dates before sending
-      console.log("Application Start Date:", applicationStartDate, "Formatted:", formatDate(applicationStartDate));
-      console.log("Application End Date:", applicationEndDate, "Formatted:", formatDate(applicationEndDate));
-      console.log("Competition Start Date:", competitionStartDate, "Formatted:", formatDate(competitionStartDate));
-      console.log("Competition End Date:", competitionEndDate, "Formatted:", formatDate(competitionEndDate));
 
       const competitionData = {
         name,
@@ -76,7 +71,8 @@ export default function CompetitionForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
+        throw new Error(errorData.error || "Failed to submit the form");
+
       }
 
       setSuccess(true);
@@ -171,8 +167,8 @@ export default function CompetitionForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-              
-             
+
+
                 <DateFieldGroup
                   name="applicationStartDate"
                   value={applicationStartDate}
@@ -200,7 +196,7 @@ export default function CompetitionForm() {
               </div>
 
               <div>
-        
+
                 <DateFieldGroup
                   name="competitionEndDate"
                   value={competitionEndDate}
@@ -245,8 +241,8 @@ export default function CompetitionForm() {
 
           <FormSection title="Competition Details">
             <DynamicFieldArray
-            className="mb-5"
-            placeholder="Eligibility"
+              className="mb-5"
+              placeholder="Eligibility"
               values={eligibility}
               onChange={(index, value) => {
                 const newEligibility = [...eligibility];
@@ -266,8 +262,8 @@ export default function CompetitionForm() {
             />
 
             <DynamicFieldArray
-            className="mb-5"
-            placeholder="ReferenceLink"
+              className="mb-5"
+              placeholder="ReferenceLink"
               values={referenceLinks}
               onChange={(index, value) => {
                 const newReferenceLinks = [...referenceLinks];
@@ -286,8 +282,8 @@ export default function CompetitionForm() {
             />
 
             <DynamicFieldArray
-            className="mb-5"
-            placeholder="Requirement"
+              className="mb-5"
+              placeholder="Requirement"
               values={requirements}
               onChange={(index, value) => {
                 const newRequirements = [...requirements];
@@ -303,6 +299,7 @@ export default function CompetitionForm() {
               legend="Requirements"
               fieldLabel="Requirement"
               name="requirements"
+              required
             />
           </FormSection>
 
