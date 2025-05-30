@@ -5,7 +5,9 @@ import React, { ChangeEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 import { useRouter } from "next/navigation";
-
+import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import DateFieldGroup from "@/components/forms/DateField";
+import { Input } from "@/components/ui/Input";
 
 export default function CourseRegistrationForm() {
 
@@ -16,16 +18,21 @@ export default function CourseRegistrationForm() {
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
- const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  
+  const [isExternal, setIsExternal] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
+
+      
       const formData = new FormData(e.currentTarget);
       const courseData = {
         name: formData.get("name"),
-        description:formData.get("description"),
+        description: formData.get("description"),
         organized_by: organizedBy,
         application_start_date: formData.get("applicationStartDate"),
         application_end_date: formData.get("applicationEndDate"),
@@ -47,13 +54,13 @@ export default function CourseRegistrationForm() {
         },
         body: JSON.stringify(courseData),
       });
-       console.log("Submitted Course Data:", courseData);
+      console.log("Submitted Course Data:", courseData);
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit the form");
       }
-       router.push("/protected/course/report");
+      router.push("/protected/course/report");
 
     }
     catch (error) {
@@ -68,50 +75,16 @@ export default function CourseRegistrationForm() {
   };
 
 
-  const handleRequirementChange = (index: number, value: string) => {
-    const updated = [...requirements];
-    updated[index] = value;
-    setRequirements(updated);
+  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === "External") {
+      setIsExternal(true);
+      setOrganizedBy(""); // reset to let user type
+    } else {
+      setIsExternal(false);
+      setOrganizedBy(val);
+    }
   };
-
-  const addRequirement = () => {
-    setRequirements([...requirements, ""]);
-  };
-
-  const removeRequirement = (index: number) => {
-    const updated = requirements.filter((_, i) => i !== index);
-    setRequirements(updated);
-  };
-
-  const handleTagChange = (index: number, value: string) => {
-    const updated = [...courseTags];
-    updated[index] = value;
-    setCourseTags(updated);
-  };
-
-  const addTag = () => {
-    setCourseTags([...courseTags, ""]);
-  };
-
-  const removeTag = (index: number) => {
-    const updated = courseTags.filter((_, i) => i !== index);
-    setCourseTags(updated);
-  };
-
-    const [isExternal, setIsExternal] = useState(false);
-
-
-
-const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-  const val = e.target.value;
-  if (val === "External") {
-    setIsExternal(true);
-    setOrganizedBy(""); // reset to let user type
-  } else {
-    setIsExternal(false);
-    setOrganizedBy(val);
-  }
-};
 
   return (
 
@@ -157,24 +130,23 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">Basic Information</h3>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Course Name</label>
-                <input
-                  type="text"
+                <Input
+                  id="competition-name"
                   name="name"
-                
-               
+                  label="Course Name"
                   required
                   placeholder="Enter course name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  className="focus:border-blue-500 focus:ring-blue-500"
                 />
+
               </div>
 
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
                 <textarea
-                
+
                   name="description"
-                 
+
                   required
                   rows={4}
                   placeholder="Enter description"
@@ -201,7 +173,7 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 {isExternal && (
                   <input
                     type="text"
-                   
+
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -210,47 +182,38 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   />
                 )}
               </div>
-           
+
 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Application Start Date</label>
-                  <input
-                    type="date"
-                     name="applicationStartDate"
-                  
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  <DateFieldGroup
+                    name="applicationStartDate"
+                    required
                   />
+
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Application End Date</label>
-                  <input
-                    type="date"
-                     name="applicationEndDate"
-                   
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  <DateFieldGroup
+                    name="applicationEndDate"
+                    required
                   />
                 </div>
+
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Course Start Date</label>
-                  <input
-                    type="date"
+                  <DateFieldGroup
                     name="courseStartDate"
-                  
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
                   />
                 </div>
+
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Course End Date</label>
-                  <input
-                    type="date"
+                  <DateFieldGroup
                     name="courseEndDate"
-                  
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
                   />
                 </div>
               </div>
@@ -265,8 +228,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <div>
                   <label className="block mb-2 text-sm font-medium text-gray-700">From</label>
                   <select
-                  name="eligibilityFrom"
-                   
+                    name="eligibilityFrom"
+
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -282,8 +245,8 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                 <div>
                   <label className="block mb-2 text-sm font-medium text-gray-700">To</label>
                   <select
-                  name="eligibilityTo"
-                    
+                    name="eligibilityTo"
+
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -310,78 +273,57 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
 
                 {/* Requirements */}
                 <div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Requirements</h4>
-                  <div className="space-y-4">
-                    {requirements.map((requirement, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={requirement}
-                          onChange={(e) => handleRequirementChange(index, e.target.value)}
-                          placeholder={`Requirement ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === requirements.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addRequirement}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Requirement"
-                          >
-                            +
-                          </button>
-                        )}
-                        {requirements.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeRequirement(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Requirement"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+
+                  <DynamicFieldArray
+                    placeholder="Requirement"
+                    className="space-y-4"
+                    values={requirements}
+                    onChange={(index, value) => {
+                      const newRequirements = [...requirements];
+                      newRequirements[index] = value;
+                      setRequirements(newRequirements);
+                    }}
+                    onAdd={() => setRequirements([...requirements, ""])}
+                    onRemove={(index) => {
+                      const newRequirements = [...requirements];
+                      newRequirements.splice(index, 1);
+                      setRequirements(newRequirements);
+                    }}
+                    legend="Requirements"
+                    fieldLabel="Requirement"
+                    name="requirements"
+                    required
+                  />
+
+
+
                 </div>
 
                 {/* Course Tags */}
                 <div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Course Tags</h4>
-                  <div className="space-y-4">
-                    {courseTags.map((tag, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={tag}
-                          onChange={(e) => handleTagChange(index, e.target.value)}
-                          placeholder={`Tag ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === courseTags.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addTag}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Tag"
-                          >
-                            +
-                          </button>
-                        )}
-                        {courseTags.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTag(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Tag"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <DynamicFieldArray
+                    placeholder="Tag"
+                    className="space-y-4"
+                    values={courseTags}
+                    onChange={(index, value) => {
+                      const newTags = [...courseTags];
+                      newTags[index] = value;
+                      setCourseTags(newTags);
+                    }}
+                    onAdd={() => setCourseTags([...courseTags, ""])}
+                    onRemove={(index) => {
+                      const newTags = [...courseTags];
+                      newTags.splice(index, 1);
+                      setCourseTags(newTags);
+                    }}
+                    legend="Course Tags"
+                    fieldLabel="Tag"
+                    name="courseTags"
+                    required
+                  />
+
+
+
                 </div>
               </div>
             </div>
@@ -397,7 +339,7 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
               <input
                 type="url"
                 name="referenceLink"
-              
+
                 required
                 placeholder="Enter reference link"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"

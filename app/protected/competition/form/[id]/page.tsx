@@ -9,6 +9,7 @@ import SelectField from "@/components/forms/SelectField";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
+import DateFieldGroup from "@/components/forms/DateField";
 
 export default function EditCompetitionForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -210,62 +211,40 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Application Start Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="application-start-date"
+               
+                <DateFieldGroup
                   name="applicationStartDate"
                   value={applicationStartDate}
                   onChange={(e) => setApplicationStartDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Application End Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="application-end-date"
+                <DateFieldGroup
                   name="applicationEndDate"
                   value={applicationEndDate}
                   onChange={(e) => setApplicationEndDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Competition Start Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="competition-start-date"
+                <DateFieldGroup
                   name="competitionStartDate"
                   value={competitionStartDate}
                   onChange={(e) => setCompetitionStartDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Competition End Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="competition-end-date"
+              
+                <DateFieldGroup
                   name="competitionEndDate"
                   value={competitionEndDate}
                   onChange={(e) => setCompetitionEndDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
               

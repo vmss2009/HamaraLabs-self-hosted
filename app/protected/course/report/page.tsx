@@ -89,6 +89,15 @@ export default function CourseReport() {
       setLoading(false);
     }
   };
+   const formatDate = (dateString: string): string => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    } catch (error) {
+      return dateString;
+    }
+  };
 
   const closeAssignDialog = () => {
     setAssignDialogOpen(false);
@@ -244,12 +253,12 @@ export default function CourseReport() {
     { field: "name", headerName: "Course Name", width: 200 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "organized_by", headerName: "Organized By", width: 200 },
-    { field: "application_start_date", headerName: "App Start Date", width: 150 },
-    { field: "application_end_date", headerName: "App End Date", width: 150 },
-    { field: "course_start_date", headerName: "Course Start", width: 150 },
-    { field: "course_end_date", headerName: "Course End", width: 150 },
-    { field: "eligibility_from", headerName: "Eligible From", width: 150 },
-    { field: "eligibility_to", headerName: "Eligible To", width: 150 },
+    { field: "application_start_date", headerName: "App Start Date", width: 150 ,valueFormatter: (params) => formatDate(params) },
+    { field: "application_end_date", headerName: "App End Date", width: 150,  valueFormatter: (params) => formatDate(params) },
+    { field: "course_start_date", headerName: "Course Start", width: 150, valueFormatter: (params) => formatDate(params) },
+    { field: "course_end_date", headerName: "Course End", width: 150, valueFormatter: (params) => formatDate(params) },
+    { field: "eligibility_from", headerName: "Eligible From", width: 150,  },
+    { field: "eligibility_to", headerName: "Eligible To", width: 150, },
     {
       field: "requirements",
       headerName: "Requirements",
@@ -413,7 +422,7 @@ export default function CourseReport() {
                   Application Start Date:
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.application_start_date)}
+                  {formatDate(selectedRow.application_start_date)}
                 </Typography>
               </Box>
 
@@ -422,7 +431,7 @@ export default function CourseReport() {
                   Application End Date:
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.application_end_date)}
+                  {formatDate(selectedRow.application_end_date)}
                 </Typography>
               </Box>
 
@@ -431,7 +440,7 @@ export default function CourseReport() {
                   Course Start Date:
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.course_start_date)}
+                  {formatDate(selectedRow.course_start_date)}
                 </Typography>
               </Box>
 
@@ -440,7 +449,7 @@ export default function CourseReport() {
                   Course End Date:
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.course_end_date)}
+                  {formatDate(selectedRow.course_end_date)}
                 </Typography>
               </Box>
 
@@ -523,6 +532,15 @@ export default function CourseReport() {
                 {assignError}
               </Alert>
             )}
+
+          <div className="space-y-4 mt-4">
+           <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Course: {selectedActivity?.name}
+              </label>
+            </div>
+
+          
             <div className="space-y-4 mt-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -581,6 +599,7 @@ export default function CourseReport() {
                   )}
                 />
               </div>
+            </div>
             </div>
           </DialogContent>
           <DialogActions>

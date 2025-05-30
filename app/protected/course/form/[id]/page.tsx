@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import React, { ChangeEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
+import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import DateFieldGroup from "@/components/forms/DateField";
+import { Input } from "@/components/ui/Input";
 
 export default function EditCourseForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -67,39 +70,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
     fetchCourse();
   }, [resolvedParams.id]);
-
-  // Requirement handlers
-  const handleRequirementChange = (index: number, value: string) => {
-    const newRequirements = [...requirements];
-    newRequirements[index] = value;
-    setRequirements(newRequirements);
-  };
-
-  const addRequirement = () => {
-    setRequirements([...requirements, ""]);
-  };
-
-  const removeRequirement = (index: number) => {
-    if (requirements.length === 1) return; // keep at least one input
-    setRequirements(requirements.filter((_, i) => i !== index));
-  };
-
-  // CourseTags handlers
-  const handleTagChange = (index: number, value: string) => {
-    const newTags = [...courseTags];
-    newTags[index] = value;
-    setCourseTags(newTags);
-  };
-
-  const addTag = () => {
-    setCourseTags([...courseTags, ""]);
-  };
-
-  const removeTag = (index: number) => {
-    if (courseTags.length === 1) return; // keep at least one input
-    setCourseTags(courseTags.filter((_, i) => i !== index));
-  };
-
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -216,16 +186,15 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">Basic Information</h3>
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Course Name</label>
-                <input
-                  type="text"
-                  id="name"
+                <Input
+                  id="competition-name"
                   name="name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  label="Course Name"
                   required
+                  placeholder="Enter course name"
+                  className="focus:border-blue-500 focus:ring-blue-500"
                 />
+
               </div>
 
               <div>
@@ -274,27 +243,21 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label htmlFor="applicationStartDate" className="block text-sm font-medium text-gray-700">Application Start Date</label>
-                  <input
-                    type="date"
-                    id="applicationStartDate"
+                 
+                  <DateFieldGroup
                     name="applicationStartDate"
                     value={applicationStartDate}
                     onChange={e => setApplicationStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="applicationEndDate" className="block text-sm font-medium text-gray-700">Application End Date</label>
-                  <input
-                    type="date"
-                    id="applicationEndDate"
+                 
+                  <DateFieldGroup
                     name="applicationEndDate"
                     value={applicationEndDate}
                     onChange={e => setApplicationEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                     required
                   />
                 </div>
@@ -302,27 +265,19 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label htmlFor="courseStartDate" className="block text-sm font-medium text-gray-700">Course Start Date</label>
-                  <input
-                    type="date"
-                    id="courseStartDate"
+                  <DateFieldGroup
                     name="courseStartDate"
                     value={courseStartDate}
                     onChange={e => setCourseStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="courseEndDate" className="block text-sm font-medium text-gray-700">Course End Date</label>
-                  <input
-                    type="date"
-                    id="courseEndDate"
+                  <DateFieldGroup
                     name="courseEndDate"
                     value={courseEndDate}
                     onChange={e => setCourseEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                     required
                   />
                 </div>
@@ -395,80 +350,55 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                 <div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Requirements</h4>
-                  <div className="space-y-4">
-                    {requirements.map((requirement, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={requirement}
-                          onChange={(e) => handleRequirementChange(index, e.target.value)}
-                          placeholder={`Requirement ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === requirements.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addRequirement}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Requirement"
-                          >
-                            +
-                          </button>
-                        )}
-                        {requirements.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeRequirement(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Requirement"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+
+
+                  <DynamicFieldArray
+                    placeholder="Requirement"
+                    className="space-y-4"
+                    values={requirements}
+                    onChange={(index, value) => {
+                      const newRequirements = [...requirements];
+                      newRequirements[index] = value;
+                      setRequirements(newRequirements);
+                    }}
+                    onAdd={() => setRequirements([...requirements, ""])}
+                    onRemove={(index) => {
+                      const newRequirements = [...requirements];
+                      newRequirements.splice(index, 1);
+                      setRequirements(newRequirements);
+                    }}
+                    legend="Requirements"
+                    fieldLabel="Requirement"
+                    name="requirements"
+                    required
+                  />
                 </div>
 
                 {/* Course Tags Section */}
-                <div className="">
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Course Tags</h4>
-                  <div className="space-y-4">
-                    {courseTags.map((tag, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={tag}
-                          onChange={(e) => handleTagChange(index, e.target.value)}
-                          placeholder={`Tag ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === courseTags.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addTag}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Tag"
-                          >
-                            +
-                          </button>
-                        )}
-                        {courseTags.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTag(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Tag"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
+                <div>
+                  <DynamicFieldArray
+                    placeholder="Tag"
+                    className="space-y-4"
+                    values={courseTags}
+                    onChange={(index, value) => {
+                      const newTags = [...courseTags];
+                      newTags[index] = value;
+                      setCourseTags(newTags);
+                    }}
+                    onAdd={() => setCourseTags([...courseTags, ""])}
+                    onRemove={(index) => {
+                      const newTags = [...courseTags];
+                      newTags.splice(index, 1);
+                      setCourseTags(newTags);
+                    }}
+                    legend="Course Tags"
+                    fieldLabel="Tag"
+                    name="courseTags"
+                    required
+                  />
+
+                </div>
               </div>
             </div>
           </FormSection>

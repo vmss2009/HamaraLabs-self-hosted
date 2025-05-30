@@ -635,6 +635,13 @@ export default function TinkeringActivityReport() {
               {assignError}
             </Alert>
           )}
+
+           <div className="space-y-4 mt-4">
+           <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Activity: {selectedActivity?.name}
+              </label>
+            </div>
           <div className="space-y-4 mt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -691,6 +698,7 @@ export default function TinkeringActivityReport() {
                 )}
               />
             </div>
+          </div>
           </div>
         </DialogContent>
         <DialogActions>

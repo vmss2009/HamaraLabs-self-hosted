@@ -64,6 +64,7 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
   const displayLabel = legend || label || 'Field';
   const displayFieldLabel = fieldLabel || label || 'Item';
 
+
   return (
     <div className={`space-y-4 text-black ${className}`}>
       <h4 className="text-lg font-bold text-gray-700 mb-4">
@@ -94,7 +95,8 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
               >
                 +
               </button>
-            )}
+            )} 
+            
 
             {/* Remove button shown when more than 1 item */}
             {displayValues.length > 1 && (

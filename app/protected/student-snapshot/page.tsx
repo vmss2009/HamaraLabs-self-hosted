@@ -81,7 +81,7 @@ export default function StudentSnapshot() {
 
 
 
-  const latestStatus = selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(" - ")[0] || "";
+const latestStatus = selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(" - ")[0] || ""
 
   // Fetch schools on component mount
   useEffect(() => {
@@ -812,7 +812,7 @@ export default function StudentSnapshot() {
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();
-              handleDeleteCourse(params.row);
+              handleDeleteCompetition(params.row);
             }}
             showInMenu={false}
           />
