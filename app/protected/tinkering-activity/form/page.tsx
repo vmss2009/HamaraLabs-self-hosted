@@ -296,7 +296,7 @@ export default function TinkeringActivityForm() {
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
-              required
+             
             />
             
             <DynamicFieldArray
@@ -317,7 +317,7 @@ export default function TinkeringActivityForm() {
               legend="Materials"
               fieldLabel="Material"
               name="materials"
-              required
+             
             />
             
             <DynamicFieldArray
@@ -338,7 +338,7 @@ export default function TinkeringActivityForm() {
               legend="Instructions"
               fieldLabel="Instruction"
               name="instructions"
-              required
+             
             />
             
             <DynamicFieldArray
