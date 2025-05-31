@@ -20,9 +20,13 @@ export const competitionSchema = z.object({
   )
   .min(1, "At least one requirement is required"),
 
-  reference_links: z
-    .array(z.string().trim().url("Each reference link must be a valid URL"))
-    .min(1, "At least one reference link is required"),
+reference_links: z
+  .array(z.string().trim())
+  .transform((links) => links.filter((link) => link !== ""))
+  .refine((links) =>
+    links.every((link) => z.string().url().safeParse(link).success),
+    { message: "Each reference link must be a valid URL" }
+  ),
   fee: z.string().trim().nullable().optional(),
   payment: z.string().trim().min(1, "Payment method is required"),
 }).refine((data) => {
