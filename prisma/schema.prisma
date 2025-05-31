@@ -13,6 +13,8 @@ model User {
   user_meta_data Json?     @default("{}")
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
+  comments       String?   // New field
+  schools        School[]  @relation("UserSchools") // New relation
   students       Student[]
 }
 
@@ -52,6 +54,7 @@ model Address {
   schools       School[]
 }
 
+
 model School {
   id                Int       @id @default(autoincrement())
   created_at        DateTime  @default(now())
@@ -67,6 +70,7 @@ model School {
   social_links      String[]
   address           Address   @relation(fields: [address_id], references: [id])
   students          Student[]
+  users             User[]    @relation("UserSchools") // New relation
 }
 
 model Student {
