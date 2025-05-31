@@ -68,7 +68,6 @@ const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
             />
           </Grid>
 
-          {/* Subject */}
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Subject</InputLabel>
@@ -86,7 +85,6 @@ const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
             </FormControl>
           </Grid>
 
-          {/* Topic */}
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Topic</InputLabel>
@@ -105,7 +103,6 @@ const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
             </FormControl>
           </Grid>
 
-          {/* Subtopic */}
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Subtopic</InputLabel>
@@ -124,7 +121,6 @@ const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
             </FormControl>
           </Grid>
 
-          {/* Text Fields for various sections */}
           {[
             "introduction",
             "goals",

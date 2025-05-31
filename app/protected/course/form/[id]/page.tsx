@@ -280,7 +280,6 @@ export default function EditCourseForm({
             </div>
           </FormSection>
 
-          {/* Eligibility */}
           <FormSection title="Eligibility">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
@@ -369,8 +368,6 @@ export default function EditCourseForm({
                     required
                   />
                 </div>
-
-                {/* Course Tags Section */}
 
                 <div>
                   <DynamicFieldArray

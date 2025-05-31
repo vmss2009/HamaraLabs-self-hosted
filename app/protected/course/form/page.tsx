@@ -113,7 +113,6 @@ export default function CourseRegistrationForm() {
         )}
 
         <form onSubmit={onSubmit} className="space-y-8 text-black">
-          {/* Basic Info */}
           <FormSection title="Basic Information">
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">
@@ -191,7 +190,6 @@ export default function CourseRegistrationForm() {
             </div>
           </FormSection>
 
-          {/* Eligibility */}
           <FormSection title="Eligibility">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
@@ -238,8 +236,6 @@ export default function CourseRegistrationForm() {
             </div>
           </FormSection>
 
-          {/* Requirements Section */}
-          {/* Requirements and Course Tags Section */}
           <FormSection title="Requirements & Tags">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
               <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
@@ -247,7 +243,6 @@ export default function CourseRegistrationForm() {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Requirements */}
                 <div>
                   <DynamicFieldArray
                     placeholder="Requirement"
@@ -271,7 +266,6 @@ export default function CourseRegistrationForm() {
                   />
                 </div>
 
-                {/* Course Tags */}
                 <div>
                   <DynamicFieldArray
                     placeholder="Tag"
@@ -298,7 +292,6 @@ export default function CourseRegistrationForm() {
             </div>
           </FormSection>
 
-          {/* Reference Link */}
           <FormSection title="Reference">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -313,7 +306,6 @@ export default function CourseRegistrationForm() {
             </div>
           </FormSection>
 
-          {/* Submit */}
           <div className="flex justify-end w-full">
             <Button
               type="submit"

@@ -26,8 +26,9 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         )}
         <select
           className={cn(
-            "flex h-11 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 shadow-sm appearance-none bg-no-repeat bg-[right_0.75rem_center] bg-[length:0.75em_0.75em] bg-[url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http:            error && "border-red-500 focus:ring-red-500",
-            className,
+            "flex h-11 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 shadow-sm appearance-none bg-no-repeat bg-[right_0.75rem_center] bg-[length:0.75em_0.75em] bg-[url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E\")]",
+            error && "border-red-500 focus:ring-red-500",
+            className
           )}
           ref={ref}
           {...props}
@@ -50,7 +51,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         )}
       </div>
     );
-  },
+  }
 );
 
 Select.displayName = "Select";

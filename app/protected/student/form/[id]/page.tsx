@@ -143,7 +143,6 @@ export default function EditStudentForm({
         )}
 
         <form onSubmit={onSubmit} className="space-y-8">
-          {/* School Selection */}
           <FormSection title="School Information">
             <SelectField
               label="Select School"
@@ -158,7 +157,6 @@ export default function EditStudentForm({
             />
           </FormSection>
 
-          {/* Basic Information */}
           <FormSection title="Basic Information">
             <TextFieldGroup
               fields={[

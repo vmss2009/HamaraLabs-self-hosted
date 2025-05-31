@@ -467,7 +467,6 @@ export default function TinkeringActivityReport() {
             { label: "Resources", field: "resources" },
           ]}
         />
-        {/* Assignment Dialog */}
         <AssignDialog
           open={assignDialogOpen}
           formtype="Tinkering-activity"

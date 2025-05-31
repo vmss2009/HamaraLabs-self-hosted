@@ -28,7 +28,6 @@ const Drawer: React.FC = () => {
         } transition-transform duration-300 ease-in-out z-40`}
       >
         <nav className="flex flex-col h-full p-4 overflow-y-auto">
-          {/* User Info Section */}
           <div className="mt-12  p-4 bg-gray-800 rounded-lg">
             <p className="text-sm text-gray-400">Signed in as</p>
             <p className="text-white font-medium truncate">
@@ -178,7 +177,6 @@ const Drawer: React.FC = () => {
         </nav>
       </div>
 
-      {/* Overlay */}
       {isOpen && (
         <div
           onClick={toggleDrawer}

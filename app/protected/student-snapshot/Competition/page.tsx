@@ -96,7 +96,6 @@ export function getCompetitionColumns(
       width: 200,
       getActions: (params) => [
         <div className="flex items-center space-x-2" key="action-buttons">
-          {/* Modify Button */}
           <Button
             variant="default"
             color="primary"
@@ -108,7 +107,7 @@ export function getCompetitionColumns(
           >
             Modify status
           </Button>
-          {/* Delete Icon */}
+
           <GridActionsCellItem
             key="delete"
             icon={

@@ -30,7 +30,7 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
   required = false,
 }) => {
   const [internalValues, setInternalValues] = useState<string[]>(
-    values.length > 0 ? values : [""],
+    values.length > 0 ? values : [""]
   );
 
   const displayValues = values.length > 0 ? values : internalValues;
@@ -86,7 +86,6 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
               required={required}
             />
 
-            {/* Add button only for last item */}
             {index === displayValues.length - 1 && (
               <button
                 type="button"
@@ -98,7 +97,6 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
               </button>
             )}
 
-            {/* Remove button shown when more than 1 item */}
             {displayValues.length > 1 && (
               <button
                 type="button"

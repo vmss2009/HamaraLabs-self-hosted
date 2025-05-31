@@ -413,7 +413,6 @@ export default function CompetitionReport() {
             { label: "Fee", field: "fee" },
           ]}
         />
-        {/* Assign Dialog */}
         <AssignDialog
           open={assignDialogOpen}
           formtype="Competition"
