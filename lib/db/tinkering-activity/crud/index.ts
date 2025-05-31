@@ -6,6 +6,7 @@ import {
   TinkeringActivityCreateInput,
   TinkeringActivityWithSubtopic
 } from "../type";
+import { tinkeringActivitySchema } from "../type";
 
 // Subject operations
 export async function createSubject(data: SubjectCreateInput) {
@@ -108,30 +109,44 @@ export async function getSubtopicsByTopic(topicId: number) {
   }
 }
 
+
 // TinkeringActivity operations
-export async function createTinkeringActivity(data: TinkeringActivityCreateInput) {
+export async function createTinkeringActivity(data: unknown) {
   try {
+    const result = tinkeringActivitySchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(
+        err => `${err.path.join(".")}: ${err.message}`
+      );
+      console.error("Validation failed:", errorMessages);
+      throw new Error(errorMessages[0]);
+    }
+
+    const validatedData = result.data;
+
     const tinkeringActivity = await prisma.tinkeringActivity.create({
       data: {
-        name: data.name,
-        subtopic_id: data.subtopicId,
-        introduction: data.introduction,
-        goals: data.goals,
-        materials: data.materials,
-        instructions: data.instructions,
-        tips: data.tips,
-        observations: data.observations,
-        extensions: data.extensions,
-        resources: data.resources,
+        name: validatedData.name,
+        subtopic_id: validatedData.subtopicId,
+        introduction: validatedData.introduction,
+        goals: validatedData.goals,
+        materials: validatedData.materials,
+        instructions: validatedData.instructions,
+        tips: validatedData.tips,
+        observations: validatedData.observations,
+        extensions: validatedData.extensions,
+        resources: validatedData.resources,
       }
     });
-    
+
     return tinkeringActivity;
   } catch (error) {
     console.error("Error creating tinkering activity:", error);
     throw error;
   }
 }
+
 
 export async function getTinkeringActivitiesBySubtopic(subtopicId: number) {
   try {
@@ -206,22 +221,33 @@ export async function getTinkeringActivityById(id: number): Promise<TinkeringAct
     throw error;
   }
 }
-
-export async function updateTinkeringActivity(id: number, data: TinkeringActivityCreateInput) {
+export async function updateTinkeringActivity(id: number, data: unknown) {
   try {
+    const result = tinkeringActivitySchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(
+        err => `${err.path.join(".")}: ${err.message}`
+      );
+      console.error("Validation failed:", errorMessages);
+      throw new Error("Validation error: " + errorMessages.join(", "));
+    }
+
+    const validatedData = result.data;
+
     const tinkeringActivity = await prisma.tinkeringActivity.update({
       where: { id },
       data: {
-        name: data.name,
-        subtopic_id: data.subtopicId,
-        introduction: data.introduction,
-        goals: data.goals,
-        materials: data.materials,
-        instructions: data.instructions,
-        tips: data.tips,
-        observations: data.observations,
-        extensions: data.extensions,
-        resources: data.resources
+        name: validatedData.name,
+        subtopic_id: validatedData.subtopicId,
+        introduction: validatedData.introduction,
+        goals: validatedData.goals,
+        materials: validatedData.materials,
+        instructions: validatedData.instructions,
+        tips: validatedData.tips,
+        observations: validatedData.observations,
+        extensions: validatedData.extensions,
+        resources: validatedData.resources
       },
       include: {
         subtopic: {
@@ -235,7 +261,7 @@ export async function updateTinkeringActivity(id: number, data: TinkeringActivit
         }
       }
     }) as TinkeringActivityWithSubtopic;
-    
+
     return tinkeringActivity;
   } catch (error) {
     console.error(`Error updating tinkering activity with id ${id}:`, error);

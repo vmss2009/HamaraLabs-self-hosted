@@ -120,9 +120,10 @@ const DetailsDrawer: React.FC<DetailsDrawerProps> = ({
                   {col.fields.map(({ label, field }) => {
                     const value = getNestedValue(selectedRow, field);
                     return (
-                      <Typography key={field} variant="body2" sx={{ mb: 0.5 }}>
-                        - <strong>{label}</strong>: {value ?? "N/A"}
-                      </Typography>
+                     <Typography key={field} variant="body2" sx={{ mb: 0.5 }}>
+                     - <strong>{label}</strong>: {typeof value === "object" && value !== null ? JSON.stringify(value) : value ?? "N/A"}
+                    </Typography>
+
                     );
                   })}
                 </Box>

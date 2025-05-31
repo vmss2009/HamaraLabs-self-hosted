@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { SchoolCreateInput, SchoolFilter, SchoolWithAddress } from "../type";
 import { Prisma } from "@prisma/client";
+import { schoolSchema } from "../type";
 
 export interface SchoolUpdateInput {
   name?: string;
@@ -14,21 +15,35 @@ export interface SchoolUpdateInput {
   social_links?: string[];
 }
 
-export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
+
+// Step 2: Function to create school with validation
+export async function createSchool(data: unknown): Promise<SchoolWithAddress> {
   try {
+    const result = schoolSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      console.error("Validation failed:", errorMessages);
+      throw new Error(errorMessages[0]);
+    }
+
+    const validatedData = result.data;
+
+    const formattedData: Prisma.SchoolCreateInput = {
+      name: validatedData.name,
+      is_ATL: validatedData.is_ATL,
+      address: { connect: { id: validatedData.addressId } }, // 💡 connects Address
+      in_charge: validatedData.in_charge ?? Prisma.JsonNull,
+      correspondent: validatedData.correspondent ?? Prisma.JsonNull,
+      principal: validatedData.principal ?? Prisma.JsonNull,
+      syllabus: validatedData.syllabus,
+      website_url: validatedData.website_url || null,
+      paid_subscription: validatedData.paid_subscription,
+      social_links: validatedData.social_links || []
+    };
+
     const school = await prisma.school.create({
-      data: {
-        name: data.name,
-        is_ATL: data.is_ATL,
-        address_id: data.addressId,
-        in_charge: data.in_charge ? JSON.stringify(data.in_charge) : Prisma.JsonNull,
-        correspondent: data.correspondent ? JSON.stringify(data.correspondent) : Prisma.JsonNull,
-        principal: data.principal ? JSON.stringify(data.principal) : Prisma.JsonNull,
-        syllabus: data.syllabus,
-        website_url: data.website_url,
-        paid_subscription: data.paid_subscription,
-        social_links: data.social_links
-      },
+      data: formattedData,
       include: {
         address: {
           include: {
@@ -44,8 +59,8 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
           }
         }
       }
-    }) as unknown as SchoolWithAddress;
-    
+    });
+
     return school;
   } catch (error) {
     console.error("Error creating school:", error);
@@ -140,12 +155,23 @@ export async function getSchoolById(id: number): Promise<SchoolWithAddress | nul
 
 export async function updateSchool(id: number, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
   try {
-    // Convert null values to Prisma.JsonNull for JSON fields
-    const updateData = {
-      ...data,
-      in_charge: data.in_charge === null ? Prisma.JsonNull : data.in_charge,
-      correspondent: data.correspondent === null ? Prisma.JsonNull : data.correspondent,
-      principal: data.principal === null ? Prisma.JsonNull : data.principal,
+    // Validate the input using Zod
+    const result = schoolSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      console.error("Validation failed:", errorMessages);
+      throw new Error(errorMessages[0]);
+    }
+
+    const validatedData = result.data;
+
+    // Prepare update payload
+    const updateData: Prisma.SchoolUpdateInput = {
+      ...validatedData,
+      in_charge: validatedData.in_charge === null ? Prisma.JsonNull : validatedData.in_charge,
+      correspondent: validatedData.correspondent === null ? Prisma.JsonNull : validatedData.correspondent,
+      principal: validatedData.principal === null ? Prisma.JsonNull : validatedData.principal,
     };
 
     const school = await prisma.school.update({
@@ -167,20 +193,21 @@ export async function updateSchool(id: number, data: SchoolUpdateInput): Promise
         }
       }
     }) as unknown as SchoolWithAddress;
-    
-    // Parse JSON fields
+
+    // JSON parse if needed — only if your type expects it
     if (school) {
-      school.in_charge = school.in_charge ? JSON.parse(school.in_charge as string) : null;
-      school.correspondent = school.correspondent ? JSON.parse(school.correspondent as string) : null;
-      school.principal = school.principal ? JSON.parse(school.principal as string) : null;
+      school.in_charge = typeof school.in_charge === "string" ? JSON.parse(school.in_charge) : school.in_charge;
+      school.correspondent = typeof school.correspondent === "string" ? JSON.parse(school.correspondent) : school.correspondent;
+      school.principal = typeof school.principal === "string" ? JSON.parse(school.principal) : school.principal;
     }
-    
+
     return school;
   } catch (error) {
     console.error(`Error updating school with id ${id}:`, error);
     throw error;
   }
 }
+
 
 export async function deleteSchool(id: number) {
   return prisma.school.delete({

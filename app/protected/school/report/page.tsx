@@ -129,53 +129,53 @@ export default function Page() {
         },
     ];
 
-    const fetchSchools = async () => {
-        try {
-            const response = await fetch("/api/schools");
-            if (!response.ok) {
-                throw new Error("Failed to fetch schools");
-            }
-            const data = await response.json();
-
-            // Transform the data to include parsed JSON fields and flattened address
-            const transformedData = data.map((school: any) => {
-                // Parse JSON fields
-                const principal = school.principal ? JSON.parse(school.principal as string) : {};
-                const correspondent = school.correspondent ? JSON.parse(school.correspondent as string) : {};
-                const in_charge = school.in_charge ? JSON.parse(school.in_charge as string) : {};
-
-                // Flatten address data
-                const address = school.address || {};
-                const city = address.city || {};
-                const state = city.state || {};
-                const country = state.country || {};
-
-                return {
-                    ...school,
-                    principal,
-                    correspondent,
-                    in_charge,
-                    addressLine1: address.address_line1 || "N/A",
-                    addressLine2: address.address_line2 || "",
-                    city: city.city_name || "N/A",
-                    state: state.state_name || "N/A",
-                    country: country.country_name || "N/A",
-                    pincode: address.pincode || "N/A"
-                };
-            });
-
-            setSchools(transformedData);
-        } catch (error) {
-            setError("Error loading schools");
-            console.error(error);
-        } finally {
-            setLoading(false);
+   const fetchSchools = async () => {
+    try {
+        const response = await fetch("/api/schools");
+        if (!response.ok) {
+            throw new Error("Failed to fetch schools");
         }
-    };
 
-    useEffect(() => {
-        fetchSchools();
-    }, []);
+        const data = await response.json();
+
+        const transformedData = data.map((school: any) => {
+            // These are already JSON objects, no need to parse
+            const principal = school.principal || {};
+            const correspondent = school.correspondent || {};
+            const in_charge = school.in_charge || {};
+
+            // Flatten nested address data
+            const address = school.address || {};
+            const city = address.city || {};
+            const state = city.state || {};
+            const country = state.country || {};
+
+            return {
+                ...school,
+                principal,
+                correspondent,
+                in_charge,
+                addressLine1: address.address_line1 || "N/A",
+                addressLine2: address.address_line2 || "",
+                city: city.city_name || "N/A",
+                state: state.state_name || "N/A",
+                country: country.country_name || "N/A",
+                pincode: address.pincode || "N/A"
+            };
+        });
+
+        setSchools(transformedData);
+    } catch (error) {
+        setError("Error loading schools");
+        console.error(error);
+    } finally {
+        setLoading(false);
+    }
+};
+
+useEffect(() => {
+    fetchSchools();
+}, []);
 
     const handleRowClick = (params: any) => {
         console.log('Selected Row Data:', params.row);
@@ -301,34 +301,37 @@ export default function Page() {
                                 { label: "Address Line 1", field: "address.address_line1" },
                                 { label: "Address Line 2", field: "address.address_line2" },
                                 { label: "Pincode", field: "address.pincode" },
-                                { label: "City", field: "address.city.name" }
+                                { label: "City", field: "address.city_name" }
                             ],
                         },
                         {
                             label: "Principal Details",
                             type: "address",
                             fields: [
-                                { label: "Name", field: "principal.name" },
+                                { label: "Firstame", field: "principal.firstName" },
+                                 { label: "Lastname", field: "principal.lastName" },
                                 { label: "Email", field: "principal.email" },
-                                { label: "Phone", field: "principal.phone" }
+                                { label: "Phone", field: "principal.whatsapp" }
                             ],
                         },
                         {
                             label: "Correspondent Details",
                             type: "address",
                             fields: [
-                                { label: "Name", field: "correspondent.name" },
+                                { label: "firstname", field: "correspondent.firstName" },
+                                 { label: "lastname", field: "correspondent.lastName" },
                                 { label: "Email", field: "correspondent.email" },
-                                { label: "Phone", field: "correspondent.phone" }
+                                { label: "Phone", field: "correspondent.whatsapp" }
                             ],
                         },
                         {
                             label: "In-Charge Details",
                             type: "address",
                             fields: [
-                                { label: "Name", field: "in_charge.name" },
+                                { label: "firstname", field: "in_charge.firstName" },
+                                { label: "Lastname", field: "in_charge.lastName" },
                                 { label: "Email", field: "in_charge.email" },
-                                { label: "Phone", field: "in_charge.phone" }
+                                { label: "Phone", field: "in_charge.whatsapp" }
                             ],
                         },
 

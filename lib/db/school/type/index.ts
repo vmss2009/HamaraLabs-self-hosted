@@ -1,5 +1,5 @@
 import { School as PrismaSchool } from "@prisma/client";
-
+import { z } from "zod";
 export interface SchoolCreateInput {
   name: string;
   is_ATL: boolean;
@@ -14,6 +14,25 @@ export interface SchoolCreateInput {
 }
 
 
+const PersonSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email().optional().or(z.literal("")),
+  whatsapp: z.string().optional().or(z.literal(""))
+});
+
+export const schoolSchema = z.object({
+  name: z.string().min(1, "School name is required"),
+  is_ATL: z.boolean(),
+  addressId: z.number().int().positive("Address ID must be a positive number"),
+  in_charge: PersonSchema.optional(),
+  correspondent: PersonSchema.optional(),
+  principal: PersonSchema.optional(),
+  syllabus: z.array(z.enum(["CBSE", "State", "ICSE", "IB", "IGCSE"])),
+  website_url: z.string().url().optional().or(z.literal("")),
+  paid_subscription: z.boolean(),
+  social_links: z.array(z.string()).optional()
+});
 export interface SchoolWithAddress extends PrismaSchool {
   address: {
     id: number;
