@@ -665,7 +665,7 @@ export default function StudentSnapshot() {
 
         <div className="mt-10 flex items-start space-x-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-white mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               School:
             </label>
             <select
@@ -683,7 +683,7 @@ export default function StudentSnapshot() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Student:
             </label>
             <select

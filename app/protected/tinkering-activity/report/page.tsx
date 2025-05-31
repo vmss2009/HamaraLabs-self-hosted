@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   DataGrid,
   GridColDef,
+  GridColumnVisibilityModel,
   GridActionsCellItem,
   GridToolbarQuickFilter,
   GridToolbarContainer,
@@ -59,7 +60,16 @@ export default function TinkeringActivityReport() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<TinkeringActivityWithSubtopic | null>(null);
-  
+ const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
+
+        Goals: false,
+        materials: false,
+        instructions: false,
+        tips: false,
+        observations: false,
+        extensions: false,
+        resourses:false,
+    });
 
   const fetchActivities = async () => {
     try {
@@ -298,6 +308,15 @@ export default function TinkeringActivityReport() {
         </div>
       ),
     },
+    { field: "Goals", headerName: "Goals", width: 200 },
+
+    { field: "materials", headerName: "Materials", width: 200 },
+    { field: "instructions", headerName: "Instructions", width: 200 },
+    { field: "tips", headerName: "Tips", width: 200 },
+    { field: "observations", headerName: "Observations", width: 200 },
+    { field: "resourses", headerName: "Resourses", width: 200 },
+    { field: "extensions", headerName: "Extensions", width: 200 },
+
     {
       field: "subject_name",
       headerName: "Subject",
@@ -342,7 +361,7 @@ export default function TinkeringActivityReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
+    <div className="flex justify-center items-start h-screen bg-gray-500">
 
 
       <div className="pt-20 ">
@@ -395,16 +414,18 @@ export default function TinkeringActivityReport() {
           </Alert>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="flex justify-center items-center h-auto w-[calc(100vw-6rem)]  m-10 bg-white rounded-xl shadow-sm">
           <DataGrid
             rows={activities}
             columns={columns}
             loading={loading}
             initialState={{
-              pagination: { paginationModel: { pageSize: 10 } },
+              pagination: { paginationModel: { pageSize: 8 } },
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
+            columnVisibilityModel={columnVisibilityModel}
+            onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
             getRowHeight={() => 'auto'}
             autoHeight
             onRowClick={handleRowClick}
@@ -457,14 +478,14 @@ export default function TinkeringActivityReport() {
         />
 
         {/* Assignment Dialog */}
-       
+
         <AssignDialog
-         open={assignDialogOpen}
-         formtype='Tinkering-activity'
-         onClose={closeAssignDialog}
-         selectedActivity={selectedActivity}
-         setSuccess={setSuccess}
-       />;
+          open={assignDialogOpen}
+          formtype='Tinkering-activity'
+          onClose={closeAssignDialog}
+          selectedActivity={selectedActivity}
+          setSuccess={setSuccess}
+        />;
       </div>
     </div>
   );

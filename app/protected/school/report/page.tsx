@@ -246,7 +246,7 @@ useEffect(() => {
         <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
 
 
-            <div className="pt-20 ">
+            <div className="pt-20  h-auto w-[calc(100vw-6rem)]  m-10">
                 <div className="bg-white rounded-xl shadow-sm">
                     <DataGrid
 

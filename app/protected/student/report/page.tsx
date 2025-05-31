@@ -131,8 +131,8 @@ export default function StudentReport() {
 
   return (
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20 pl-20">
-        <div className="bg-white rounded-xl shadow-sm">
+      <div className="pt-20">
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={students}
             columns={columns}

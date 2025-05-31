@@ -289,7 +289,7 @@ export default function CompetitionReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
+    <div className="flex justify-center items-start w-screen bg-gray-500">
 
 
       <div className="pt-20 ">
@@ -323,7 +323,7 @@ export default function CompetitionReport() {
           </Alert>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="bg-white rounded-xl shadow-sm ">
           <DataGrid
             rows={competitions}
             columns={columns}

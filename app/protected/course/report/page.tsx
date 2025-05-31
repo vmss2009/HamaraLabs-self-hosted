@@ -310,7 +310,7 @@ export default function CourseReport() {
 
   return (
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20 pl-20">
+      <div className="pt-20">
 
         {error && (
           <Alert
@@ -343,7 +343,7 @@ export default function CourseReport() {
         )}
 
 
-        <div className="bg-white rounded-xl shadow-sm overflow-x-auto ">
+        <div className="bg-white rounded-xl shadow-sm overflow-x-auto w-[calc(100vw-6rem)]  m-10 ">
           <DataGrid
             rows={courses}
             columns={columns}
