@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     
     // Validate required fields
-    const requiredFields = ["base_ta_id", "student_id", "status"];
+    const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     // Get the base tinkering activity to copy its fields
-    const baseTA = await getTinkeringActivityById(body.base_ta_id);
+    const baseTA = await getTinkeringActivityById(body.id);
     if (!baseTA) {
       return NextResponse.json(
         { error: "Base tinkering activity not found" },
@@ -39,8 +39,8 @@ export async function POST(request: Request) {
       observations: baseTA.observations,
       extensions: baseTA.extensions,
       resources: baseTA.resources,
-      base_ta_id: body.base_ta_id,
-      student_id: body.student_id,
+      base_ta_id: Number(body.id),
+      student_id: Number(body.student_id),
       status: Array.isArray(body.status) ? body.status : [body.status],
     };
 

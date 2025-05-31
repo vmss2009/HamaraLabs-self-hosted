@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { prisma } from "@/lib/db/prisma";
+import DetailViewer from "@/components/forms/DetailViewer";
 
 interface School {
     id: number;
@@ -135,20 +136,20 @@ export default function Page() {
                 throw new Error("Failed to fetch schools");
             }
             const data = await response.json();
-            
+
             // Transform the data to include parsed JSON fields and flattened address
             const transformedData = data.map((school: any) => {
                 // Parse JSON fields
                 const principal = school.principal ? JSON.parse(school.principal as string) : {};
                 const correspondent = school.correspondent ? JSON.parse(school.correspondent as string) : {};
                 const in_charge = school.in_charge ? JSON.parse(school.in_charge as string) : {};
-                
+
                 // Flatten address data
                 const address = school.address || {};
                 const city = address.city || {};
                 const state = city.state || {};
                 const country = state.country || {};
-                
+
                 return {
                     ...school,
                     principal,
@@ -162,7 +163,7 @@ export default function Page() {
                     pincode: address.pincode || "N/A"
                 };
             });
-            
+
             setSchools(transformedData);
         } catch (error) {
             setError("Error loading schools");
@@ -233,7 +234,7 @@ export default function Page() {
 
     const formatFieldName = (key: string): string => {
         if (key === 'serial' || key === 'id') return '';
-        
+
         return key
             .replace(/_/g, ' ')
             .replace(/([A-Z])/g, ' $1')
@@ -244,220 +245,97 @@ export default function Page() {
     return (
         <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
 
-    
-        <div className="pt-20 ">
-            <div className="bg-white rounded-xl shadow-sm">
-                <DataGrid
-                  
-                    rows={schools}
-                    columns={columns}
-                    loading={loading}
-                    initialState={{
-                        pagination: { paginationModel: { pageSize: 10 } },
-                    }}
-                    pageSizeOptions={[5, 10, 25, 50, 100]}
-                    disableRowSelectionOnClick
-                    columnVisibilityModel={columnVisibilityModel}
-                    onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
-                    onRowClick={handleRowClick}
-                    slots={{
-                        toolbar: () => (
-                            <GridToolbarContainer className="bg-gray-50 p-2">
-                                <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                                <GridToolbarColumnsButton />
-                            </GridToolbarContainer>
-                        ),
-                    }}
-                    sx={{
-                        borderRadius: "12px",
-                        '& .MuiDataGrid-cell': {
-                            color: '#1f2937',
+
+            <div className="pt-20 ">
+                <div className="bg-white rounded-xl shadow-sm">
+                    <DataGrid
+
+                        rows={schools}
+                        columns={columns}
+                        loading={loading}
+                        initialState={{
+                            pagination: { paginationModel: { pageSize: 10 } },
+                        }}
+                        pageSizeOptions={[5, 10, 25, 50, 100]}
+                        disableRowSelectionOnClick
+                        columnVisibilityModel={columnVisibilityModel}
+                        onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
+                        onRowClick={handleRowClick}
+                        slots={{
+                            toolbar: () => (
+                                <GridToolbarContainer className="bg-gray-50 p-2">
+                                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                                    <GridToolbarColumnsButton />
+                                </GridToolbarContainer>
+                            ),
+                        }}
+                        sx={{
+                            borderRadius: "12px",
+                            '& .MuiDataGrid-cell': {
+                                color: '#1f2937',
+                            },
+                            '& .MuiDataGrid-columnHeaders': {
+                                backgroundColor: '#f3f4f6',
+                                color: '#1f2937',
+                            },
+                        }}
+                    />
+                </div>
+
+                <DetailViewer
+                    drawerOpen={drawerOpen}
+                    closeDrawer={closeDrawer}
+                    selectedRow={selectedRow}
+                    formtype="School"
+                    columns={[
+                        { label: "ID", field: "id" },
+                        { label: "Name", field: "name" },
+                        { label: "Is ATL", field: "is_ATL" },
+                        { label: "Paid Subscription", field: "paid_subscription" },
+                        { label: "Website URL", field: "website_url" },
+                        { label: "Syllabus", field: "syllabus" },
+                        {
+                            label: "Address",
+                            type: "address",
+                            fields: [
+                                { label: "Address Line 1", field: "address.address_line1" },
+                                { label: "Address Line 2", field: "address.address_line2" },
+                                { label: "Pincode", field: "address.pincode" },
+                                { label: "City", field: "address.city.name" }
+                            ],
                         },
-                        '& .MuiDataGrid-columnHeaders': {
-                            backgroundColor: '#f3f4f6',
-                            color: '#1f2937',
+                        {
+                            label: "Principal Details",
+                            type: "address",
+                            fields: [
+                                { label: "Name", field: "principal.name" },
+                                { label: "Email", field: "principal.email" },
+                                { label: "Phone", field: "principal.phone" }
+                            ],
                         },
-                    }}
+                        {
+                            label: "Correspondent Details",
+                            type: "address",
+                            fields: [
+                                { label: "Name", field: "correspondent.name" },
+                                { label: "Email", field: "correspondent.email" },
+                                { label: "Phone", field: "correspondent.phone" }
+                            ],
+                        },
+                        {
+                            label: "In-Charge Details",
+                            type: "address",
+                            fields: [
+                                { label: "Name", field: "in_charge.name" },
+                                { label: "Email", field: "in_charge.email" },
+                                { label: "Phone", field: "in_charge.phone" }
+                            ],
+                        },
+
+                        { label: "Social Links", field: "social_links" }
+                    ]}
                 />
             </div>
-
-            <Drawer
-                anchor="right"
-                open={drawerOpen}
-                onClose={closeDrawer}
-                PaperProps={{
-                    sx: {
-                        width: "40%",
-                        padding: 3,
-                        backgroundColor: "#ffffff",
-                    },
-                }}
-            >
-                {selectedRow ? (
-                    <Box>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                marginBottom: 3,
-                                fontWeight: "bold",
-                                textAlign: "center",
-                                color: "#1f2937",
-                            }}
-                        >
-                            School Details
-                        </Typography>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                ID:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {formatValue(selectedRow.id)}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Name:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {formatValue(selectedRow.name)}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Is ATL:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {formatValue(selectedRow.is_ATL ? "Yes" : "No")}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Paid Subscription:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {formatValue(selectedRow.paid_subscription ? "Yes" : "No")}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Website URL:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {formatValue(selectedRow.website_url)}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Syllabus:
-                            </Typography>
-                            {Array.isArray(selectedRow.syllabus) ? (
-                                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                                    {formatValue(selectedRow.syllabus)}
-                                </Typography>
-                            ) : (
-                                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                    {formatValue(selectedRow.syllabus)}
-                                </Typography>
-                            )}
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Address:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.addressLine1 !== "N/A" ? (
-                                    <>
-                                        {formatValue(selectedRow.addressLine1)}
-                                        {selectedRow.addressLine2 && <>, {formatValue(selectedRow.addressLine2)}</>}
-                                        {selectedRow.city && <>, {formatValue(selectedRow.city)}</>}
-                                        {selectedRow.state && <>, {formatValue(selectedRow.state)}</>}
-                                        {selectedRow.country && <>, {formatValue(selectedRow.country)}</>}
-                                        {selectedRow.pincode && <> - {formatValue(selectedRow.pincode)}</>}
-                                    </>
-                                ) : (
-                                    "N/A"
-                                )}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Principal Details:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.principal && (selectedRow.principal.firstName || selectedRow.principal.lastName) ? (
-                                    <>
-                                        {formatValue(selectedRow.principal.firstName)} {formatValue(selectedRow.principal.lastName)}
-                                        {selectedRow.principal.email && <><br />Email: {formatValue(selectedRow.principal.email)}</>}
-                                        {selectedRow.principal.whatsapp && <><br />Phone: {formatValue(selectedRow.principal.whatsapp)}</>}
-                                    </>
-                                ) : (
-                                    "Not provided"
-                                )}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Correspondent Details:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.correspondent && (selectedRow.correspondent.firstName || selectedRow.correspondent.lastName) ? (
-                                    <>
-                                        {formatValue(selectedRow.correspondent.firstName)} {formatValue(selectedRow.correspondent.lastName)}
-                                        {selectedRow.correspondent.email && <><br />Email: {formatValue(selectedRow.correspondent.email)}</>}
-                                        {selectedRow.correspondent.whatsapp && <><br />Phone: {formatValue(selectedRow.correspondent.whatsapp)}</>}
-                                    </>
-                                ) : (
-                                    "Not provided"
-                                )}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                In-Charge Details:
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.in_charge && (selectedRow.in_charge.firstName || selectedRow.in_charge.lastName) ? (
-                                    <>
-                                        {formatValue(selectedRow.in_charge.firstName)} {formatValue(selectedRow.in_charge.lastName)}
-                                        {selectedRow.in_charge.email && <><br />Email: {formatValue(selectedRow.in_charge.email)}</>}
-                                        {selectedRow.in_charge.whatsapp && <><br />Phone: {formatValue(selectedRow.in_charge.whatsapp)}</>}
-                                    </>
-                                ) : (
-                                    "Not provided"
-                                )}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ marginBottom: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                Social Links:
-                            </Typography>
-                            {Array.isArray(selectedRow.social_links) ? (
-                                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                                    {formatValue(selectedRow.social_links)}
-                                </Typography>
-                            ) : (
-                                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                    {formatValue(selectedRow.social_links)}
-                                </Typography>
-                            )}
-                        </Box>
-                    </Box>
-                ) : (
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>No data available</Typography>
-                )}
-            </Drawer>
         </div>
-            </div>
     );
 } 

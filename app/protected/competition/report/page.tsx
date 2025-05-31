@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  DataGrid, 
-  GridColDef, 
+import {
+  DataGrid,
+  GridColDef,
   GridActionsCellItem,
   GridToolbarQuickFilter,
   GridToolbarContainer,
@@ -27,6 +27,9 @@ import Autocomplete from "@mui/material/Autocomplete";
 import Checkbox from "@mui/material/Checkbox";
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import DetailViewer from "@/components/forms/DetailViewer";
+import AssignDialog from "@/components/forms/DialogBox";
+
 
 interface Competition {
   id: string;
@@ -257,7 +260,7 @@ export default function CompetitionReport() {
       width: 200,
       getActions: (params) => {
         if (!params || !params.row) return [];
-        
+
         return [
           <Button
             variant="default"
@@ -288,342 +291,109 @@ export default function CompetitionReport() {
   return (
     <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
 
-    
-        <div className="pt-20 ">
-      {error && (
-        <Alert 
-          severity="error" 
-          className="mb-4"
-          sx={{ 
-            borderRadius: '8px',
-            backgroundColor: '#FFEBEE',
-            border: '1px solid #FFCDD2',
-            padding: '10px 16px'
-          }}
-        >
-          {error}
-        </Alert>
-      )}
 
-      {success && (
-        <Alert 
-          severity="success" 
-          className="mb-4"
-          sx={{ 
-            borderRadius: '8px',
-            backgroundColor: '#E3F2E8',
-            border: '1px solid #A5D6A7',
-            padding: '10px 16px'
-          }}
-        >
-          {success}
-        </Alert>
-      )}
-
-      <div className="bg-white rounded-xl shadow-sm">
-        <DataGrid
-          rows={competitions}
-          columns={columns}
-          loading={loading}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
-          disableRowSelectionOnClick
-          autoHeight
-          onRowClick={handleRowClick}
-          sx={{
-            borderRadius: "12px",
-            '& .MuiDataGrid-cell': {
-              color: '#1f2937',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: '#f3f4f6',
-              color: '#1f2937',
-            },
-            '& .MuiDataGrid-row:hover': {
-              backgroundColor: '#f9fafb',
-            },
-          }}
-          slots={{
-            toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                <GridToolbarColumnsButton />
-              </GridToolbarContainer>
-            ),
-          }}
-        />
-      </div>
-
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={closeDrawer}
-        PaperProps={{
-          sx: {
-            width: "40%",
-            padding: 3,
-            backgroundColor: "#ffffff",
-          },
-        }}
-      >
-        {selectedRow ? (
-          <Box>
-            <Typography
-              variant="h5"
-              sx={{
-                marginBottom: 3,
-                fontWeight: "bold",
-                textAlign: "center",
-                color: "#1f2937",
-              }}
-            >
-              Competition Details
-            </Typography>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                ID:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.id)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Name:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.name)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Description:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.description)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Organised By:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.organised_by)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Application Start Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatDate(selectedRow.application_start_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Application End Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatDate(selectedRow.application_end_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Competition Start Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatDate(selectedRow.competition_start_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Competition End Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatDate(selectedRow.competition_end_date)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Eligibility Criteria:
-              </Typography>
-              {Array.isArray(selectedRow.eligibility) ? (
-                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.eligibility)}
-                </Typography>
-              ) : (
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.eligibility)}
-                </Typography>
-              )}
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Reference Links:
-              </Typography>
-              {Array.isArray(selectedRow.reference_links) ? (
-                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.reference_links)}
-                </Typography>
-              ) : (
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.reference_links)}
-                </Typography>
-              )}
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Requirements:
-              </Typography>
-              {Array.isArray(selectedRow.requirements) ? (
-                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.requirements)}
-                </Typography>
-              ) : (
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.requirements)}
-                </Typography>
-              )}
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Payment:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.payment)}
-              </Typography>
-            </Box>
-
-            {selectedRow.payment === "paid" && (
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Fee:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.fee)}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        ) : (
-          <Typography variant="body1" sx={{ color: "#1f2937" }}>No data available</Typography>
+      <div className="pt-20 ">
+        {error && (
+          <Alert
+            severity="error"
+            className="mb-4"
+            sx={{
+              borderRadius: '8px',
+              backgroundColor: '#FFEBEE',
+              border: '1px solid #FFCDD2',
+              padding: '10px 16px'
+            }}
+          >
+            {error}
+          </Alert>
         )}
-      </Drawer>
 
-      {/* Assign Dialog */}
-      <Dialog
-        open={assignDialogOpen}
-        onClose={closeAssignDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Assign Competition</DialogTitle>
-        <DialogContent>
-          {assignError && (
-            <Alert 
-              severity="error" 
-              className="mb-4"
-            >
-              {assignError}
-            </Alert>
-          )}
-          
-          <div className="space-y-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Competition: {selectedActivity?.name}
-              </label>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select School
-              </label>
-              <select
-                className="w-full p-2 border rounded-md"
-                value={selectedSchool}
-                onChange={(e) => setSelectedSchool(e.target.value)}
-                disabled={assignLoading}
-              >
-                <option value="">Select a school</option>
-                {schools.map((school: any) => (
-                  <option key={school.id} value={school.id}>
-                    {school.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Students
-              </label>
-              <Autocomplete
-                multiple
-                id="students-select"
-                options={students}
-                disableCloseOnSelect
-                getOptionLabel={(option) => `${option.first_name} ${option.last_name}`}
-                value={students.filter(student => selectedStudents.includes(student.id))}
-                onChange={(_, newValue) => {
-                  setSelectedStudents(newValue.map(student => student.id));
-                }}
-                disabled={!selectedSchool || assignLoading}
-                renderOption={(props, option, { selected }) => {
-                  const { key, ...otherProps } = props;
-                  return (
-                    <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} key={key} {...otherProps}>
-                      <Checkbox
-                        icon={icon}
-                        checkedIcon={checkedIcon}
-                        style={{ marginRight: 8 }}
-                        checked={selected}
-                      />
-                      {option.first_name} {option.last_name}
-                    </Box>
-                  );
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Search students..."
-                    variant="outlined"
-                  />
-                )}
-              />
-            </div>
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={closeAssignDialog}
-            variant="outline"
+        {success && (
+          <Alert
+            severity="success"
+            className="mb-4"
+            sx={{
+              borderRadius: '8px',
+              backgroundColor: '#E3F2E8',
+              border: '1px solid #A5D6A7',
+              padding: '10px 16px'
+            }}
           >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleAssignSubmit} 
-            isLoading={assignLoading}
-          >
-            Assign
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+            {success}
+          </Alert>
+        )}
+
+        <div className="bg-white rounded-xl shadow-sm">
+          <DataGrid
+            rows={competitions}
+            columns={columns}
+            loading={loading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            autoHeight
+            onRowClick={handleRowClick}
+            sx={{
+              borderRadius: "12px",
+              '& .MuiDataGrid-cell': {
+                color: '#1f2937',
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#f3f4f6',
+                color: '#1f2937',
+              },
+              '& .MuiDataGrid-row:hover': {
+                backgroundColor: '#f9fafb',
+              },
+            }}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
+          />
+        </div>
+
+        <DetailViewer
+          drawerOpen={drawerOpen}
+          closeDrawer={closeDrawer}
+          selectedRow={selectedRow}
+          formtype="Competition"
+          columns={[
+            { label: "ID", field: "id" },
+            { label: "Name", field: "name" },
+            { label: "Description", field: "description" },
+            { label: "Organised By", field: "organised_by" },
+            { label: "Application Start Date", field: "application_start_date", type: "date" },
+            { label: "Application End Date", field: "application_end_date", type: "date" },
+            { label: "Competition Start Date", field: "competition_start_date", type: "date" },
+            { label: "Competition End Date", field: "competition_end_date", type: "date" },
+            { label: "Eligibility Criteria", field: "eligibility" },
+            { label: "Reference Links", field: "reference_links" },
+            { label: "Requirements", field: "requirements" },
+            { label: "Payment", field: "payment" },
+            { label: "Fee", field: "fee" },
+          ]}
+        />
+
+
+
+        {/* Assign Dialog */}
+        <AssignDialog
+         open={assignDialogOpen}
+         formtype="Competition"
+         onClose={closeAssignDialog}
+         selectedActivity={selectedActivity}
+         setSuccess={setSuccess}
+       />;
+
+
+      </div>
     </div>
   );
 } 

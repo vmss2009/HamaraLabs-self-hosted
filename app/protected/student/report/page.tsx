@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  DataGrid, 
-  GridColDef, 
+import {
+  DataGrid,
+  GridColDef,
   GridActionsCellItem,
   GridToolbarQuickFilter,
   GridToolbarContainer,
@@ -16,6 +16,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import DetailViewer from "@/components/forms/DetailViewer";
 
 export default function StudentReport() {
   const router = useRouter();
@@ -95,9 +96,9 @@ export default function StudentReport() {
     { field: "last_name", headerName: "Last Name", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
     { field: "gender", headerName: "Gender", width: 100 },
-    { 
-      field: "school", 
-      headerName: "School", 
+    {
+      field: "school",
+      headerName: "School",
       width: 200,
       valueGetter: (params: any) => params.name || "N/A"
     },
@@ -130,161 +131,69 @@ export default function StudentReport() {
 
   return (
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
-    <div className="pt-20 pl-20">
-      <div className="bg-white rounded-xl shadow-sm">
-        <DataGrid
-          rows={students}
-          columns={columns}
-          loading={loading}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
-          disableRowSelectionOnClick
-          autoHeight
-          onRowClick={handleRowClick}
-          sx={{
-            borderRadius: "12px",
-            '& .MuiDataGrid-cell': {
-              color: '#1f2937',
+      <div className="pt-20 pl-20">
+        <div className="bg-white rounded-xl shadow-sm">
+          <DataGrid
+            rows={students}
+            columns={columns}
+            loading={loading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            autoHeight
+            onRowClick={handleRowClick}
+            sx={{
+              borderRadius: "12px",
+              '& .MuiDataGrid-cell': {
+                color: '#1f2937',
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#f3f4f6',
+                color: '#1f2937',
+              },
+            }}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
+          />
+        </div>
+
+        <DetailViewer
+          drawerOpen={drawerOpen}
+          closeDrawer={closeDrawer}
+          selectedRow={selectedRow}
+          formtype="Student"
+          columns={[
+            { label: "ID", field: "id" },
+            { label: "First Name", field: "first_name" },
+            { label: "Last Name", field: "last_name" },
+            { label: "Email", field: "email" },
+            { label: "Gender", field: "gender" },
+            {
+              label: "School",
+              type: "address",
+              fields: [
+                { label: "ID", field: "school.id" },
+                { label: "Name", field: "school.name" },
+                { label: "IsAtl", field: "school.is_ATL" }
+              ]
             },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: '#f3f4f6',
-              color: '#1f2937',
-            },
-          }}
-          slots={{
-            toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                <GridToolbarColumnsButton />
-              </GridToolbarContainer>
-            ),
-          }}
+
+    { label: "Class", field: "class" },
+            { label: "Section", field: "section" },
+            { label: "Aspiration", field: "aspiration" },
+            { label: "Comments", field: "comments" },
+          ]}
         />
+
       </div>
-
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={closeDrawer}
-        PaperProps={{
-          sx: {
-            width: "40%",
-            padding: 3,
-            backgroundColor: "#ffffff",
-          },
-        }}
-      >
-        {selectedRow ? (
-          <Box>
-            <Typography
-              variant="h5"
-              sx={{
-                marginBottom: 3,
-                fontWeight: "bold",
-                textAlign: "center",
-                color: "#1f2937",
-              }}
-            >
-              Student Details
-            </Typography>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                ID:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.id)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                First Name:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.first_name)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Last Name:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.last_name)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Email:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.email)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Gender:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.gender)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                School:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.school)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Class:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.class)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Section:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.section)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Aspiration:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.aspiration)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Comments:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.comments)}
-              </Typography>
-            </Box>
-          </Box>
-        ) : (
-          <Typography variant="body1" sx={{ color: "#1f2937" }}>No data available</Typography>
-        )}
-      </Drawer>
-    </div>
     </div>
   );
 } 

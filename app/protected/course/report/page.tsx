@@ -10,6 +10,7 @@ import {
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
+import DetailViewer from "@/components/forms/DetailViewer";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -26,6 +27,7 @@ import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import AssignDialog from "@/components/forms/DialogBox";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -89,7 +91,7 @@ export default function CourseReport() {
       setLoading(false);
     }
   };
-   const formatDate = (dateString: string): string => {
+  const formatDate = (dateString: string): string => {
     if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
@@ -253,11 +255,11 @@ export default function CourseReport() {
     { field: "name", headerName: "Course Name", width: 200 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "organized_by", headerName: "Organized By", width: 200 },
-    { field: "application_start_date", headerName: "App Start Date", width: 150 ,valueFormatter: (params) => formatDate(params) },
-    { field: "application_end_date", headerName: "App End Date", width: 150,  valueFormatter: (params) => formatDate(params) },
+    { field: "application_start_date", headerName: "App Start Date", width: 150, valueFormatter: (params) => formatDate(params) },
+    { field: "application_end_date", headerName: "App End Date", width: 150, valueFormatter: (params) => formatDate(params) },
     { field: "course_start_date", headerName: "Course Start", width: 150, valueFormatter: (params) => formatDate(params) },
     { field: "course_end_date", headerName: "Course End", width: 150, valueFormatter: (params) => formatDate(params) },
-    { field: "eligibility_from", headerName: "Eligible From", width: 150,  },
+    { field: "eligibility_from", headerName: "Eligible From", width: 150, },
     { field: "eligibility_to", headerName: "Eligible To", width: 150, },
     {
       field: "requirements",
@@ -371,249 +373,35 @@ export default function CourseReport() {
           />
         </div>
 
-        <Drawer
-          anchor="right"
-          open={drawerOpen}
-          onClose={closeDrawer}
-          PaperProps={{
-            sx: {
-              width: "40%",
-              padding: 3,
-              backgroundColor: "#ffffff",
-            },
-          }}
-        >
+        <DetailViewer
+          drawerOpen={drawerOpen}
+          closeDrawer={closeDrawer}
+          selectedRow={selectedRow}
+          formtype="Course"
+          columns={[
+            { label: "Name", field: "name" },
+            { label: "Description", field: "description" },
+            { label: "Organized By", field: "organized_by" },
+            { label: "Application Start Date", field: "application_start_date", type: "date" },
+            { label: "Application End Date", field: "application_end_date", type: "date" },
+            { label: "Course Start Date", field: "course_start_date", type: "date" },
+            { label: "Course End Date", field: "course_end_date", type: "date" },
+            { label: "Eligibility From", field: "eligibility_from" },
+            { label: "Eligibility To", field: "eligibility_to" },
+            { label: "Reference Link", field: "reference_link" },
+            { label: "Requirements", field: "requirements" },
+            { label: "Course Tags", field: "course_tags" },
+          ]}
+        />
 
-          {selectedRow ? (
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
-                Course Details
-              </Typography>
+       <AssignDialog
+  open={assignDialogOpen}
+  formtype='Course'
+  onClose={closeAssignDialog}
+  selectedActivity={selectedActivity}
+  setSuccess={setSuccess}
+/>;
 
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Name:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.name)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Description:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.description)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Organized By:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.organized_by)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Application Start Date:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatDate(selectedRow.application_start_date)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Application End Date:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatDate(selectedRow.application_end_date)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Course Start Date:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatDate(selectedRow.course_start_date)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Course End Date:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatDate(selectedRow.course_end_date)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Eligibility From:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.eligibility_from)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Eligibility To:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.eligibility_to)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Reference Link:
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.reference_link)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Requirements:
-                </Typography>
-                 {Array.isArray(selectedRow.requirements) ? (
-                <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.requirements)}
-                </Typography>
-                 ) : (
-                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                    {formatValue(selectedRow.requirements)}
-                  </Typography>
-                )}
-
-              </Box>
-
-             
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  Course Tags:
-                </Typography>
-               {Array.isArray(selectedRow.course_tags) ? (
-                  <Typography component="div" variant="body1" sx={{ color: "#1f2937" }}>
-                    {formatValue(selectedRow.course_tags)}
-                  </Typography>
-                ) : (
-                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                    {formatValue(selectedRow.course_tags)}
-                  </Typography>
-                )}
-              </Box>
-
-
-            </Box>
-          ) : (
-            <Typography variant="body1">No course selected.</Typography>
-          )}
-        </Drawer>
-
-        <Dialog
-          open={assignDialogOpen}
-          onClose={closeAssignDialog}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Assign Course</DialogTitle>
-          <DialogContent>
-            {assignError && (
-              <Alert severity="error" className="mb-4">
-                {assignError}
-              </Alert>
-            )}
-
-          <div className="space-y-4 mt-4">
-           <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Course: {selectedActivity?.name}
-              </label>
-            </div>
-
-          
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select School
-                </label>
-                <select
-                  className="w-full p-2 border rounded-md"
-                  value={selectedSchool}
-                  onChange={(e) => setSelectedSchool(e.target.value)}
-                  disabled={assignLoading}
-
-                >
-                  <option value="">Select a school</option>
-                  {schools.map((school: any) => (
-                    <option key={school.id} value={school.id}>
-                      {school.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Students
-                </label>
-                <Autocomplete
-                  multiple
-                  id="students-select"
-                  options={students}
-                  disableCloseOnSelect
-                  getOptionLabel={(option) => `${option.first_name} ${option.last_name}`}
-                  value={students.filter(student => selectedStudents.includes(student.id))}
-                  onChange={(_, newValue) => {
-                    setSelectedStudents(newValue.map(student => student.id));
-                  }}
-                  disabled={!selectedSchool || assignLoading}
-                  renderOption={(props, option, { selected }) => {
-                    const { key, ...otherProps } = props;
-                    return (
-                      <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} key={key} {...otherProps}>
-                        <Checkbox
-                          icon={icon}
-                          checkedIcon={checkedIcon}
-                          style={{ marginRight: 8 }}
-                          checked={selected}
-                        />
-                        {option.first_name} {option.last_name}
-                      </Box>
-                    );
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Search students..."
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </div>
-            </div>
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={closeAssignDialog} variant="outline">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAssignSubmit}
-              isLoading={assignLoading}
-            >
-              Assign
-            </Button>
-          </DialogActions>
-        </Dialog>
       </div>
     </div>
   );
