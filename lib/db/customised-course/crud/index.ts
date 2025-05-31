@@ -1,4 +1,3 @@
-
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -9,9 +8,8 @@ import {
   CustomisedCourseWithRelations,
 } from "../type";
 
-
 export async function createCustomisedCourse(
-  data: CustomisedCourseCreateInput
+  data: CustomisedCourseCreateInput,
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.create({
     data: {
@@ -49,10 +47,9 @@ export async function createCustomisedCourse(
 }
 
 export async function getCustomisedCourses(
-  filter?: CustomisedCourseFilter
+  filter?: CustomisedCourseFilter,
 ): Promise<CustomisedCourseWithRelations[]> {
   return prisma.customisedCourse.findMany({
-
     where: {
       course_id: filter?.course_id,
       student_id: filter?.student_id,
@@ -88,7 +85,7 @@ export async function getCustomisedCourses(
 }
 
 export async function getCustomisedCourseById(
-  id: number
+  id: number,
 ): Promise<CustomisedCourseWithRelations | null> {
   return prisma.customisedCourse.findUnique({
     where: { id },
@@ -123,7 +120,7 @@ export async function getCustomisedCourseById(
 
 export async function updateCustomisedCourse(
   id: number,
-  data: Partial<CustomisedCourseCreateInput>
+  data: Partial<CustomisedCourseCreateInput>,
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.update({
     where: { id },
@@ -162,7 +159,7 @@ export async function updateCustomisedCourse(
 }
 
 export async function deleteCustomisedCourse(
-  id: number
+  id: number,
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.delete({
     where: { id },

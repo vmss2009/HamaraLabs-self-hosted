@@ -1,8 +1,7 @@
-"use client"
-import { signIn } from "next-auth/react"
+"use client";
+import { signIn } from "next-auth/react";
 
 export default function SignIn() {
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 sm:p-20">
       <h1 className="text-3xl font-bold">Welcome to HamaraLabs</h1>

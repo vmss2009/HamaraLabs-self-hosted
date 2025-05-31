@@ -13,9 +13,7 @@ model User {
   user_meta_data Json?     @default("{}")
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
-  comments       String?   // New field
-  schools        School[]  @relation("UserSchools") // New relation
-  students       Student[]
+  comments       String?     schools        School[]  @relation("UserSchools")   students       Student[]
 }
 
 model Country {
@@ -70,8 +68,7 @@ model School {
   social_links      String[]
   address           Address   @relation(fields: [address_id], references: [id])
   students          Student[]
-  users             User[]    @relation("UserSchools") // New relation
-}
+  users             User[]    @relation("UserSchools") }
 
 model Student {
   id                    Int                           @id @default(autoincrement())
@@ -90,8 +87,7 @@ model Student {
   user                  User?                         @relation(fields: [user_id], references: [id])
   customised_activities CustomisedTinkeringActivity[]
   CustomisedCompetition CustomisedCompetition[]
-  CustomisedCourse     CustomisedCourse[] // <-- Add this line
-}
+  CustomisedCourse     CustomisedCourse[] }
 
 model Subject {
   id           Int      @id @default(autoincrement())
@@ -167,12 +163,9 @@ model Course {
   eligibility_from       String
   eligibility_to         String
   reference_link         String
-  requirements           String[] // ⬅️ new field
-  course_tags            String[] // ⬅️ new field
-  created_at             DateTime           @default(now())
+  requirements           String[]   course_tags            String[]   created_at             DateTime           @default(now())
   updated_at             DateTime           @updatedAt
-  CustomisedCourse      CustomisedCourse[] // <-- Add this line
-}
+  CustomisedCourse      CustomisedCourse[] }
 
 model CustomisedCourse {
   id         Int      @id @default(autoincrement())

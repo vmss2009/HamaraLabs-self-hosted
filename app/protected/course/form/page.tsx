@@ -10,7 +10,6 @@ import DateFieldGroup from "@/components/forms/DateField";
 import { Input } from "@/components/ui/Input";
 
 export default function CourseRegistrationForm() {
-
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +17,6 @@ export default function CourseRegistrationForm() {
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
-  
   const [isExternal, setIsExternal] = useState(false);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -27,8 +25,6 @@ export default function CourseRegistrationForm() {
     setError(null);
 
     try {
-
-      
       const formData = new FormData(e.currentTarget);
       const courseData = {
         name: formData.get("name"),
@@ -45,12 +41,10 @@ export default function CourseRegistrationForm() {
         course_tags: courseTags,
       };
 
-      // API submission can be added here
-
-      const response = await fetch('/api/courses', {
-        method: 'POST',
+      const response = await fetch("/api/courses", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(courseData),
       });
@@ -61,9 +55,7 @@ export default function CourseRegistrationForm() {
         throw new Error(errorData.error || "Failed to submit the form");
       }
       router.push("/protected/course/report");
-
-    }
-    catch (error) {
+    } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
@@ -74,12 +66,11 @@ export default function CourseRegistrationForm() {
     }
   };
 
-
   const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     if (val === "External") {
       setIsExternal(true);
-      setOrganizedBy(""); // reset to let user type
+      setOrganizedBy("");
     } else {
       setIsExternal(false);
       setOrganizedBy(val);
@@ -87,14 +78,16 @@ export default function CourseRegistrationForm() {
   };
 
   return (
-
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">Course Registration</h1>
-          <p className="text-gray-600">Fill out the form below to register your course</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            Course Registration
+          </h1>
+          <p className="text-gray-600">
+            Fill out the form below to register your course
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -119,15 +112,13 @@ export default function CourseRegistrationForm() {
           </div>
         )}
 
-        <form
-          onSubmit={onSubmit}
-          className="space-y-8 text-black"
-        >
-
+        <form onSubmit={onSubmit} className="space-y-8 text-black">
           {/* Basic Info */}
           <FormSection title="Basic Information">
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">Basic Information</h3>
+              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">
+                Basic Information
+              </h3>
 
               <div>
                 <Input
@@ -138,11 +129,12 @@ export default function CourseRegistrationForm() {
                   placeholder="Enter course name"
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
-
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Description
+                </label>
                 <textarea
                   name="description"
                   rows={4}
@@ -152,25 +144,23 @@ export default function CourseRegistrationForm() {
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Organized By</label>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Organized By
+                </label>
 
                 <select
                   value={isExternal ? "External" : organizedBy}
                   onChange={handleSelectChange}
-                 
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                 >
                   <option value="">Select</option>
                   <option value="AIM">AIM</option>
-                  <option value="External">
-                    External
-                  </option>
+                  <option value="External">External</option>
                 </select>
 
                 {isExternal && (
                   <input
                     type="text"
-
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -180,38 +170,22 @@ export default function CourseRegistrationForm() {
                 )}
               </div>
 
-
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <DateFieldGroup
-                    name="applicationStartDate"
-                    required
-                  />
-
+                  <DateFieldGroup name="applicationStartDate" required />
                 </div>
                 <div>
-                  <DateFieldGroup
-                    name="applicationEndDate"
-                    required
-                  />
+                  <DateFieldGroup name="applicationEndDate" required />
                 </div>
-
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <DateFieldGroup
-                    name="courseStartDate"
-                    required
-                  />
+                  <DateFieldGroup name="courseStartDate" required />
                 </div>
 
                 <div>
-                  <DateFieldGroup
-                    name="courseEndDate"
-                    required
-                  />
+                  <DateFieldGroup name="courseEndDate" required />
                 </div>
               </div>
             </div>
@@ -220,13 +194,16 @@ export default function CourseRegistrationForm() {
           {/* Eligibility */}
           <FormSection title="Eligibility">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Eligibility</h3>
+              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
+                Eligibility
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">From</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    From
+                  </label>
                   <select
                     name="eligibilityFrom"
-
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -240,10 +217,11 @@ export default function CourseRegistrationForm() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">To</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    To
+                  </label>
                   <select
                     name="eligibilityTo"
-
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -264,13 +242,13 @@ export default function CourseRegistrationForm() {
           {/* Requirements and Course Tags Section */}
           <FormSection title="Requirements & Tags">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Additional Details</h3>
+              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
+                Additional Details
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
                 {/* Requirements */}
                 <div>
-
                   <DynamicFieldArray
                     placeholder="Requirement"
                     className="space-y-4"
@@ -291,9 +269,6 @@ export default function CourseRegistrationForm() {
                     name="requirements"
                     required
                   />
-
-
-
                 </div>
 
                 {/* Course Tags */}
@@ -318,26 +293,20 @@ export default function CourseRegistrationForm() {
                     name="courseTags"
                     required
                   />
-
-
-
                 </div>
               </div>
             </div>
           </FormSection>
 
-
-
-
           {/* Reference Link */}
           <FormSection title="Reference">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Reference Link</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Reference Link
+              </label>
               <input
                 type="url"
                 name="referenceLink"
-
-               
                 placeholder="Enter reference link"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"
               />

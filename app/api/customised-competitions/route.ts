@@ -5,8 +5,7 @@ import { CustomisedCompetitionCreateInput } from "@/lib/db/customised-competitio
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Validate required fields
+
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
@@ -17,15 +16,16 @@ export async function POST(request: Request) {
       }
     }
 
-    // Prepare competition data
     const competitionData: CustomisedCompetitionCreateInput = {
       competition_id: Number(body.id),
-      student_id:Number(body.student_id),
+      student_id: Number(body.student_id),
       status: Array.isArray(body.status) ? body.status : [body.status],
     };
-    console.log("Competation data",competitionData);
+    console.log("Competation data", competitionData);
 
-    const customisedCompetition = await createCustomisedCompetition(competitionData);
+    const customisedCompetition = await createCustomisedCompetition(
+      competitionData
+    );
     return NextResponse.json(customisedCompetition);
   } catch (error) {
     console.error("Error creating customised competition:", error);
@@ -34,4 +34,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

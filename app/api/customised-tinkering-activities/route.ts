@@ -6,8 +6,7 @@ import { getTinkeringActivityById } from "@/lib/db/tinkering-activity/crud";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Validate required fields
+
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
@@ -18,7 +17,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Get the base tinkering activity to copy its fields
     const baseTA = await getTinkeringActivityById(body.id);
     if (!baseTA) {
       return NextResponse.json(
@@ -27,7 +25,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Prepare tinkering activity data with all required fields
     const tinkeringActivityData: CustomisedTinkeringActivityCreateInput = {
       name: baseTA.name,
       subtopic_id: baseTA.subtopic_id,
@@ -44,7 +41,9 @@ export async function POST(request: Request) {
       status: Array.isArray(body.status) ? body.status : [body.status],
     };
 
-    const customisedTinkeringActivity = await createCustomisedTinkeringActivity(tinkeringActivityData);
+    const customisedTinkeringActivity = await createCustomisedTinkeringActivity(
+      tinkeringActivityData
+    );
     return NextResponse.json(customisedTinkeringActivity);
   } catch (error) {
     console.error("Error creating customised tinkering activity:", error);
@@ -53,4 +52,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

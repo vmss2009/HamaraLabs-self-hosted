@@ -8,7 +8,6 @@ export async function POST(request: Request) {
 
     console.log("customized course Bodyy", body);
 
-    // Validate required fields
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
@@ -19,10 +18,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Prepare course data
     const courseData: CustomisedCourseCreateInput = {
-      course_id: Number(body.id), // Ensure it's a number
-      student_id: Number(body.student_id), // Convert to number ✅
+      course_id: Number(body.id),
+      student_id: Number(body.student_id),
       status: Array.isArray(body.status) ? body.status : [body.status],
     };
     console.log("coursedata", courseData);

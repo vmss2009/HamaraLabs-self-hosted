@@ -1,23 +1,19 @@
 import { NextResponse } from "next/server";
-import { 
-  getCustomisedTinkeringActivityById, 
-  updateCustomisedTinkeringActivity, 
+import {
+  getCustomisedTinkeringActivityById,
+  updateCustomisedTinkeringActivity,
   deleteCustomisedTinkeringActivity,
   createCustomisedTinkeringActivity,
-  getCustomisedTinkeringActivities
+  getCustomisedTinkeringActivities,
 } from "@/lib/db/customised-tinkering-activity/crud";
 import { CustomisedTinkeringActivityCreateInput } from "@/lib/db/customised-tinkering-activity/type";
 
-export async function GET(
-  request: Request,
-  { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
-    // If id is 'list', fetch all activities for the student
-    if (params.id === 'list') {
+    if (params.id === "list") {
       const { searchParams } = new URL(request.url);
-      const studentId = searchParams.get('student_id');
-      
+      const studentId = searchParams.get("student_id");
+
       if (!studentId) {
         return NextResponse.json(
           { error: "Student ID is required" },
@@ -25,12 +21,15 @@ export async function GET(
         );
       }
 
-      const customisedTAs = await getCustomisedTinkeringActivities({ student_id: parseInt(studentId) });
+      const customisedTAs = await getCustomisedTinkeringActivities({
+        student_id: parseInt(studentId),
+      });
       return NextResponse.json(customisedTAs);
     }
 
-    // Otherwise, fetch a single activity by ID
-    const customisedTA = await getCustomisedTinkeringActivityById(parseInt(params.id));
+    const customisedTA = await getCustomisedTinkeringActivityById(
+      parseInt(params.id)
+    );
 
     if (!customisedTA) {
       return NextResponse.json(
@@ -49,15 +48,11 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id, 10);
     const body = await request.json();
-    
-    // Update the customized tinkering activity
+
     const updatedActivity = await updateCustomisedTinkeringActivity(id, {
       name: body.name,
       subtopic_id: body.subtopic_id,
@@ -81,13 +76,12 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     await deleteCustomisedTinkeringActivity(parseInt(params.id));
-    return NextResponse.json({ message: "Customised tinkering activity deleted successfully" });
+    return NextResponse.json({
+      message: "Customised tinkering activity deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting customised tinkering activity:", error);
     return NextResponse.json(
@@ -97,15 +91,11 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: any
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id, 10);
     const body = await request.json();
-    
-    // Validate that status is provided
+
     if (!body.status || !Array.isArray(body.status)) {
       return NextResponse.json(
         { error: "Status must be an array" },
@@ -113,7 +103,6 @@ export async function PATCH(
       );
     }
 
-    // Update the customized tinkering activity
     const updatedActivity = await updateCustomisedTinkeringActivity(id, {
       status: body.status,
     });
@@ -126,4 +115,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-} 
+}

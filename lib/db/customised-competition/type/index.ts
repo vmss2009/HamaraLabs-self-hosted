@@ -6,7 +6,8 @@ export interface CustomisedCompetitionCreateInput {
   status: string[];
 }
 
-export interface CustomisedCompetitionWithRelations extends PrismaCustomisedCompetition {
+export interface CustomisedCompetitionWithRelations
+  extends PrismaCustomisedCompetition {
   competition: {
     id: number;
     name: string;
@@ -33,4 +34,4 @@ export interface CustomisedCompetitionFilter {
   competition_id?: number;
   student_id?: number;
   status?: string[];
-} 
+}

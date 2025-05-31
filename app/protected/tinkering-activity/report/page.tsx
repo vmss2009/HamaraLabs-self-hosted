@@ -12,9 +12,9 @@ import {
 } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -27,11 +27,10 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import AssignDialog from "@/components/forms/DialogBox";
 import Checkbox from "@mui/material/Checkbox";
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import DetailViewer from "@/components/forms/DetailViewer";
-
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -59,16 +58,17 @@ export default function TinkeringActivityReport() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedActivity, setSelectedActivity] = useState<TinkeringActivityWithSubtopic | null>(null);
- const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
-
-        Goals: false,
-        materials: false,
-        instructions: false,
-        tips: false,
-        observations: false,
-        extensions: false,
-        resourses:false,
+  const [selectedActivity, setSelectedActivity] =
+    useState<TinkeringActivityWithSubtopic | null>(null);
+  const [columnVisibilityModel, setColumnVisibilityModel] =
+    useState<GridColumnVisibilityModel>({
+      Goals: false,
+      materials: false,
+      instructions: false,
+      tips: false,
+      observations: false,
+      extensions: false,
+      resourses: false,
     });
 
   const fetchActivities = async () => {
@@ -80,10 +80,12 @@ export default function TinkeringActivityReport() {
       const data = await response.json();
       setActivities(data);
 
-      // Check if all activities are missing data
       if (data.length > 0) {
-        const allMissingData = data.every((activity: any) =>
-          !activity.subtopic_name && !activity.topic_name && !activity.subject_name
+        const allMissingData = data.every(
+          (activity: any) =>
+            !activity.subtopic_name &&
+            !activity.topic_name &&
+            !activity.subject_name
         );
         if (allMissingData) {
           setMissingRelationships(true);
@@ -156,7 +158,6 @@ export default function TinkeringActivityReport() {
         throw new Error("Failed to delete tinkering activity");
       }
 
-      // Refresh the data
       fetchActivities();
     } catch (error) {
       console.error("Error deleting tinkering activity:", error);
@@ -185,11 +186,9 @@ export default function TinkeringActivityReport() {
       );
     }
     if (typeof value === "object") {
-      // Special handling for nested objects
       if (value.subtopic_name) return value.subtopic_name;
       if (value.topic_name) return value.topic_name;
       if (value.subject_name) return value.subject_name;
-      // For other objects, format as before
       return Object.entries(value)
         .map(([k, v]) => `${k}: ${v}`)
         .join(", ");
@@ -210,19 +209,19 @@ export default function TinkeringActivityReport() {
       setAssignError(null);
 
       const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      const formattedDate = currentDate.toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
 
-      const promises = selectedStudents.map(studentId =>
-        fetch('/api/customised-tinkering-activities', {
-          method: 'POST',
+      const promises = selectedStudents.map((studentId) =>
+        fetch("/api/customised-tinkering-activities", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             name: selectedActivity.name,
@@ -237,7 +236,7 @@ export default function TinkeringActivityReport() {
             resources: selectedActivity.resources,
             base_ta_id: selectedActivity.id,
             student_id: studentId,
-            status: [`Assigned - ${formattedDate}`]
+            status: [`Assigned - ${formattedDate}`],
           }),
         })
       );
@@ -245,13 +244,13 @@ export default function TinkeringActivityReport() {
       await Promise.all(promises);
       setAssignDialogOpen(false);
       setSelectedStudents([]);
-      setSelectedSchool('');
+      setSelectedSchool("");
       setSelectedActivity(null);
-      setSuccess('Tinkering activity assigned successfully');
+      setSuccess("Tinkering activity assigned successfully");
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      console.error('Error assigning tinkering activity:', error);
-      setAssignError('Failed to assign tinkering activity');
+      console.error("Error assigning tinkering activity:", error);
+      setAssignError("Failed to assign tinkering activity");
     } finally {
       setAssignLoading(false);
     }
@@ -269,8 +268,8 @@ export default function TinkeringActivityReport() {
     { field: "id", headerName: "ID", width: 100 },
 
     {
-      field: 'name',
-      headerName: 'Activity Name',
+      field: "name",
+      headerName: "Activity Name",
       width: 200,
       renderCell: (params) => (
         <div className="whitespace-pre-line break-words p-2 flex items-center justify-center w-full h-full text-center">
@@ -279,8 +278,8 @@ export default function TinkeringActivityReport() {
       ),
     },
     {
-      field: 'introduction',
-      headerName: 'Introduction',
+      field: "introduction",
+      headerName: "Introduction",
       width: 200,
       renderCell: (params) => (
         <div className="whitespace-pre-line break-words p-2 flex items-center justify-center w-full h-full text-center">
@@ -293,9 +292,7 @@ export default function TinkeringActivityReport() {
       headerName: "Subtopic",
       width: 200,
       renderCell: (params) => (
-        <div className="flex items-center h-full">
-          {params.value}
-        </div>
+        <div className="flex items-center h-full">{params.value}</div>
       ),
     },
     {
@@ -303,9 +300,7 @@ export default function TinkeringActivityReport() {
       headerName: "Topic",
       width: 200,
       renderCell: (params) => (
-        <div className="flex items-center h-full">
-          {params.value}
-        </div>
+        <div className="flex items-center h-full">{params.value}</div>
       ),
     },
     { field: "Goals", headerName: "Goals", width: 200 },
@@ -322,9 +317,7 @@ export default function TinkeringActivityReport() {
       headerName: "Subject",
       width: 200,
       renderCell: (params) => (
-        <div className="flex items-center h-full">
-          {params.value}
-        </div>
+        <div className="flex items-center h-full">{params.value}</div>
       ),
     },
     {
@@ -346,7 +339,9 @@ export default function TinkeringActivityReport() {
             key="edit"
             icon={<EditIcon />}
             label="Edit"
-            onClick={() => router.push(`/protected/tinkering-activity/form/${params.row.id}`)}
+            onClick={() =>
+              router.push(`/protected/tinkering-activity/form/${params.row.id}`)
+            }
           />
           <GridActionsCellItem
             key="delete"
@@ -362,58 +357,54 @@ export default function TinkeringActivityReport() {
 
   return (
     <div className="flex justify-center items-start h-screen bg-gray-500">
-
-
       <div className="pt-20 ">
         {missingRelationships && (
           <Alert
             severity="warning"
             className="mb-4"
             sx={{
-              borderRadius: '8px',
-              backgroundColor: '#FFF8E1',
-              border: '1px solid #FFE082',
-              padding: '10px 16px'
+              borderRadius: "8px",
+              backgroundColor: "#FFF8E1",
+              border: "1px solid #FFE082",
+              padding: "10px 16px",
             }}
           >
             <div className="font-medium">Incomplete Data</div>
             <div className="text-sm mt-1">
-              Some tinkering activities don't have proper subject, topic, or subtopic associations.
-              Please ensure you select the proper Subject, Topic, and Subtopic when creating activities.
+              Some tinkering activities don't have proper subject, topic, or
+              subtopic associations. Please ensure you select the proper
+              Subject, Topic, and Subtopic when creating activities.
             </div>
           </Alert>
         )}
-
         {error && (
           <Alert
             severity="error"
             className="mb-4"
             sx={{
-              borderRadius: '8px',
-              backgroundColor: '#FFEBEE',
-              border: '1px solid #FFCDD2',
-              padding: '10px 16px'
+              borderRadius: "8px",
+              backgroundColor: "#FFEBEE",
+              border: "1px solid #FFCDD2",
+              padding: "10px 16px",
             }}
           >
             {error}
           </Alert>
         )}
-
         {success && (
           <Alert
             severity="success"
             className="mb-4"
             sx={{
-              borderRadius: '8px',
-              backgroundColor: '#E3F2E8',
-              border: '1px solid #A5D6A7',
-              padding: '10px 16px'
+              borderRadius: "8px",
+              backgroundColor: "#E3F2E8",
+              border: "1px solid #A5D6A7",
+              padding: "10px 16px",
             }}
           >
             {success}
           </Alert>
         )}
-
         <div className="flex justify-center items-center h-auto w-[calc(100vw-6rem)]  m-10 bg-white rounded-xl shadow-sm">
           <DataGrid
             rows={activities}
@@ -425,21 +416,23 @@ export default function TinkeringActivityReport() {
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
             columnVisibilityModel={columnVisibilityModel}
-            onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
-            getRowHeight={() => 'auto'}
+            onColumnVisibilityModelChange={(newModel) =>
+              setColumnVisibilityModel(newModel)
+            }
+            getRowHeight={() => "auto"}
             autoHeight
             onRowClick={handleRowClick}
             sx={{
               borderRadius: "12px",
-              '& .MuiDataGrid-cell': {
-                whiteSpace: 'normal !important',
-                wordWrap: 'break-word',
-                alignItems: 'center',
-                color: '#1f2937',
+              "& .MuiDataGrid-cell": {
+                whiteSpace: "normal !important",
+                wordWrap: "break-word",
+                alignItems: "center",
+                color: "#1f2937",
               },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f3f4f6',
-                color: '#1f2937',
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
               },
             }}
             slots={{
@@ -452,7 +445,6 @@ export default function TinkeringActivityReport() {
             }}
           />
         </div>
-
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
@@ -466,7 +458,6 @@ export default function TinkeringActivityReport() {
             { label: "Subtopic", field: "subtopic_name" },
             { label: "Introduction", field: "introduction" },
 
-            // Assuming these are arrays, you can set type to "fields" or handle them specially in DetailViewer
             { label: "Goals", field: "goals" },
             { label: "Materials", field: "materials" },
             { label: "Instructions", field: "instructions" },
@@ -476,16 +467,15 @@ export default function TinkeringActivityReport() {
             { label: "Resources", field: "resources" },
           ]}
         />
-
         {/* Assignment Dialog */}
-
         <AssignDialog
           open={assignDialogOpen}
-          formtype='Tinkering-activity'
+          formtype="Tinkering-activity"
           onClose={closeAssignDialog}
           selectedActivity={selectedActivity}
           setSuccess={setSuccess}
-        />;
+        />
+        ;
       </div>
     </div>
   );

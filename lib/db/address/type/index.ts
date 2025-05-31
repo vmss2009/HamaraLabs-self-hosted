@@ -20,4 +20,4 @@ export interface AddressWithLocation extends PrismaAddress {
       };
     };
   };
-} 
+}

@@ -15,10 +15,10 @@ export async function createAddress(data: AddressCreateInput) {
         address_line1: data.address_line1,
         address_line2: data.address_line2,
         pincode: data.pincode,
-        city_id: data.cityId
-      }
+        city_id: data.cityId,
+      },
     });
-    
+
     return address;
   } catch (error) {
     console.error("Error creating address:", error);
@@ -26,7 +26,9 @@ export async function createAddress(data: AddressCreateInput) {
   }
 }
 
-export async function getAddressById(id: number): Promise<AddressWithLocation | null> {
+export async function getAddressById(
+  id: number,
+): Promise<AddressWithLocation | null> {
   try {
     const address = await prisma.address.findUnique({
       where: { id },
@@ -35,14 +37,14 @@ export async function getAddressById(id: number): Promise<AddressWithLocation | 
           include: {
             state: {
               include: {
-                country: true
-              }
-            }
-          }
-        }
-      }
+                country: true,
+              },
+            },
+          },
+        },
+      },
     });
-    
+
     return address as AddressWithLocation | null;
   } catch (error) {
     console.error(`Error fetching address with id ${id}:`, error);
@@ -66,4 +68,4 @@ export async function deleteAddress(id: number) {
   return prisma.address.delete({
     where: { id },
   });
-} 
+}

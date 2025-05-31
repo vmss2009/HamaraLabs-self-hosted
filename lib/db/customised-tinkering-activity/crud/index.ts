@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db/prisma";
-import { 
-  CustomisedTinkeringActivityCreateInput, 
-  CustomisedTinkeringActivityFilter, 
-  CustomisedTinkeringActivityWithRelations 
+import {
+  CustomisedTinkeringActivityCreateInput,
+  CustomisedTinkeringActivityFilter,
+  CustomisedTinkeringActivityWithRelations,
 } from "../type";
 
 export async function createCustomisedTinkeringActivity(
-  data: CustomisedTinkeringActivityCreateInput
+  data: CustomisedTinkeringActivityCreateInput,
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.create({
     data: {
@@ -48,26 +48,26 @@ export async function createCustomisedTinkeringActivity(
 }
 
 export async function getCustomisedTinkeringActivities(
-  filter?: CustomisedTinkeringActivityFilter
+  filter?: CustomisedTinkeringActivityFilter,
 ): Promise<CustomisedTinkeringActivityWithRelations[]> {
   const where: any = {};
-  
+
   if (filter?.name) {
     where.name = { contains: filter.name, mode: "insensitive" };
   }
-  
+
   if (filter?.subtopic_id) {
     where.subtopic_id = filter.subtopic_id;
   }
-  
+
   if (filter?.base_ta_id) {
     where.base_ta_id = filter.base_ta_id;
   }
-  
+
   if (filter?.student_id) {
     where.student_id = filter.student_id;
   }
-  
+
   if (filter?.status) {
     where.status = { hasSome: filter.status };
   }
@@ -77,7 +77,7 @@ export async function getCustomisedTinkeringActivities(
     include: {
       subtopic: {
         select: {
-          id: true,   
+          id: true,
           subtopic_name: true,
           topic: {
             select: {
@@ -98,7 +98,7 @@ export async function getCustomisedTinkeringActivities(
 }
 
 export async function getCustomisedTinkeringActivityById(
-  id: number
+  id: number,
 ): Promise<CustomisedTinkeringActivityWithRelations | null> {
   return prisma.customisedTinkeringActivity.findUnique({
     where: { id },
@@ -127,7 +127,7 @@ export async function getCustomisedTinkeringActivityById(
 
 export async function updateCustomisedTinkeringActivity(
   id: number,
-  data: Partial<CustomisedTinkeringActivityCreateInput>
+  data: Partial<CustomisedTinkeringActivityCreateInput>,
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.update({
     where: { id },
@@ -164,20 +164,20 @@ export async function updateCustomisedTinkeringActivity(
             },
           },
         },
-      }
+      },
     },
   });
 }
 
 export async function deleteCustomisedTinkeringActivity(
-  id: number
+  id: number,
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.delete({
     where: { id },
     include: {
       subtopic: {
         select: {
-          id: true, 
+          id: true,
           subtopic_name: true,
           topic: {
             select: {
@@ -192,7 +192,7 @@ export async function deleteCustomisedTinkeringActivity(
             },
           },
         },
-      }
+      },
     },
   });
-} 
+}

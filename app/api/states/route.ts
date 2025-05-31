@@ -9,18 +9,18 @@ export async function GET(request: Request) {
     if (!countryId) {
       return NextResponse.json(
         { error: "Country ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const states = await getStatesByCountry(parseInt(countryId));
-    
+
     return NextResponse.json(states);
   } catch (error) {
     console.error("Error fetching states:", error);
     return NextResponse.json(
       { error: "Failed to fetch states" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

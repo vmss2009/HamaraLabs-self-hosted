@@ -17,14 +17,13 @@ const DateFieldGroup: React.FC<DateFieldGroupProps> = ({
   name,
   required,
   value,
-  onChange
+  onChange,
 }) => {
-  
   const [internalValue, setInternalValue] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (onChange) {
-      onChange(e); 
+      onChange(e);
     } else {
       setInternalValue(e.target.value);
     }

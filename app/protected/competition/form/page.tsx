@@ -14,7 +14,6 @@ export default function CompetitionForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // State for form fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [organisedBy, setOrganisedBy] = useState("");
@@ -25,26 +24,21 @@ export default function CompetitionForm() {
   const [payment, setPayment] = useState("free");
   const [fee, setFee] = useState("");
 
-  // State for dynamic field arrays
   const [eligibility, setEligibility] = useState<string[]>([]);
   const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
   const [requirements, setRequirements] = useState<string[]>([]);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      // Format dates to ISO string format
       const formatDate = (dateString: string) => {
         if (!dateString) return null;
-        // Create a date object and convert to ISO string
         const date = new Date(dateString);
         return date.toISOString();
       };
-
 
       const competitionData = {
         name,
@@ -58,7 +52,7 @@ export default function CompetitionForm() {
         reference_links: referenceLinks,
         requirements,
         payment,
-        fee: payment === "paid" ? fee : null
+        fee: payment === "paid" ? fee : null,
       };
 
       const response = await fetch("/api/competitions", {
@@ -72,7 +66,6 @@ export default function CompetitionForm() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to submit the form");
-
       }
 
       setSuccess(true);
@@ -95,9 +88,10 @@ export default function CompetitionForm() {
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Competition</h1>
-          <p className="text-gray-600 mt-2">Fill out the form below to add a new competition.</p>
+          <p className="text-gray-600 mt-2">
+            Fill out the form below to add a new competition.
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -167,8 +161,6 @@ export default function CompetitionForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-
-
                 <DateFieldGroup
                   name="applicationStartDate"
                   value={applicationStartDate}
@@ -196,7 +188,6 @@ export default function CompetitionForm() {
               </div>
 
               <div>
-
                 <DateFieldGroup
                   name="competitionEndDate"
                   value={competitionEndDate}
@@ -304,17 +295,12 @@ export default function CompetitionForm() {
           </FormSection>
 
           <div className="flex justify-end space-x-4">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-            >
+            <Button type="submit" isLoading={isLoading} size="lg">
               Submit
             </Button>
           </div>
         </form>
       </div>
     </div>
-
   );
-} 
+}

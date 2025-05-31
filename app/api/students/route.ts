@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
-import { createStudent, getStudents, getStudentById } from "@/lib/db/student/crud";
+import {
+  createStudent,
+  getStudents,
+  getStudentById,
+} from "@/lib/db/student/crud";
 import { StudentCreateInput } from "@/lib/db/student/type";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    
-    // If ID is provided, return a single student
+    const id = searchParams.get("id");
+
     if (id) {
       const student = await getStudentById(parseInt(id));
       if (!student) {
@@ -18,17 +21,18 @@ export async function GET(request: Request) {
       }
       return NextResponse.json(student);
     }
-    
-    // Build filter object from query parameters
+
     const filter = {
-      first_name: searchParams.get('first_name') || undefined,
-      last_name: searchParams.get('last_name') || undefined,
-      gender: searchParams.get('gender') || undefined,
-      class: searchParams.get('class') || undefined,
-      section: searchParams.get('section') || undefined,
-      schoolId: searchParams.get('schoolId') ? parseInt(searchParams.get('schoolId') as string) : undefined
+      first_name: searchParams.get("first_name") || undefined,
+      last_name: searchParams.get("last_name") || undefined,
+      gender: searchParams.get("gender") || undefined,
+      class: searchParams.get("class") || undefined,
+      section: searchParams.get("section") || undefined,
+      schoolId: searchParams.get("schoolId")
+        ? parseInt(searchParams.get("schoolId") as string)
+        : undefined,
     };
-    
+
     const students = await getStudents(filter);
     return NextResponse.json(students);
   } catch (error) {
@@ -43,8 +47,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    
-    // Validate required fields
+
     if (!data.first_name || !data.last_name || !data.schoolId) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -52,13 +55,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Ensure schoolId is a valid number
     const schoolId = Number(data.schoolId);
     if (isNaN(schoolId)) {
-      return NextResponse.json(
-        { error: "Invalid school ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid school ID" }, { status: 400 });
     }
 
     const studentInput: StudentCreateInput = {
@@ -70,17 +69,22 @@ export async function POST(request: Request) {
       class: data.class,
       section: data.section,
       comments: data.comments,
-      schoolId: schoolId
+      schoolId: schoolId,
     };
-    console.log("Student data",studentInput);
-    
+    console.log("Student data", studentInput);
+
     const student = await createStudent(studentInput);
     return NextResponse.json(student);
-  }  catch (error) {
-  console.error("Error creating competition:", error);
-  return NextResponse.json(
-    {error: error instanceof Error ? error.message : "Failed to create competition", },
-    { status: 400 } // Use 400 for validation errors
-  );
+  } catch (error) {
+    console.error("Error creating competition:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create competition",
+      },
+      { status: 400 }
+    );
+  }
 }
-} 

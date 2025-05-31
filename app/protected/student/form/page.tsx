@@ -8,17 +8,17 @@ import SelectField from "@/components/forms/SelectField";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import { useRouter } from "next/navigation";
 
-
 export default function StudentForm() {
   const router = useRouter();
-  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>([]);
+  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>(
+    []
+  );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedSchool, setSelectedSchool] = useState<string>("");
   const [gender, setGender] = useState<string>("");
 
-  // Fetch schools on component mount
-  useEffect(() => { 
+  useEffect(() => {
     const fetchSchools = async () => {
       try {
         const response = await fetch("/api/schools");
@@ -35,7 +35,6 @@ export default function StudentForm() {
     fetchSchools();
   }, []);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
@@ -43,7 +42,7 @@ export default function StudentForm() {
 
     try {
       const formData = new FormData(event.target as HTMLFormElement);
-      
+
       const studentData = {
         schoolId: parseInt(selectedSchool),
         first_name: formData.get("firstName"),
@@ -64,35 +63,38 @@ export default function StudentForm() {
         body: JSON.stringify(studentData),
       });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to submit the form");
-        }
-
-        router.push("/protected/student/report");
-      } catch (error) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("An unexpected error occurred");
-        }
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit the form");
       }
+
+      router.push("/protected/student/report");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // bg-gradient-to-br from-blue-200 via-blue-300 to-teal-400
   return (
-   <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
+    <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
-      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-3xl font-bold text-blue-800 mb-2"> Student Registration</h1>
-        <p className="text-gray-600">Fill out the form below to register a new student.</p>
-      </div>
-      
+        <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            {" "}
+            Student Registration
+          </h1>
+          <p className="text-gray-600">
+            Fill out the form below to register a new student.
+          </p>
+        </div>
 
-      {error && (
-           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
+        {error && (
+          <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
             <div className="flex-shrink-0">
               <svg
                 className="w-6 h-6 text-red-500"
@@ -112,9 +114,7 @@ export default function StudentForm() {
               <p className="text-red-500">{error}</p>
             </div>
           </div>
-      )} 
-
-       
+        )}
 
         <form onSubmit={onSubmit} className="space-y-8">
           {/* School Selection */}
@@ -122,12 +122,10 @@ export default function StudentForm() {
             <SelectField
               label="Select School"
               name="school"
-              options={
-                schools.map((school) => ({
-                  value: school.id.toString(),
-                  label: school.name,
-                }))
-              }
+              options={schools.map((school) => ({
+                value: school.id.toString(),
+                label: school.name,
+              }))}
               value={selectedSchool}
               onChange={(e) => setSelectedSchool(e.target.value)}
               required
@@ -137,31 +135,40 @@ export default function StudentForm() {
 
           {/* Basic Information */}
           <FormSection title="Basic Information">
-          <TextFieldGroup
+            <TextFieldGroup
               fields={[
                 { name: "firstName", label: "First Name", required: true },
                 { name: "lastName", label: "Last Name", required: true },
-                { name: "email", label: "Email", type: "email", required: true },
+                {
+                  name: "email",
+                  label: "Email",
+                  type: "email",
+                  required: true,
+                },
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
                 { name: "aspiration", label: "Aspiration", required: true },
-                { name: "comments", label: "Comments", required: false,multiline:true, rows:3 }
-
+                {
+                  name: "comments",
+                  label: "Comments",
+                  required: false,
+                  multiline: true,
+                  rows: 3,
+                },
               ]}
-           />
-           <RadioButtonGroup
+            />
+            <RadioButtonGroup
               legend="Gender"
               name="gender"
               options={[
                 { value: "Male", label: "Male" },
                 { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" }
+                { value: "Other", label: "Other" },
               ]}
               value={gender}
               onChange={(value) => setGender(value)}
               required
               className="mt-5"
-             
             />
             <div className="flex justify-end mt-6">
               <Button

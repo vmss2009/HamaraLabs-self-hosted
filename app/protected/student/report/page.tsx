@@ -11,8 +11,8 @@ import {
 } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -60,7 +60,6 @@ export default function StudentReport() {
         throw new Error("Failed to delete student");
       }
 
-      // Refresh the data
       fetchStudents();
     } catch (error) {
       console.error("Error deleting student:", error);
@@ -80,9 +79,7 @@ export default function StudentReport() {
     if (value === null || value === undefined) return "N/A";
     if (Array.isArray(value)) return value.join(" | ");
     if (typeof value === "object") {
-      // Special handling for school object
       if (value.name) return value.name;
-      // For other objects, format as before
       return Object.entries(value)
         .map(([k, v]) => `${k}: ${v}`)
         .join(", ");
@@ -100,7 +97,7 @@ export default function StudentReport() {
       field: "school",
       headerName: "School",
       width: 200,
-      valueGetter: (params: any) => params.name || "N/A"
+      valueGetter: (params: any) => params.name || "N/A",
     },
     { field: "class", headerName: "Class", width: 100 },
     { field: "section", headerName: "Section", width: 100 },
@@ -116,7 +113,9 @@ export default function StudentReport() {
           key="edit"
           icon={<EditIcon />}
           label="Edit"
-          onClick={() => router.push(`/protected/student/form/${params.row.id}`)}
+          onClick={() =>
+            router.push(`/protected/student/form/${params.row.id}`)
+          }
         />,
         <GridActionsCellItem
           key="delete"
@@ -124,7 +123,7 @@ export default function StudentReport() {
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
           color="error"
-        />
+        />,
       ],
     },
   ];
@@ -146,12 +145,12 @@ export default function StudentReport() {
             onRowClick={handleRowClick}
             sx={{
               borderRadius: "12px",
-              '& .MuiDataGrid-cell': {
-                color: '#1f2937',
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
               },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f3f4f6',
-                color: '#1f2937',
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
               },
             }}
             slots={{
@@ -182,18 +181,17 @@ export default function StudentReport() {
               fields: [
                 { label: "ID", field: "school.id" },
                 { label: "Name", field: "school.name" },
-                { label: "IsAtl", field: "school.is_ATL" }
-              ]
+                { label: "IsAtl", field: "school.is_ATL" },
+              ],
             },
 
-    { label: "Class", field: "class" },
+            { label: "Class", field: "class" },
             { label: "Section", field: "section" },
             { label: "Aspiration", field: "aspiration" },
             { label: "Comments", field: "comments" },
           ]}
         />
-
       </div>
     </div>
   );
-} 
+}

@@ -1,13 +1,7 @@
 import React from "react";
-import {
-  Drawer,
-  Box,
-  Typography,
-  IconButton,
-} from "@mui/material";
+import { Drawer, Box, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-// Utility Functions
 const formatValue = (value: any): React.ReactNode => {
   if (value === null || value === undefined) return "N/A";
   if (Array.isArray(value)) {
@@ -38,7 +32,12 @@ const formatDate = (dateString: string): string => {
 };
 
 function getNestedValue(obj: any, path: string): any {
-  return path.split(".").reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : null), obj);
+  return path
+    .split(".")
+    .reduce(
+      (acc, key) => (acc && acc[key] !== undefined ? acc[key] : null),
+      obj
+    );
 }
 
 interface FieldLabelPair {
@@ -120,14 +119,17 @@ const DetailsDrawer: React.FC<DetailsDrawerProps> = ({
                   {col.fields.map(({ label, field }) => {
                     const value = getNestedValue(selectedRow, field);
                     return (
-                     <Typography key={field} variant="body2" sx={{ mb: 0.5 }}>
-                     - <strong>{label}</strong>: {typeof value === "object" && value !== null ? JSON.stringify(value) : value ?? "N/A"}
-                    </Typography>
-
+                      <Typography key={field} variant="body2" sx={{ mb: 0.5 }}>
+                        - <strong>{label}</strong>:{" "}
+                        {typeof value === "object" && value !== null
+                          ? JSON.stringify(value)
+                          : value ?? "N/A"}
+                      </Typography>
                     );
                   })}
                 </Box>
-              ) : col.field && Array.isArray(getNestedValue(selectedRow, col.field)) ? (
+              ) : col.field &&
+                Array.isArray(getNestedValue(selectedRow, col.field)) ? (
                 <Box
                   component="ul"
                   sx={{

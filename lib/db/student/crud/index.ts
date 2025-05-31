@@ -2,19 +2,17 @@ import { prisma } from "@/lib/db/prisma";
 import { StudentCreateInput, StudentFilter } from "../type";
 import { studentSchema } from "../type";
 
-// Define the Zod schema for student validation
-
 export async function createStudent(data: any) {
   try {
-    // Validate input using Zod
     const result = studentSchema.safeParse(data);
 
     if (!result.success) {
-      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errorMessages = result.error.errors.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
       throw new Error(errorMessages[0]);
     }
 
-    // Use the validated data
     const validatedData = result.data;
 
     const student = await prisma.student.create({
@@ -28,9 +26,9 @@ export async function createStudent(data: any) {
         section: validatedData.section,
         comments: validatedData.comments,
         school_id: validatedData.schoolId,
-      }
+      },
     });
-    
+
     return student;
   } catch (error) {
     console.error("Error creating student:", error);
@@ -38,35 +36,34 @@ export async function createStudent(data: any) {
   }
 }
 
-
 export async function getStudents(filter?: StudentFilter) {
   try {
     const where: any = {};
-    
+
     if (filter?.first_name) {
-      where.first_name = { contains: filter.first_name, mode: 'insensitive' };
+      where.first_name = { contains: filter.first_name, mode: "insensitive" };
     }
-    
+
     if (filter?.last_name) {
-      where.last_name = { contains: filter.last_name, mode: 'insensitive' };
+      where.last_name = { contains: filter.last_name, mode: "insensitive" };
     }
-    
+
     if (filter?.gender) {
       where.gender = filter.gender;
     }
-    
+
     if (filter?.class) {
       where.class = filter.class;
     }
-    
+
     if (filter?.section) {
       where.section = filter.section;
     }
-    
+
     if (filter?.schoolId) {
       where.schoolId = filter.schoolId;
     }
-    
+
     const students = await prisma.student.findMany({
       where,
       include: {
@@ -75,11 +72,11 @@ export async function getStudents(filter?: StudentFilter) {
             id: true,
             name: true,
             is_ATL: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
-    
+
     return students;
   } catch (error) {
     console.error("Error fetching students:", error);
@@ -92,10 +89,10 @@ export async function getStudentById(id: number) {
     const student = await prisma.student.findUnique({
       where: { id },
       include: {
-        school: true
-      }
+        school: true,
+      },
     });
-    
+
     return student;
   } catch (error) {
     console.error(`Error fetching student with id ${id}:`, error);
@@ -105,11 +102,12 @@ export async function getStudentById(id: number) {
 
 export async function updateStudent(id: number, data: any) {
   try {
-    // Validate partial update data
     const result = studentSchema.safeParse(data);
 
     if (!result.success) {
-      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errorMessages = result.error.errors.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
       console.error("Validation failed:", errorMessages);
       throw new Error(errorMessages[0]);
     }
@@ -131,7 +129,7 @@ export async function updateStudent(id: number, data: any) {
       },
       include: {
         school: true,
-      }
+      },
     });
 
     return updatedStudent;
@@ -141,14 +139,13 @@ export async function updateStudent(id: number, data: any) {
   }
 }
 
-
 export async function deleteStudent(id: number) {
   try {
     await prisma.student.delete({
-      where: { id }
+      where: { id },
     });
   } catch (error) {
     console.error(`Error deleting student with id ${id}:`, error);
     throw error;
   }
-} 
+}

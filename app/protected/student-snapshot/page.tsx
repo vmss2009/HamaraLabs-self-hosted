@@ -7,15 +7,30 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
-  GridActionsCellItem
+  GridActionsCellItem,
 } from "@mui/x-data-grid";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { Button } from "@/components/ui/Button";
 import DetailViewer from "@/components/forms/DetailViewer";
-import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel, TextField, Grid } from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import {
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+  TextField,
+  Grid,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditActivityDialog from "./Edit_Activity/page";
 import { getCourseColumns } from "./Courses/page";
 import { getCompetitionColumns } from "./Competition/page";
@@ -28,7 +43,7 @@ const TINKERING_STATUS_OPTIONS = [
   "Nearly completed",
   "In review",
   "Review completed",
-  "TA completed"
+  "TA completed",
 ];
 
 const COMPETITION_STATUS_OPTIONS = [
@@ -39,7 +54,7 @@ const COMPETITION_STATUS_OPTIONS = [
   "Nearly completed",
   "In review",
   "Review completed",
-  "Competition completed"
+  "Competition completed",
 ];
 
 const COURSE_STATUS_OPTIONS = [
@@ -50,7 +65,7 @@ const COURSE_STATUS_OPTIONS = [
   "Nearly completed",
   "In review",
   "Review completed",
-  "Course completed"
+  "Course completed",
 ];
 
 export default function StudentSnapshot() {
@@ -58,7 +73,9 @@ export default function StudentSnapshot() {
   const [students, setStudents] = useState<any[]>([]);
   const [selectedSchool, setSelectedSchool] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
-  const [activeTab, setActiveTab] = useState<'tinkering' | 'competition' | 'courses'>('tinkering');
+  const [activeTab, setActiveTab] = useState<
+    "tinkering" | "competition" | "courses"
+  >("tinkering");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tinkeringActivities, setTinkeringActivities] = useState<any[]>([]);
@@ -70,27 +87,34 @@ export default function StudentSnapshot() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [statusType, setStatusType] = useState<'tinkering' | 'competition' | 'courses'>('tinkering');
+  const [statusType, setStatusType] = useState<
+    "tinkering" | "competition" | "courses"
+  >("tinkering");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
-  const [subjects, setSubjects] = useState<Array<{ id: number; subject_name: string }>>([]);
-  const [topics, setTopics] = useState<Array<{ id: number; topic_name: string }>>([]);
-  const [subtopics, setSubtopics] = useState<Array<{ id: number; subtopic_name: string }>>([]);
+  const [subjects, setSubjects] = useState<
+    Array<{ id: number; subject_name: string }>
+  >([]);
+  const [topics, setTopics] = useState<
+    Array<{ id: number; topic_name: string }>
+  >([]);
+  const [subtopics, setSubtopics] = useState<
+    Array<{ id: number; subtopic_name: string }>
+  >([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
 
+  const latestStatus =
+    selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(
+      " - "
+    )[0] || "";
 
-
-  const latestStatus = selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(" - ")[0] || ""
-
-  // Fetch schools on component mount
   useEffect(() => {
     fetchSchools();
   }, []);
 
-  // Fetch students when school is selected
   useEffect(() => {
     if (selectedSchool) {
       fetchStudents(selectedSchool);
@@ -100,7 +124,6 @@ export default function StudentSnapshot() {
     }
   }, [selectedSchool]);
 
-  // Fetch data when student is selected
   useEffect(() => {
     if (selectedStudent) {
       const fetchActions: Record<string, () => void> = {
@@ -113,7 +136,6 @@ export default function StudentSnapshot() {
     }
   }, [selectedStudent, activeTab]);
 
-  // Fetch subjects on component mount
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -131,7 +153,6 @@ export default function StudentSnapshot() {
     fetchSubjects();
   }, []);
 
-  
   useEffect(() => {
     const fetchTopics = async () => {
       if (!selectedSubject) {
@@ -143,7 +164,9 @@ export default function StudentSnapshot() {
       }
 
       try {
-        const response = await fetch(`/api/topics?subjectId=${selectedSubject}`);
+        const response = await fetch(
+          `/api/topics?subjectId=${selectedSubject}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch topics");
         }
@@ -157,7 +180,6 @@ export default function StudentSnapshot() {
     fetchTopics();
   }, [selectedSubject]);
 
-  // Fetch subtopics when topic changes
   useEffect(() => {
     const fetchSubtopics = async () => {
       if (!selectedTopic) {
@@ -212,7 +234,9 @@ export default function StudentSnapshot() {
   const fetchTinkeringActivities = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/customised-tinkering-activities/list?student_id=${selectedStudent}`);
+      const response = await fetch(
+        `/api/customised-tinkering-activities/list?student_id=${selectedStudent}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch tinkering activities");
       }
@@ -229,7 +253,9 @@ export default function StudentSnapshot() {
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/customised-competitions/list?student_id=${selectedStudent}`);
+      const response = await fetch(
+        `/api/customised-competitions/list?student_id=${selectedStudent}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch competitions");
       }
@@ -247,7 +273,9 @@ export default function StudentSnapshot() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/customised-courses/list?student_id=${selectedStudent}`);
+      const response = await fetch(
+        `/api/customised-courses/list?student_id=${selectedStudent}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch courses");
       }
@@ -278,27 +306,28 @@ export default function StudentSnapshot() {
 
   useEffect(() => {
     if (selectedActivity?.status?.length > 0) {
-      const latest = selectedActivity.status[selectedActivity.status.length - 1];
+      const latest =
+        selectedActivity.status[selectedActivity.status.length - 1];
       const statusOnly = latest.split(" - ")[0];
       setSelectedStatus(statusOnly);
-      setIsSubmitEnabled(false); // disable initially
+      setIsSubmitEnabled(false);
     }
   }, [selectedActivity]);
 
   const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newStatus = event.target.value;
     setSelectedStatus(newStatus);
-    setIsSubmitEnabled(newStatus !== latestStatus); // enable only if different from latest
+    setIsSubmitEnabled(newStatus !== latestStatus);
   };
 
   const formatStatusDate = (date: Date) => {
-    return date.toLocaleString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -309,15 +338,15 @@ export default function StudentSnapshot() {
     }
 
     try {
-      // Get current status array or initialize empty array
       const currentStatus = selectedActivity.status || [];
 
-      // Format date and build updated status list
       const currentDate = new Date();
       const formattedDate = formatStatusDate(currentDate);
-      const updatedStatus = [...currentStatus, `${selectedStatus} - ${formattedDate}`];
+      const updatedStatus = [
+        ...currentStatus,
+        `${selectedStatus} - ${formattedDate}`,
+      ];
 
-      // Determine endpoint based on statusType
       let endpoint = "";
       if (statusType === "tinkering") {
         endpoint = `/api/customised-tinkering-activities/${selectedActivity.id}`;
@@ -332,7 +361,6 @@ export default function StudentSnapshot() {
       console.log("PATCH Endpoint:", endpoint);
       console.log("Request Body:", JSON.stringify({ status: updatedStatus }));
 
-      // Send PATCH request
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -346,10 +374,11 @@ export default function StudentSnapshot() {
       console.log("Response Body:", responseText);
 
       if (!response.ok) {
-        throw new Error(`Failed to update status: ${response.status} - ${responseText}`);
+        throw new Error(
+          `Failed to update status: ${response.status} - ${responseText}`
+        );
       }
 
-      // Trigger appropriate fetch to reload data
       const fetchActions: Record<string, () => void> = {
         tinkering: fetchTinkeringActivities,
         competition: fetchCompetitions,
@@ -358,7 +387,6 @@ export default function StudentSnapshot() {
 
       fetchActions[statusType]?.();
 
-      // Cleanup state
       setStatusDialogOpen(false);
       setSelectedActivity(null);
       setSelectedStatus("");
@@ -368,36 +396,33 @@ export default function StudentSnapshot() {
     }
   };
 
-
   const parseStatusDate = (status: string) => {
-    // Extract the date part after the hyphen
-    const dateMatch = status.split(' - ')[1];
+    const dateMatch = status.split(" - ")[1];
     if (dateMatch) {
-      // Parse the date in the format "April 17, 2025 at 06:16 PM"
-      const [datePart, timePart] = dateMatch.split(' at ');
-      const [month, day, year] = datePart.split(' ');
-      const [time, period] = timePart.split(' ');
-      const [hours, minutes] = time.split(':');
+      const [datePart, timePart] = dateMatch.split(" at ");
+      const [month, day, year] = datePart.split(" ");
+      const [time, period] = timePart.split(" ");
+      const [hours, minutes] = time.split(":");
 
       const monthIndex = new Date(`${month} 1, 2000`).getMonth();
       const date = new Date(
         parseInt(year),
         monthIndex,
-        parseInt(day.replace(',', '')),
-        period === 'PM' ? parseInt(hours) + 12 : parseInt(hours),
+        parseInt(day.replace(",", "")),
+        period === "PM" ? parseInt(hours) + 12 : parseInt(hours),
         parseInt(minutes)
       );
 
       return date;
     }
-    return new Date(0); // Return a very old date if no date is found
+    return new Date(0);
   };
 
   const handleEditTinkeringActivity = (activity: any) => {
     setSelectedActivity(activity);
     setEditFormData({
-      name: activity.name || '',
-      introduction: activity.introduction || '',
+      name: activity.name || "",
+      introduction: activity.introduction || "",
       goals: activity.goals || [],
       materials: activity.materials || [],
       instructions: activity.instructions || [],
@@ -407,7 +432,6 @@ export default function StudentSnapshot() {
       resources: activity.resources || [],
     });
 
-    // Set the selected subject, topic, and subtopic
     if (activity.subtopic?.topic?.subject) {
       setSelectedSubject(activity.subtopic.topic.subject.id.toString());
     }
@@ -428,7 +452,11 @@ export default function StudentSnapshot() {
     });
   };
 
-  const handleArrayFieldChange = (field: string, index: number, value: string) => {
+  const handleArrayFieldChange = (
+    field: string,
+    index: number,
+    value: string
+  ) => {
     const newArray = [...editFormData[field]];
     newArray[index] = value;
     setEditFormData({
@@ -440,7 +468,7 @@ export default function StudentSnapshot() {
   const handleAddArrayItem = (field: string) => {
     setEditFormData({
       ...editFormData,
-      [field]: [...editFormData[field], ''],
+      [field]: [...editFormData[field], ""],
     });
   };
 
@@ -457,120 +485,131 @@ export default function StudentSnapshot() {
     if (!selectedActivity) return;
 
     try {
-      const response = await fetch(`/api/customised-tinkering-activities/${selectedActivity.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...editFormData,
-          subtopic_id: parseInt(selectedSubtopic),
-        }),
-      });
+      const response = await fetch(
+        `/api/customised-tinkering-activities/${selectedActivity.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...editFormData,
+            subtopic_id: parseInt(selectedSubtopic),
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to update tinkering activity');
+        throw new Error("Failed to update tinkering activity");
       }
 
-      // Refresh the data
       fetchTinkeringActivities();
 
-      // Close the dialog
       setEditDialogOpen(false);
       setSelectedActivity(null);
     } catch (error) {
-      console.error('Error updating tinkering activity:', error);
-      alert('Failed to update tinkering activity. Please try again.');
+      console.error("Error updating tinkering activity:", error);
+      alert("Failed to update tinkering activity. Please try again.");
     }
   };
 
   const handleDeleteTinkeringActivity = async (activity: any) => {
-    if (!confirm('Are you sure you want to delete this tinkering activity?')) {
+    if (!confirm("Are you sure you want to delete this tinkering activity?")) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/customised-tinkering-activities/${activity.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/customised-tinkering-activities/${activity.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete tinkering activity');
+        throw new Error("Failed to delete tinkering activity");
       }
 
-      // Refresh the data
       fetchTinkeringActivities();
     } catch (error) {
-      console.error('Error deleting tinkering activity:', error);
-      alert('Failed to delete tinkering activity. Please try again.');
+      console.error("Error deleting tinkering activity:", error);
+      alert("Failed to delete tinkering activity. Please try again.");
     }
   };
 
   const handleDeleteCompetition = async (competition: any) => {
-    if (!confirm('Are you sure you want to delete this competition?')) {
+    if (!confirm("Are you sure you want to delete this competition?")) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/customised-competitions/${competition.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/customised-competitions/${competition.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete competition');
+        throw new Error("Failed to delete competition");
       }
 
-      // Refresh the data
       fetchCompetitions();
     } catch (error) {
-      console.error('Error deleting competition:', error);
-      alert('Failed to delete competition. Please try again.');
+      console.error("Error deleting competition:", error);
+      alert("Failed to delete competition. Please try again.");
     }
   };
 
   const handleModifyCourse = (item: any) => {
     setSelectedActivity(item);
-    setStatusType('courses');
+    setStatusType("courses");
     setStatusDialogOpen(true);
   };
   const handleModifyCompetition = (item: any) => {
     setSelectedActivity(item);
-    setStatusType('competition');
+    setStatusType("competition");
     setStatusDialogOpen(true);
   };
   const handleModifyactivity = (item: any) => {
     setSelectedActivity(item);
-    setStatusType('tinkering');
+    setStatusType("tinkering");
     setStatusDialogOpen(true);
   };
   const handleDeleteCourse = async (course: any) => {
-    if (!confirm('Are you sure you want to delete this course?')) {
+    if (!confirm("Are you sure you want to delete this course?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/customised-courses/${course.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete course');
+        throw new Error("Failed to delete course");
       }
 
-      // Refresh the data
       fetchCourses();
     } catch (error) {
-      console.error('Error deleting course:', error);
-      alert('Failed to delete course. Please try again.');
+      console.error("Error deleting course:", error);
+      alert("Failed to delete course. Please try again.");
     }
   };
 
-  const tinkeringActivityColumns = getTinkeringActivityColumns(handleModifyactivity, handleEditTinkeringActivity, handleDeleteTinkeringActivity);
-  const competitionColumns = getCompetitionColumns(handleModifyCompetition, handleDeleteCompetition)
-  const courseColumns = getCourseColumns(handleModifyCourse, handleDeleteCourse);
-
-
-
+  const tinkeringActivityColumns = getTinkeringActivityColumns(
+    handleModifyactivity,
+    handleEditTinkeringActivity,
+    handleDeleteTinkeringActivity
+  );
+  const competitionColumns = getCompetitionColumns(
+    handleModifyCompetition,
+    handleDeleteCompetition
+  );
+  const courseColumns = getCourseColumns(
+    handleModifyCourse,
+    handleDeleteCourse
+  );
 
   const handleRowClick = (params: any) => {
     setSelectedRow(params.row);
@@ -589,37 +628,39 @@ export default function StudentSnapshot() {
   };
 
   const formatValue = (value: any) => {
-    if (value === null || value === undefined) return 'N/A';
-    if (Array.isArray(value)) return value.join(', ');
+    if (value === null || value === undefined) return "N/A";
+    if (Array.isArray(value)) return value.join(", ");
     return value.toString();
   };
 
-
   const formatDate = (dateString: string | Date | null) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
 
   const getRowClassName = (params: any) => {
     const statusArray = params.row.status;
-    const latestStatus = Array.isArray(statusArray) && statusArray.length > 0
-      ? statusArray[statusArray.length - 1]
-      : '';
+    const latestStatus =
+      Array.isArray(statusArray) && statusArray.length > 0
+        ? statusArray[statusArray.length - 1]
+        : "";
 
-    if (activeTab === 'tinkering' && latestStatus.includes('TA completed')) {
-      return 'bg-green-100';
+    if (activeTab === "tinkering" && latestStatus.includes("TA completed")) {
+      return "bg-green-100";
     }
-    if (activeTab === 'competition' && latestStatus.includes('Competition completed')) {
-      return 'bg-green-100';
+    if (
+      activeTab === "competition" &&
+      latestStatus.includes("Competition completed")
+    ) {
+      return "bg-green-100";
     }
-    if (activeTab === 'courses' && latestStatus.includes('Course completed')) {
-      return 'bg-green-100';
+    if (activeTab === "courses" && latestStatus.includes("Course completed")) {
+      return "bg-green-100";
     }
 
-    return '';
+    return "";
   };
-
 
   const getLatestStatusDate = (statusArray: string[]) => {
     if (!Array.isArray(statusArray) || statusArray.length === 0) {
@@ -641,7 +682,6 @@ export default function StudentSnapshot() {
     return dateB.getTime() - dateA.getTime();
   });
 
-
   const sortedCompetitions = [...competitions].sort((a, b) => {
     const dateA = getLatestStatusDate(a.status);
     const dateB = getLatestStatusDate(b.status);
@@ -650,8 +690,6 @@ export default function StudentSnapshot() {
 
   return (
     <div className="bg-slate-400 h-screen  w-screen ">
-
-
       <div className=" p-6 ">
         {error && (
           <Alert
@@ -706,23 +744,23 @@ export default function StudentSnapshot() {
           <div>
             <div className="flex space-x-4">
               <Button
-                variant={activeTab === 'tinkering' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('tinkering')}
+                variant={activeTab === "tinkering" ? "default" : "outline"}
+                onClick={() => setActiveTab("tinkering")}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Tinkering Activities
               </Button>
               <Button
-                variant={activeTab === 'competition' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('competition')}
+                variant={activeTab === "competition" ? "default" : "outline"}
+                onClick={() => setActiveTab("competition")}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Competitions
               </Button>
 
               <Button
-                variant={activeTab === 'courses' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('courses')}
+                variant={activeTab === "courses" ? "default" : "outline"}
+                onClick={() => setActiveTab("courses")}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Courses
@@ -732,7 +770,7 @@ export default function StudentSnapshot() {
         </div>
 
         <div className="bg-gray-50 h-auto rounded-xl shadow-sm ">
-          {activeTab === 'tinkering' ? (
+          {activeTab === "tinkering" ? (
             <DataGrid
               rows={sortedTinkeringActivities}
               columns={tinkeringActivityColumns}
@@ -748,21 +786,20 @@ export default function StudentSnapshot() {
               getRowClassName={getRowClassName}
               sx={{
                 borderRadius: "20px",
-                backgroundColor: '#f3f4f6',
-                '& .MuiDataGrid-cell': {
-                  color: '#1f2937',
-                  paddingTop: '10px', // 👈 Add horizontal padding
-                  paddingBottom: '10px',
-
+                backgroundColor: "#f3f4f6",
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937',
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
                 },
-                '& .bg-green-100': {
-                  backgroundColor: '#abebc6 !important',
-                  '&:hover': {
-                    backgroundColor: '#abebc6 !important',
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
                   },
                 },
               }}
@@ -775,7 +812,7 @@ export default function StudentSnapshot() {
                 ),
               }}
             />
-          ) : activeTab === 'competition' ? (
+          ) : activeTab === "competition" ? (
             <DataGrid
               rows={sortedCompetitions}
               columns={competitionColumns}
@@ -789,22 +826,21 @@ export default function StudentSnapshot() {
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
-
               sx={{
                 borderRadius: "12px",
-                '& .MuiDataGrid-cell': {
-                  color: '#1f2937',
-                  paddingTop: '10px', // 👈 Add horizontal padding
-                  paddingBottom: '10px',
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937',
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
                 },
-                '& .bg-green-100': {
-                  backgroundColor: '#abebc6 !important',
-                  '&:hover': {
-                    backgroundColor: '#abebc6 !important',
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
                   },
                 },
               }}
@@ -833,21 +869,20 @@ export default function StudentSnapshot() {
               getRowClassName={getRowClassName}
               sx={{
                 borderRadius: "20px",
-                backgroundColor: '#f3f4f6',
-                '& .MuiDataGrid-cell': {
-                  color: '#1f2937',
-                  paddingTop: '10px', // 👈 Add horizontal padding
-                  paddingBottom: '10px',
-
+                backgroundColor: "#f3f4f6",
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937',
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
                 },
-                '& .bg-green-100': {
-                  backgroundColor: '#abebc6 !important',
-                  '&:hover': {
-                    backgroundColor: '#abebc6 !important',
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
                   },
                 },
               }}
@@ -863,10 +898,7 @@ export default function StudentSnapshot() {
           )}
         </div>
 
-
-
-        {activeTab === 'tinkering' ? (
-
+        {activeTab === "tinkering" ? (
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
@@ -877,58 +909,49 @@ export default function StudentSnapshot() {
               { label: "Activity Name", field: "name" },
               {
                 label: "Subject",
-                field: "subtopic.topic.subject.subject_name"
+                field: "subtopic.topic.subject.subject_name",
               },
               {
                 label: "Topic",
-                field: "subtopic.topic.topic_name"
+                field: "subtopic.topic.topic_name",
               },
               {
                 label: "Subtopic",
-                field: "subtopic.subtopic_name"
+                field: "subtopic.subtopic_name",
               },
               { label: "Introduction", field: "introduction" },
               {
                 label: "Goals",
-                field: "goals"
-
+                field: "goals",
               },
               {
                 label: "Materials",
-                field: "materials"
-
+                field: "materials",
               },
               {
                 label: "Instructions",
-                field: "instructions"
-
+                field: "instructions",
               },
               {
                 label: "Tips",
-                field: "tips"
-
+                field: "tips",
               },
-              { label: "Observations",field: "observations"
-
-              },
+              { label: "Observations", field: "observations" },
               {
                 label: "Extensions",
-                field: "extensions"
+                field: "extensions",
               },
               {
                 label: "Resources",
-                field: "resources"
+                field: "resources",
               },
               {
                 label: "Status",
-                field: "status"
-              }
+                field: "status",
+              },
             ]}
           />
-        ) : activeTab === 'competition' ? (
-
-
-
+        ) : activeTab === "competition" ? (
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
@@ -941,50 +964,48 @@ export default function StudentSnapshot() {
               { label: "Organised By", field: "competition.organised_by" },
               {
                 label: "Eligibility Criteria",
-                field: "competition.eligibility"
+                field: "competition.eligibility",
               },
               {
                 label: "Requirements",
-                field: "competition.requirements"
+                field: "competition.requirements",
               },
               { label: "Payment", field: "competition.payment" },
               {
                 label: "Fee",
                 field: "competition.fee",
-                // showIf: (selectedrow) => selectedRowrow.competition?.payment === "paid"
               },
               {
                 label: "Application Start Date",
                 field: "competition.application_start_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Application End Date",
                 field: "competition.application_end_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Competition Start Date",
                 field: "competition.competition_start_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Competition End Date",
                 field: "competition.competition_end_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Reference Links",
-                field: "competition.reference_links"
+                field: "competition.reference_links",
               },
               {
                 label: "Status",
-                field: "status"
-              }
+                field: "status",
+              },
             ]}
           />
-
-        ) : activeTab === 'courses' ? (
+        ) : activeTab === "courses" ? (
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
@@ -998,49 +1019,47 @@ export default function StudentSnapshot() {
               {
                 label: "Application Start Date",
                 field: "course.application_start_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Application End Date",
                 field: "course.application_end_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Start Date",
                 field: "course.course_start_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "End Date",
                 field: "course.course_end_date",
-                type: "date"
+                type: "date",
               },
               {
                 label: "Eligibility_from",
-                field: "course.eligibility_from"
-
+                field: "course.eligibility_from",
               },
               {
                 label: "Eligibility_to",
-                field: "course.eligibility_to"
-
+                field: "course.eligibility_to",
               },
               {
                 label: "Reference Link",
-                field: "course.reference_link"
-
+                field: "course.reference_link",
               },
               {
                 label: "Status",
-                field: "status"
-              }
+                field: "status",
+              },
             ]}
           />
-
         ) : null}
 
-
-        <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)}>
+        <Dialog
+          open={statusDialogOpen}
+          onClose={() => setStatusDialogOpen(false)}
+        >
           <DialogTitle>Modify Status</DialogTitle>
           <DialogContent>
             <FormControl component="fieldset" sx={{ mt: 2 }}>
@@ -1052,15 +1071,19 @@ export default function StudentSnapshot() {
                     value={status}
                     control={<Radio />}
                     label={status}
-                    disabled={status === latestStatus} // disable current status radio button
+                    disabled={status === latestStatus}
                   />
                 ))}
               </RadioGroup>
 
-
               {getLatestStatus(selectedActivity) && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Current status: <strong>{getLatestStatus(selectedActivity)}</strong>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 2 }}
+                >
+                  Current status:{" "}
+                  <strong>{getLatestStatus(selectedActivity)}</strong>
                 </Typography>
               )}
             </FormControl>
@@ -1077,8 +1100,6 @@ export default function StudentSnapshot() {
             </Button>
           </DialogActions>
         </Dialog>
-
-
 
         <EditActivityDialog
           open={editDialogOpen}
@@ -1099,8 +1120,7 @@ export default function StudentSnapshot() {
           topics={topics}
           subtopics={subtopics}
         />
-
       </div>
     </div>
   );
-} 
+}

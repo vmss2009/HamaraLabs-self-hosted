@@ -10,7 +10,6 @@ import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
 import { Input } from "@/components/ui/Input";
 
-// Define types for the form data
 type Subject = {
   id: number;
   subject_name: string;
@@ -30,22 +29,18 @@ export default function TinkeringActivityForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // State for form fields
+
   const [name, setName] = useState("");
   const [introduction, setIntroduction] = useState("");
-  
-  // State for cascading dropdowns
+
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [subtopics, setSubtopics] = useState<Subtopic[]>([]);
-  
-  // Selected values
+
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
-  
-  // State for dynamic field arrays
+
   const [goals, setGoals] = useState<string[]>([]);
   const [materials, setMaterials] = useState<string[]>([]);
   const [instructions, setInstructions] = useState<string[]>([]);
@@ -53,8 +48,7 @@ export default function TinkeringActivityForm() {
   const [observations, setObservations] = useState<string[]>([]);
   const [extensions, setExtensions] = useState<string[]>([]);
   const [resources, setResources] = useState<string[]>([]);
-  
-  // Fetch subjects on component mount
+
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -68,11 +62,10 @@ export default function TinkeringActivityForm() {
         console.error("Error fetching subjects:", error);
       }
     };
-    
+
     fetchSubjects();
   }, []);
-  
-  // Fetch topics when subject changes
+
   useEffect(() => {
     const fetchTopics = async () => {
       if (!selectedSubject) {
@@ -82,9 +75,11 @@ export default function TinkeringActivityForm() {
         setSelectedSubtopic("");
         return;
       }
-      
+
       try {
-        const response = await fetch(`/api/topics?subjectId=${selectedSubject}`);
+        const response = await fetch(
+          `/api/topics?subjectId=${selectedSubject}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch topics");
         }
@@ -94,11 +89,10 @@ export default function TinkeringActivityForm() {
         console.error("Error fetching topics:", error);
       }
     };
-    
+
     fetchTopics();
   }, [selectedSubject]);
-  
-  // Fetch subtopics when topic changes
+
   useEffect(() => {
     const fetchSubtopics = async () => {
       if (!selectedTopic) {
@@ -106,7 +100,7 @@ export default function TinkeringActivityForm() {
         setSelectedSubtopic("");
         return;
       }
-      
+
       try {
         const response = await fetch(`/api/subtopics?topicId=${selectedTopic}`);
         if (!response.ok) {
@@ -118,16 +112,15 @@ export default function TinkeringActivityForm() {
         console.error("Error fetching subtopics:", error);
       }
     };
-    
+
     fetchSubtopics();
   }, [selectedTopic]);
-  
-  // Form submission handler
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const tinkeringActivityData = {
         name,
@@ -139,9 +132,9 @@ export default function TinkeringActivityForm() {
         tips,
         observations,
         extensions,
-        resources
+        resources,
       };
-      
+
       const response = await fetch("/api/tinkering-activities", {
         method: "POST",
         headers: {
@@ -149,12 +142,12 @@ export default function TinkeringActivityForm() {
         },
         body: JSON.stringify(tinkeringActivityData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit the form");
       }
-      
+
       router.push("/protected/tinkering-activity/report");
     } catch (error) {
       if (error instanceof Error) {
@@ -166,16 +159,18 @@ export default function TinkeringActivityForm() {
       setIsLoading(false);
     }
   };
-  
-  return (
 
+  return (
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">Tinkering Activity</h1>
-          <p className="text-gray-600 mt-2">Fill out the form below to add a new tinkering activity.</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            Tinkering Activity
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Fill out the form below to add a new tinkering activity.
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -199,8 +194,6 @@ export default function TinkeringActivityForm() {
             </div>
           </div>
         )}
-
-      
 
         <form onSubmit={onSubmit} className="space-y-8">
           <FormSection title="Basic Information">
@@ -229,54 +222,58 @@ export default function TinkeringActivityForm() {
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <SelectField
                 name="subject"
                 label="Subject"
                 options={[
-                  ...subjects.map(subject => ({
+                  ...subjects.map((subject) => ({
                     value: subject.id.toString(),
-                    label: subject.subject_name
-                  }))
+                    label: subject.subject_name,
+                  })),
                 ]}
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 required
               />
-              
+
               <SelectField
                 name="topic"
                 label="Topic"
                 options={[
-                  ...topics.map(topic => ({
+                  ...topics.map((topic) => ({
                     value: topic.id.toString(),
-                    label: topic.topic_name
-                  }))
+                    label: topic.topic_name,
+                  })),
                 ]}
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
                 required
-                className={!selectedSubject ? "opacity-50 pointer-events-none" : ""}
+                className={
+                  !selectedSubject ? "opacity-50 pointer-events-none" : ""
+                }
               />
-              
+
               <SelectField
                 name="subtopic"
                 label="Subtopic"
                 options={[
-                  ...subtopics.map(subtopic => ({
+                  ...subtopics.map((subtopic) => ({
                     value: subtopic.id.toString(),
-                    label: subtopic.subtopic_name
-                  }))
+                    label: subtopic.subtopic_name,
+                  })),
                 ]}
                 value={selectedSubtopic}
                 onChange={(e) => setSelectedSubtopic(e.target.value)}
                 required
-                className={!selectedTopic ? "opacity-50 pointer-events-none" : ""}
+                className={
+                  !selectedTopic ? "opacity-50 pointer-events-none" : ""
+                }
               />
             </div>
           </FormSection>
-          
+
           <FormSection title="Activity Details" className="">
             <DynamicFieldArray
               className="mb-5"
@@ -296,9 +293,8 @@ export default function TinkeringActivityForm() {
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
-             
             />
-            
+
             <DynamicFieldArray
               placeholder="Material"
               className="mb-5"
@@ -317,11 +313,10 @@ export default function TinkeringActivityForm() {
               legend="Materials"
               fieldLabel="Material"
               name="materials"
-             
             />
-            
+
             <DynamicFieldArray
-            placeholder="Instruction"
+              placeholder="Instruction"
               className="mb-5"
               values={instructions}
               onChange={(index, value) => {
@@ -338,9 +333,8 @@ export default function TinkeringActivityForm() {
               legend="Instructions"
               fieldLabel="Instruction"
               name="instructions"
-             
             />
-            
+
             <DynamicFieldArray
               className="mb-5"
               placeholder="Tip"
@@ -360,7 +354,7 @@ export default function TinkeringActivityForm() {
               fieldLabel="Tip"
               name="tips"
             />
-            
+
             <DynamicFieldArray
               className="mb-5"
               placeholder="Observation"
@@ -380,7 +374,7 @@ export default function TinkeringActivityForm() {
               fieldLabel="Observation"
               name="observations"
             />
-            
+
             <DynamicFieldArray
               className="mb-5"
               placeholder="Extension"
@@ -400,7 +394,7 @@ export default function TinkeringActivityForm() {
               fieldLabel="Extension"
               name="extensions"
             />
-            
+
             <DynamicFieldArray
               className="mb-5"
               placeholder="Resourse"
@@ -421,19 +415,14 @@ export default function TinkeringActivityForm() {
               name="resources"
             />
           </FormSection>
-          
+
           <div className="flex justify-end space-x-4">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-            >
+            <Button type="submit" isLoading={isLoading} size="lg">
               Submit
             </Button>
           </div>
         </form>
       </div>
-    </div>  
-   
+    </div>
   );
-} 
+}

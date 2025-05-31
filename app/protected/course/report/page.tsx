@@ -25,8 +25,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import AssignDialog from "@/components/forms/DialogBox";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -49,13 +49,12 @@ export default function CourseReport() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
-
   type Course = {
     id: number;
     name: string;
     description: string;
     organized_by: string;
-    application_start_date: string; // or Date if you're converting it
+    application_start_date: string;
     application_end_date: string;
     course_start_date: string;
     course_end_date: string;
@@ -80,8 +79,6 @@ export default function CourseReport() {
         throw new Error("Failed to fetch courses");
       }
       let data = await response.json();
-
-
 
       setCourses(data);
     } catch (error) {
@@ -153,7 +150,6 @@ export default function CourseReport() {
     }
   }, [selectedSchool]);
 
-
   const handleAssignSubmit = async () => {
     if (!selectedStudents.length || !selectedActivity) return;
 
@@ -162,24 +158,24 @@ export default function CourseReport() {
       setAssignError(null);
 
       const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      const formattedDate = currentDate.toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
 
-      const promises = selectedStudents.map(studentId =>
-        fetch('/api/customised-courses', {
-          method: 'POST',
+      const promises = selectedStudents.map((studentId) =>
+        fetch("/api/customised-courses", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             course_id: selectedActivity.id,
             student_id: studentId,
-            status: [`Assigned - ${formattedDate}`]
+            status: [`Assigned - ${formattedDate}`],
           }),
         })
       );
@@ -187,18 +183,17 @@ export default function CourseReport() {
       await Promise.all(promises);
       setAssignDialogOpen(false);
       setSelectedStudents([]);
-      setSelectedSchool('');
+      setSelectedSchool("");
       setSelectedActivity(null);
-      setSuccess('Course assigned successfully');
+      setSuccess("Course assigned successfully");
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      console.error('Error assigning competition:', error);
-      setAssignError('Failed to assign competition');
+      console.error("Error assigning competition:", error);
+      setAssignError("Failed to assign competition");
     } finally {
       setAssignLoading(false);
     }
   };
-
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
@@ -233,11 +228,9 @@ export default function CourseReport() {
       );
     }
     if (typeof value === "object") {
-      // Special handling for nested objects
       if (value.subtopic_name) return value.subtopic_name;
       if (value.topic_name) return value.topic_name;
       if (value.subject_name) return value.subject_name;
-      // For other objects, format as before
       return Object.entries(value)
         .map(([k, v]) => `${k}: ${v}`)
         .join(", ");
@@ -255,12 +248,32 @@ export default function CourseReport() {
     { field: "name", headerName: "Course Name", width: 200 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "organized_by", headerName: "Organized By", width: 200 },
-    { field: "application_start_date", headerName: "App Start Date", width: 150, valueFormatter: (params) => formatDate(params) },
-    { field: "application_end_date", headerName: "App End Date", width: 150, valueFormatter: (params) => formatDate(params) },
-    { field: "course_start_date", headerName: "Course Start", width: 150, valueFormatter: (params) => formatDate(params) },
-    { field: "course_end_date", headerName: "Course End", width: 150, valueFormatter: (params) => formatDate(params) },
-    { field: "eligibility_from", headerName: "Eligible From", width: 150, },
-    { field: "eligibility_to", headerName: "Eligible To", width: 150, },
+    {
+      field: "application_start_date",
+      headerName: "App Start Date",
+      width: 150,
+      valueFormatter: (params) => formatDate(params),
+    },
+    {
+      field: "application_end_date",
+      headerName: "App End Date",
+      width: 150,
+      valueFormatter: (params) => formatDate(params),
+    },
+    {
+      field: "course_start_date",
+      headerName: "Course Start",
+      width: 150,
+      valueFormatter: (params) => formatDate(params),
+    },
+    {
+      field: "course_end_date",
+      headerName: "Course End",
+      width: 150,
+      valueFormatter: (params) => formatDate(params),
+    },
+    { field: "eligibility_from", headerName: "Eligible From", width: 150 },
+    { field: "eligibility_to", headerName: "Eligible To", width: 150 },
     {
       field: "requirements",
       headerName: "Requirements",
@@ -293,7 +306,9 @@ export default function CourseReport() {
             key="edit"
             icon={<EditIcon />}
             label="Edit"
-            onClick={() => router.push(`/protected/course/form/${params.row.id}`)}
+            onClick={() =>
+              router.push(`/protected/course/form/${params.row.id}`)
+            }
           />
           <GridActionsCellItem
             key="delete"
@@ -307,42 +322,37 @@ export default function CourseReport() {
     },
   ];
 
-
   return (
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
       <div className="pt-20">
-
         {error && (
           <Alert
             severity="error"
             className="mb-4"
             sx={{
-              borderRadius: '8px',
-              backgroundColor: '#FFEBEE',
-              border: '1px solid #FFCDD2',
-              padding: '10px 16px'
+              borderRadius: "8px",
+              backgroundColor: "#FFEBEE",
+              border: "1px solid #FFCDD2",
+              padding: "10px 16px",
             }}
           >
             {error}
           </Alert>
         )}
-
         {success && (
           <Alert
             severity="success"
             className="mb-4"
             sx={{
-              borderRadius: '8px',
-              backgroundColor: '#E3F2E8',
-              border: '1px solid #A5D6A7',
-              padding: '10px 16px'
+              borderRadius: "8px",
+              backgroundColor: "#E3F2E8",
+              border: "1px solid #A5D6A7",
+              padding: "10px 16px",
             }}
           >
             {success}
           </Alert>
         )}
-
-
         <div className="bg-white rounded-xl shadow-sm overflow-x-auto w-[calc(100vw-6rem)]  m-10 ">
           <DataGrid
             rows={courses}
@@ -372,7 +382,6 @@ export default function CourseReport() {
             }}
           />
         </div>
-
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
@@ -382,10 +391,26 @@ export default function CourseReport() {
             { label: "Name", field: "name" },
             { label: "Description", field: "description" },
             { label: "Organized By", field: "organized_by" },
-            { label: "Application Start Date", field: "application_start_date", type: "date" },
-            { label: "Application End Date", field: "application_end_date", type: "date" },
-            { label: "Course Start Date", field: "course_start_date", type: "date" },
-            { label: "Course End Date", field: "course_end_date", type: "date" },
+            {
+              label: "Application Start Date",
+              field: "application_start_date",
+              type: "date",
+            },
+            {
+              label: "Application End Date",
+              field: "application_end_date",
+              type: "date",
+            },
+            {
+              label: "Course Start Date",
+              field: "course_start_date",
+              type: "date",
+            },
+            {
+              label: "Course End Date",
+              field: "course_end_date",
+              type: "date",
+            },
             { label: "Eligibility From", field: "eligibility_from" },
             { label: "Eligibility To", field: "eligibility_to" },
             { label: "Reference Link", field: "reference_link" },
@@ -393,15 +418,14 @@ export default function CourseReport() {
             { label: "Course Tags", field: "course_tags" },
           ]}
         />
-
-       <AssignDialog
-  open={assignDialogOpen}
-  formtype='Course'
-  onClose={closeAssignDialog}
-  selectedActivity={selectedActivity}
-  setSuccess={setSuccess}
-/>;
-
+        <AssignDialog
+          open={assignDialogOpen}
+          formtype="Course"
+          onClose={closeAssignDialog}
+          selectedActivity={selectedActivity}
+          setSuccess={setSuccess}
+        />
+        ;
       </div>
     </div>
   );

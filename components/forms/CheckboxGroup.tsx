@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Checkbox } from '@/components/ui/Checkbox';
+import React from "react";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 interface CheckboxOption {
   value: string;
@@ -22,7 +22,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   legend,
   onChange,
   selectedValues,
-  className = '',
+  className = "",
   required = false,
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,7 +36,10 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {options.map((option) => (
-          <div key={option.value} className="bg-gray-50 hover:bg-gray-100 rounded-md p-2 transition-colors">
+          <div
+            key={option.value}
+            className="bg-gray-50 hover:bg-gray-100 rounded-md p-2 transition-colors"
+          >
             <Checkbox
               key={option.value}
               label={option.label}
@@ -51,4 +54,4 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   );
 };
 
-export default CheckboxGroup; 
+export default CheckboxGroup;

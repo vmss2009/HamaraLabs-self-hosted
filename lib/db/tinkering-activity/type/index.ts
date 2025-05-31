@@ -1,6 +1,10 @@
-import { Subject as PrismaSubject, Topic as PrismaTopic, Subtopic as PrismaSubtopic, TinkeringActivity as PrismaTinkeringActivity } from "@prisma/client";
+import {
+  Subject as PrismaSubject,
+  Topic as PrismaTopic,
+  Subtopic as PrismaSubtopic,
+  TinkeringActivity as PrismaTinkeringActivity,
+} from "@prisma/client";
 
-// Subject types
 export interface SubjectCreateInput {
   subject_name: string;
 }
@@ -9,7 +13,6 @@ export interface SubjectWithTopics extends PrismaSubject {
   topics: PrismaTopic[];
 }
 
-// Topic types
 export interface TopicCreateInput {
   topic_name: string;
   subjectId: number;
@@ -19,7 +22,6 @@ export interface TopicWithSubject extends PrismaTopic {
   subject: PrismaSubject;
 }
 
-// Subtopic types
 export interface SubtopicCreateInput {
   subtopic_name: string;
   topicId: number;
@@ -29,7 +31,6 @@ export interface SubtopicWithTopic extends PrismaSubtopic {
   topic: TopicWithSubject;
 }
 
-// TinkeringActivity types
 export interface TinkeringActivityCreateInput {
   name: string;
   subtopicId: number;
@@ -46,13 +47,16 @@ export interface TinkeringActivityCreateInput {
 
 export interface TinkeringActivityWithSubtopic extends PrismaTinkeringActivity {
   subtopic: SubtopicWithTopic;
-} 
+}
 
 import { z } from "zod";
 
 export const tinkeringActivitySchema = z.object({
   name: z.string().min(1, "Activity name is required"),
-  subtopicId: z.number().int().positive("Subtopic ID must be a positive number"),
+  subtopicId: z
+    .number()
+    .int()
+    .positive("Subtopic ID must be a positive number"),
   introduction: z.string().min(1, "Introduction is required"),
   goals: z.array(z.string()).optional().default([]),
   materials: z.array(z.string()).optional().default([]),

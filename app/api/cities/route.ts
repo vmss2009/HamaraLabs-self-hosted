@@ -9,18 +9,18 @@ export async function GET(request: Request) {
     if (!stateId) {
       return NextResponse.json(
         { error: "State ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const cities = await getCitiesByState(parseInt(stateId));
-    
+
     return NextResponse.json(cities);
   } catch (error) {
     console.error("Error fetching cities:", error);
     return NextResponse.json(
       { error: "Failed to fetch cities" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

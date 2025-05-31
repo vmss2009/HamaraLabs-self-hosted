@@ -7,7 +7,7 @@ type Field = {
   type?: string;
   multiline?: boolean;
   rows?: number;
-  placeholder?: string; // ✅ Added this line
+  placeholder?: string;
 };
 
 interface TextFieldGroupProps {
@@ -20,7 +20,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
       {fields.map((field) => {
         const wrapperClasses = [
           "flex flex-col",
-          field.name === "comments" ? "md:col-span-2" : ""
+          field.name === "comments" ? "md:col-span-2" : "",
         ].join(" ");
 
         return (
@@ -30,9 +30,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
               className="mb-2 font-semibold text-gray-700"
             >
               {field.label}
-              {field.required && (
-                <span className="text-red-500 ml-1">*</span>
-              )}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
 
             {field.multiline ? (
@@ -41,7 +39,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 rows={field.rows || 4}
                 required={field.required}
-                placeholder={field.placeholder} // ✅ Used placeholder
+                placeholder={field.placeholder}
                 className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
               />
             ) : (
@@ -50,7 +48,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 type={field.type || "text"}
                 required={field.required}
-                placeholder={field.placeholder} // ✅ Used placeholder
+                placeholder={field.placeholder}
                 className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             )}

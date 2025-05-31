@@ -1,9 +1,11 @@
-// app/components/CourseColumns.tsx
-
-import { GridColDef, GridRenderCellParams, GridActionsCellItem } from '@mui/x-data-grid';
+import {
+  GridColDef,
+  GridRenderCellParams,
+  GridActionsCellItem,
+} from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
 
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 export const getCourseColumns = (
   handleModifyStatus: (row: any, type: string) => void,
@@ -12,7 +14,7 @@ export const getCourseColumns = (
   { field: "id", headerName: "ID", width: 80 },
 
   {
-    field: 'course_actions',
+    field: "course_actions",
     headerName: "Course",
     width: 200,
     renderCell: (params) => params.row?.course?.name ?? "N/A",
@@ -33,7 +35,7 @@ export const getCourseColumns = (
       const statusArray = params.row?.status;
       return Array.isArray(statusArray) && statusArray.length > 0
         ? statusArray[statusArray.length - 1]
-        : 'N/A';
+        : "N/A";
     },
   },
 
@@ -95,10 +97,17 @@ export const getCourseColumns = (
     renderCell: (params) => {
       const link = params.row?.course?.reference_link;
       return link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 underline"
+        >
           {link}
         </a>
-      ) : "N/A";
+      ) : (
+        "N/A"
+      );
     },
   },
 
@@ -123,19 +132,19 @@ export const getCourseColumns = (
   },
 
   {
-    field: 'actions',
-    headerName: 'Actions',
-    type: 'actions',
+    field: "actions",
+    headerName: "Actions",
+    type: "actions",
     width: 200,
     getActions: (params) => [
       <div className="flex items-center space-x-2" key="actions">
         <Button
-           variant="default"
-            color="primary"
-            size="sm"
+          variant="default"
+          color="primary"
+          size="sm"
           onClick={(e) => {
             e.stopPropagation();
-            handleModifyStatus(params.row, 'courses');
+            handleModifyStatus(params.row, "courses");
           }}
         >
           Modify status
@@ -146,10 +155,10 @@ export const getCourseColumns = (
           icon={
             <DeleteOutlineIcon
               sx={{
-                color: '#ef4444',
-                transition: 'color 0.2s ease-in-out',
-                '&:hover': {
-                  color: '#dc2626',
+                color: "#ef4444",
+                transition: "color 0.2s ease-in-out",
+                "&:hover": {
+                  color: "#dc2626",
                 },
               }}
             />

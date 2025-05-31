@@ -3,27 +3,26 @@ import {
   getCustomisedCourseById,
   updateCustomisedCourse,
   deleteCustomisedCourse,
-  getCustomisedCourses
+  getCustomisedCourses,
 } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
 
-export async function GET(
-  request: Request,
-  { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
-    if (params.id === 'list') {
+    if (params.id === "list") {
       const { searchParams } = new URL(request.url);
       const student_id = searchParams.get("student_id");
 
       if (!student_id) {
         return NextResponse.json(
           { error: "Student ID is required" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      const customisedCourses = await getCustomisedCourses({ student_id: parseInt(student_id) });
+      const customisedCourses = await getCustomisedCourses({
+        student_id: parseInt(student_id),
+      });
       return NextResponse.json(customisedCourses);
     }
 
@@ -32,7 +31,7 @@ export async function GET(
     if (!customisedCourse) {
       return NextResponse.json(
         { error: "Customised course not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -41,15 +40,12 @@ export async function GET(
     console.error("Error fetching customised course:", error);
     return NextResponse.json(
       { error: "Failed to fetch customised course" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
     const data = await request.json();
@@ -57,13 +53,13 @@ export async function PUT(
     if (!data.course_id || !data.student_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const customisedCourse = await updateCustomisedCourse(
       id,
-      data as Partial<CustomisedCourseCreateInput>
+      data as Partial<CustomisedCourseCreateInput>,
     );
 
     return NextResponse.json(customisedCourse);
@@ -71,33 +67,29 @@ export async function PUT(
     console.error("Error updating customised course:", error);
     return NextResponse.json(
       { error: "Failed to update customised course" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
     await deleteCustomisedCourse(id);
 
-    return NextResponse.json({ message: "Customised course deleted successfully" });
+    return NextResponse.json({
+      message: "Customised course deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting customised course:", error);
     return NextResponse.json(
       { error: "Failed to delete customised course" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: any
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id, 10);
     const body = await request.json();
@@ -105,7 +97,7 @@ export async function PATCH(
     if (!body.status || !Array.isArray(body.status)) {
       return NextResponse.json(
         { error: "Status must be an array" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -118,7 +110,7 @@ export async function PATCH(
     console.error("Error updating customised course:", error);
     return NextResponse.json(
       { error: "Failed to update customised course" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

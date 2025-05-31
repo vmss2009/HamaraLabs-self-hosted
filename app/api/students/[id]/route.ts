@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
-import { getStudentById, updateStudent, deleteStudent } from "@/lib/db/student/crud";
+import {
+  getStudentById,
+  updateStudent,
+  deleteStudent,
+} from "@/lib/db/student/crud";
 import { StudentCreateInput } from "@/lib/db/student/type";
 
-export async function GET(
-  request: Request,
-    { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
     const student = await getStudentById(parseInt(params.id));
 
     if (!student) {
-      return NextResponse.json(
-        { error: "Student not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
     return NextResponse.json(student);
@@ -26,14 +24,10 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const data = await request.json();
-    
-    // Validate required fields
+
     if (!data.first_name || !data.last_name || !data.schoolId) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -41,13 +35,9 @@ export async function PUT(
       );
     }
 
-    // Ensure schoolId is a valid number
     const schoolId = Number(data.schoolId);
     if (isNaN(schoolId)) {
-      return NextResponse.json(
-        { error: "Invalid school ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid school ID" }, { status: 400 });
     }
 
     const studentInput: StudentCreateInput = {
@@ -59,7 +49,7 @@ export async function PUT(
       class: data.class,
       section: data.section,
       comments: data.comments,
-      schoolId: schoolId
+      schoolId: schoolId,
     };
 
     const student = await updateStudent(parseInt(params.id), studentInput);
@@ -73,10 +63,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     await deleteStudent(parseInt(params.id));
     return NextResponse.json({ message: "Student deleted successfully" });
@@ -87,4 +74,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

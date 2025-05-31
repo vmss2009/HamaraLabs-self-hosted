@@ -9,7 +9,7 @@ export async function GET() {
     console.error("Error fetching subjects:", error);
     return NextResponse.json(
       { message: "Error fetching subjects" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     console.error("Error creating subject:", error);
     return NextResponse.json(
       { message: "Error creating subject" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

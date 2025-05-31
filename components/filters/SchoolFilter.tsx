@@ -1,57 +1,61 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
-import { Checkbox } from '../ui/Checkbox';
-import { Card, CardContent } from '../ui/Card';
-import { SchoolFilter as SchoolFilterType } from '@/lib/db/school/type';
+import React, { useState, useEffect } from "react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+import { Checkbox } from "../ui/Checkbox";
+import { Card, CardContent } from "../ui/Card";
+import { SchoolFilter as SchoolFilterType } from "@/lib/db/school/type";
 
 interface SchoolFilterProps {
   onFilter: (filters: SchoolFilterType) => void;
 }
 
 const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
-  const [countries, setCountries] = useState<{ id: number; country_name: string }[]>([]);
-  const [states, setStates] = useState<{ id: number; state_name: string }[]>([]);
+  const [countries, setCountries] = useState<
+    { id: number; country_name: string }[]
+  >([]);
+  const [states, setStates] = useState<{ id: number; state_name: string }[]>(
+    []
+  );
   const [cities, setCities] = useState<{ id: number; city_name: string }[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<number | null>(null);
   const [selectedState, setSelectedState] = useState<number | null>(null);
   const [filters, setFilters] = useState<SchoolFilterType>({
-    name: '',
+    name: "",
     is_ATL: undefined,
     paid_subscription: undefined,
     cityId: undefined,
     stateId: undefined,
-    countryId: undefined
+    countryId: undefined,
   });
 
-  // Fetch countries on component mount
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await fetch('/api/countries');
+        const response = await fetch("/api/countries");
         const data = await response.json();
         setCountries(data);
       } catch (error) {
-        console.error('Error fetching countries:', error);
+        console.error("Error fetching countries:", error);
       }
     };
 
     fetchCountries();
   }, []);
 
-  // Fetch states when a country is selected
   useEffect(() => {
     if (selectedCountry) {
       const fetchStates = async () => {
         try {
-          const response = await fetch(`/api/states?countryId=${selectedCountry}`);
+          const response = await fetch(
+            `/api/states?countryId=${selectedCountry}`
+          );
           const data = await response.json();
           setStates(data);
         } catch (error) {
-          console.error('Error fetching states:', error);
+          console.error("Error fetching states:", error);
         }
       };
 
@@ -61,7 +65,6 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
     }
   }, [selectedCountry]);
 
-  // Fetch cities when a state is selected
   useEffect(() => {
     if (selectedState) {
       const fetchCities = async () => {
@@ -70,7 +73,7 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
           const data = await response.json();
           setCities(data);
         } catch (error) {
-          console.error('Error fetching cities:', error);
+          console.error("Error fetching cities:", error);
         }
       };
 
@@ -80,10 +83,12 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
     }
   }, [selectedState]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target as HTMLInputElement;
-    
-    if (type === 'checkbox') {
+
+    if (type === "checkbox") {
       const { checked } = e.target as HTMLInputElement;
       setFilters({ ...filters, [name]: checked });
     } else {
@@ -99,7 +104,7 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
       ...filters,
       countryId,
       stateId: undefined,
-      cityId: undefined
+      cityId: undefined,
     });
   };
 
@@ -109,7 +114,7 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
     setFilters({
       ...filters,
       stateId,
-      cityId: undefined
+      cityId: undefined,
     });
   };
 
@@ -117,7 +122,7 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
     const cityId = e.target.value ? parseInt(e.target.value) : undefined;
     setFilters({
       ...filters,
-      cityId
+      cityId,
     });
   };
 
@@ -125,15 +130,17 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
     const { checked } = e.target;
     setFilters({
       ...filters,
-      is_ATL: checked === true ? true : undefined
+      is_ATL: checked === true ? true : undefined,
     });
   };
 
-  const handlePaidSubscriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePaidSubscriptionChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { checked } = e.target;
     setFilters({
       ...filters,
-      paid_subscription: checked === true ? true : undefined
+      paid_subscription: checked === true ? true : undefined,
     });
   };
 
@@ -144,12 +151,12 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
 
   const handleReset = () => {
     setFilters({
-      name: '',
+      name: "",
       is_ATL: undefined,
       paid_subscription: undefined,
       cityId: undefined,
       stateId: undefined,
-      countryId: undefined
+      countryId: undefined,
     });
     setSelectedCountry(null);
     setSelectedState(null);
@@ -164,46 +171,46 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
             <Input
               label="School Name"
               name="name"
-              value={filters.name || ''}
+              value={filters.name || ""}
               onChange={handleInputChange}
               placeholder="Search by name"
             />
             <Select
               label="Country"
               options={[
-                { value: '', label: 'All Countries' },
-                ...countries.map(country => ({
+                { value: "", label: "All Countries" },
+                ...countries.map((country) => ({
                   value: country.id,
-                  label: country.country_name
-                }))
+                  label: country.country_name,
+                })),
               ]}
               onChange={handleCountryChange}
-              value={filters.countryId?.toString() || ''}
+              value={filters.countryId?.toString() || ""}
             />
             <Select
               label="State"
               options={[
-                { value: '', label: 'All States' },
-                ...states.map(state => ({
+                { value: "", label: "All States" },
+                ...states.map((state) => ({
                   value: state.id,
-                  label: state.state_name
-                }))
+                  label: state.state_name,
+                })),
               ]}
               onChange={handleStateChange}
-              value={filters.stateId?.toString() || ''}
+              value={filters.stateId?.toString() || ""}
               disabled={!selectedCountry}
             />
             <Select
               label="City"
               options={[
-                { value: '', label: 'All Cities' },
-                ...cities.map(city => ({
+                { value: "", label: "All Cities" },
+                ...cities.map((city) => ({
                   value: city.id,
-                  label: city.city_name
-                }))
+                  label: city.city_name,
+                })),
               ]}
               onChange={handleCityChange}
-              value={filters.cityId?.toString() || ''}
+              value={filters.cityId?.toString() || ""}
               disabled={!selectedState}
             />
           </div>
@@ -225,9 +232,7 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
             <Button type="button" variant="outline" onClick={handleReset}>
               Reset
             </Button>
-            <Button type="submit">
-              Apply Filters
-            </Button>
+            <Button type="submit">Apply Filters</Button>
           </div>
         </form>
       </CardContent>
@@ -235,4 +240,4 @@ const SchoolFilter: React.FC<SchoolFilterProps> = ({ onFilter }) => {
   );
 };
 
-export default SchoolFilter; 
+export default SchoolFilter;

@@ -1,31 +1,27 @@
 import { NextResponse } from "next/server";
-import { getTinkeringActivityById, updateTinkeringActivity, deleteTinkeringActivity } from "@/lib/db/tinkering-activity/crud";
+import {
+  getTinkeringActivityById,
+  updateTinkeringActivity,
+  deleteTinkeringActivity,
+} from "@/lib/db/tinkering-activity/crud";
 
-// GET a single tinkering activity by ID
-export async function GET(
-  request: Request,
-  { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
 
-    // Validate that id is a number
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
     }
-    
+
     const activity = await getTinkeringActivityById(id);
-    
+
     if (!activity) {
       return NextResponse.json(
         { error: "Tinkering activity not found" },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(activity);
   } catch (error) {
     console.error("Error fetching tinkering activity:", error);
@@ -36,23 +32,15 @@ export async function GET(
   }
 }
 
-// UPDATE a tinkering activity
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
     const data = await request.json();
-    
-    // Validate that id is a number
+
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
     }
-    
+
     const activity = await updateTinkeringActivity(id, data);
     return NextResponse.json(activity);
   } catch (error) {
@@ -64,24 +52,18 @@ export async function PUT(
   }
 }
 
-// DELETE a tinkering activity
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
 
-    // Validate that id is a number
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
     }
-    
+
     await deleteTinkeringActivity(id);
-    return NextResponse.json({ message: "Tinkering activity deleted successfully" });
+    return NextResponse.json({
+      message: "Tinkering activity deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting tinkering activity:", error);
     return NextResponse.json(
@@ -89,4 +71,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

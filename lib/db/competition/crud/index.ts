@@ -1,22 +1,24 @@
 import { prisma } from "@/lib/db/prisma";
-import { CompetitionCreateInput, CompetitionUpdateInput, CompetitionFilter } from "../type";
+import {
+  CompetitionCreateInput,
+  CompetitionUpdateInput,
+  CompetitionFilter,
+} from "../type";
 import { competitionSchema } from "../type";
 
 export async function createCompetition(data: any) {
   try {
-    // Validate input using Zod
     const result = competitionSchema.safeParse(data);
 
     if (!result.success) {
-      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errorMessages = result.error.errors.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
       throw new Error(errorMessages[0]);
     }
 
-
     const { id, ...validatedData } = result.data as any;
 
-
-    // Insert into database
     const competition = await prisma.competition.create({
       data: validatedData,
     });
@@ -27,17 +29,19 @@ export async function createCompetition(data: any) {
   }
 }
 
-
 export async function getCompetitions(filter?: CompetitionFilter) {
   try {
     const where: any = {};
 
     if (filter?.name) {
-      where.name = { contains: filter.name, mode: 'insensitive' };
+      where.name = { contains: filter.name, mode: "insensitive" };
     }
 
     if (filter?.organised_by) {
-      where.organised_by = { contains: filter.organised_by, mode: 'insensitive' };
+      where.organised_by = {
+        contains: filter.organised_by,
+        mode: "insensitive",
+      };
     }
 
     if (filter?.payment) {
@@ -47,7 +51,7 @@ export async function getCompetitions(filter?: CompetitionFilter) {
     const competitions = await prisma.competition.findMany({
       where,
       orderBy: {
-        created_at: 'desc',
+        created_at: "desc",
       },
     });
 
@@ -77,19 +81,17 @@ export async function getCompetitionById(id: number) {
 
 export async function updateCompetition(id: number, data: any) {
   try {
-    // Validate all data with the full schema
     const result = competitionSchema.safeParse(data);
 
     if (!result.success) {
-      const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errorMessages = result.error.errors.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
       console.error("Validation failed:", errorMessages);
       throw new Error(errorMessages[0]);
     }
 
-    // Use the validated data for the update
     const validatedData = result.data;
-
-    // Prisma expects Date objects for date fields; z.coerce.date() already does that, so this should be fine
 
     const updatedCompetition = await prisma.competition.update({
       where: { id },
@@ -97,7 +99,6 @@ export async function updateCompetition(id: number, data: any) {
     });
 
     return updatedCompetition;
-
   } catch (error) {
     console.error(`Error updating competition with ID ${id}:`, error);
     throw error;
@@ -115,4 +116,4 @@ export async function deleteCompetition(id: number) {
     console.error(`Error deleting competition with ID ${id}:`, error);
     throw error;
   }
-} 
+}

@@ -1,4 +1,3 @@
-// app/api/courses/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createCourse, getCourses } from "@/lib/db/courses/crud";
 import { CourseCreateInput } from "@/lib/db/courses/type";
@@ -8,7 +7,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     body.organized_by = body.organized_by;
 
-    // Required fields
     const requiredFields = [
       "name",
       "description",
@@ -21,7 +19,7 @@ export async function POST(req: NextRequest) {
       "eligibility_to",
       "reference_link",
       "requirements",
-      "course_tags"
+      "course_tags",
     ];
 
     for (const field of requiredFields) {
@@ -33,7 +31,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Prepare course data
     const courseData: CourseCreateInput = {
       name: body.name,
       description: body.description,
@@ -57,13 +54,18 @@ export async function POST(req: NextRequest) {
 
     const course = await createCourse(courseData);
     return NextResponse.json(course, { status: 201 });
-  }  catch (error) {
-  console.error("Error creating competition:", error);
-  return NextResponse.json(
-    {error: error instanceof Error ? error.message : "Failed to create competition", },
-    { status: 400 } // Use 400 for validation errors
-  );
-}
+  } catch (error) {
+    console.error("Error creating competition:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create competition",
+      },
+      { status: 400 }
+    );
+  }
 }
 
 export async function GET() {

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { getCompetitionById, updateCompetition, deleteCompetition } from "@/lib/db/competition/crud";
+import {
+  getCompetitionById,
+  updateCompetition,
+  deleteCompetition,
+} from "@/lib/db/competition/crud";
 
-export async function GET(
-  request: Request,
-  { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
@@ -34,10 +35,7 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
@@ -47,7 +45,6 @@ export async function DELETE(
       );
     }
 
-    // Check if competition exists
     const competition = await getCompetitionById(id);
     if (!competition) {
       return NextResponse.json(
@@ -68,10 +65,7 @@ export async function DELETE(
   }
 }
 
-export async function PUT(
-  request: Request,
-    { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
@@ -81,7 +75,6 @@ export async function PUT(
       );
     }
 
-    // Check if competition exists
     const competition = await getCompetitionById(id);
     if (!competition) {
       return NextResponse.json(
@@ -123,11 +116,16 @@ export async function PUT(
 
     return NextResponse.json(updatedCompetition);
   } catch (error) {
-  console.error("Error creating competition:", error);
+    console.error("Error creating competition:", error);
 
-  return NextResponse.json(
-    {error: error instanceof Error ? error.message : "Failed to create competition", },
-    { status: 400 } // Use 400 for validation errors
-  );
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create competition",
+      },
+      { status: 400 }
+    );
+  }
 }
-} 

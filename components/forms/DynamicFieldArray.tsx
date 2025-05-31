@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface DynamicFieldArrayProps {
   values?: string[];
@@ -23,13 +23,15 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
   onRemove,
   legend,
   fieldLabel,
-  className = '',
+  className = "",
   label,
   name,
-  placeholder = '',
+  placeholder = "",
   required = false,
 }) => {
-  const [internalValues, setInternalValues] = useState<string[]>(values.length > 0 ? values : ['']);
+  const [internalValues, setInternalValues] = useState<string[]>(
+    values.length > 0 ? values : [""],
+  );
 
   const displayValues = values.length > 0 ? values : internalValues;
 
@@ -47,7 +49,7 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
     if (onAdd) {
       onAdd();
     } else {
-      setInternalValues([...internalValues, '']);
+      setInternalValues([...internalValues, ""]);
     }
   };
 
@@ -61,9 +63,8 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
     }
   };
 
-  const displayLabel = legend || label || 'Field';
-  const displayFieldLabel = fieldLabel || label || 'Item';
-
+  const displayLabel = legend || label || "Field";
+  const displayFieldLabel = fieldLabel || label || "Item";
 
   return (
     <div className={`space-y-4 text-black ${className}`}>
@@ -95,8 +96,7 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
               >
                 +
               </button>
-            )} 
-            
+            )}
 
             {/* Remove button shown when more than 1 item */}
             {displayValues.length > 1 && (

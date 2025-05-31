@@ -1,5 +1,5 @@
 import { Course as PrismaCourse } from "@prisma/client";
-import {z} from "zod";
+import { z } from "zod";
 export interface CourseCreateInput {
   name: string;
   description: string;
@@ -8,11 +8,11 @@ export interface CourseCreateInput {
   application_end_date: Date | string;
   course_start_date: Date | string;
   course_end_date: Date | string;
-  eligibility_from: string;   // as per your Prisma schema, this is String
-  eligibility_to: string;     // same here
+  eligibility_from: string;
+  eligibility_to: string;
   reference_link?: string;
-  requirements: string[];     // always an array of strings
-  course_tags: string[];      // always an array of strings
+  requirements: string[];
+  course_tags: string[];
 }
 
 export interface CourseUpdateInput extends Partial<CourseCreateInput> {}
@@ -32,16 +32,26 @@ export const courseSchema = z.object({
   course_end_date: z.coerce.date(),
   eligibility_from: z.string().trim().min(1, "Eligibility from is required"),
   eligibility_to: z.string().trim().min(1, "Eligibility to is required"),
- reference_link: z.string().trim().url("Reference link must be a valid URL").optional().or(z.literal("")),
- requirements: z.array(
-  z.string()
-    .transform(val => val.trim())
-    .refine(val => val.length > 0, { message: "Requirement cannot be empty or spaces only" })
-),
-course_tags: z.array(
-  z.string()
-    .transform(val => val.trim())
-    .refine(val => val.length > 0, { message: "Course tag cannot be empty or spaces only" })
-),
-
+  reference_link: z
+    .string()
+    .trim()
+    .url("Reference link must be a valid URL")
+    .optional()
+    .or(z.literal("")),
+  requirements: z.array(
+    z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: "Requirement cannot be empty or spaces only",
+      })
+  ),
+  course_tags: z.array(
+    z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: "Course tag cannot be empty or spaces only",
+      })
+  ),
 });

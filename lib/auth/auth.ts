@@ -27,9 +27,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user, profile }) {
       if (user) {
-        token.id = user.id; // Persist "id" in the token
+        token.id = user.id;
         token.sub = profile?.sub as string;
-        // Ensure user exists in our database
         await ensureUserExists(profile?.sub as string, user.email as string, {
           name: user.name,
           email: user.email,
@@ -38,12 +37,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string; // Pass "id" to session
+      session.user.id = token.id as string;
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/sign-in", // Redirect to custom login page
+    signIn: "/sign-in",
   },
 });

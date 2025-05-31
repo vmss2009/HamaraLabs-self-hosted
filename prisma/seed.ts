@@ -1,14 +1,13 @@
-import { PrismaClient } from '@prisma/client';
-import axios from 'axios';
-import { countries } from 'countries-list';
+import { PrismaClient } from "@prisma/client";
+import axios from "axios";
+import { countries } from "countries-list";
 
 const prisma = new PrismaClient();
 
-const INDIA_ISO2 = 'IN';
+const INDIA_ISO2 = "IN";
 
 async function main() {
-  // 1. Insert all countries
-  const countryEntries = Object.values(countries).map((country) => ({
+    const countryEntries = Object.values(countries).map((country) => ({
     country_name: country.name,
   }));
 
@@ -18,24 +17,22 @@ async function main() {
         data: { country_name: entry.country_name },
       });
     } catch (e: any) {
-      if (e.code === 'P2002') continue; // Skip duplicate country
-      console.error(`Failed to insert country: ${entry.country_name}`, e);
+      if (e.code === "P2002") continue;       console.error(`Failed to insert country: ${entry.country_name}`, e);
     }
   }
 
-  // 2. Find India in DB
-  const india = await prisma.country.findFirst({
-    where: { country_name: 'India' },
+    const india = await prisma.country.findFirst({
+    where: { country_name: "India" },
   });
 
-  if (!india) throw new Error('India not found in database');
+  if (!india) throw new Error("India not found in database");
 
-  // 3. Fetch Indian states
-  const stateRes = await axios.get(
-    'https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/refs/heads/master/json/states.json'
-  );
+    const stateRes = await axios.get(
+    "https:  );
   const allStates = stateRes.data;
-  const indianStates = allStates.filter((state: any) => state.country_code === INDIA_ISO2);
+  const indianStates = allStates.filter(
+    (state: any) => state.country_code === INDIA_ISO2,
+  );
 
   for (const state of indianStates) {
     try {
@@ -46,14 +43,13 @@ async function main() {
         },
       });
 
-      // 4. Fetch cities for this state
-      const cityRes = await axios.get(
-        'https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/refs/heads/master/json/cities.json'
-      );
+            const cityRes = await axios.get(
+        "https:      );
       const allCities = cityRes.data;
       const matchingCities = allCities.filter(
         (city: any) =>
-          city.country_code === INDIA_ISO2 && city.state_code === state.state_code
+          city.country_code === INDIA_ISO2 &&
+          city.state_code === state.state_code,
       );
 
       if (matchingCities.length > 0) {
@@ -65,19 +61,21 @@ async function main() {
           skipDuplicates: true,
         });
 
-        console.log(`✅ Added ${matchingCities.length} cities for ${state.name}`);
+        console.log(
+          `✅ Added ${matchingCities.length} cities for ${state.name}`,
+        );
       }
     } catch (err) {
       console.error(`❌ Error processing state ${state.name}`, err);
     }
   }
 
-  console.log('🎉 All data seeded!');
+  console.log("🎉 All data seeded!");
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error in seeding process', e);
+    console.error("❌ Error in seeding process", e);
     process.exit(1);
   })
   .finally(() => {

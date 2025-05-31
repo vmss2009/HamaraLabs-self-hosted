@@ -1,9 +1,12 @@
-import React from 'react';
-import { GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import React from "react";
+import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { Button } from "@/components/ui/Button";
 
-type ModifyStatusHandler = (item: any, type: 'tinkering' | 'competition' | 'courses') => void;
+type ModifyStatusHandler = (
+  item: any,
+  type: "tinkering" | "competition" | "courses"
+) => void;
 type DeleteCompetitionHandler = (competition: any) => void;
 
 export function getCompetitionColumns(
@@ -14,19 +17,17 @@ export function getCompetitionColumns(
     { field: "id", headerName: "ID", width: 80 },
 
     {
-      field: 'competition_actions',
+      field: "competition_actions",
       headerName: "Competition",
       width: 200,
-      renderCell: (params) =>
-        params.row?.competition?.name ?? "N/A",
+      renderCell: (params) => params.row?.competition?.name ?? "N/A",
     },
 
     {
       field: "organised_by",
       headerName: "Organised By",
       width: 180,
-      renderCell: (params) =>
-        params.row?.competition?.organised_by ?? "N/A",
+      renderCell: (params) => params.row?.competition?.organised_by ?? "N/A",
     },
 
     {
@@ -37,7 +38,7 @@ export function getCompetitionColumns(
         const statusArray = params.row?.status;
         return Array.isArray(statusArray) && statusArray.length > 0
           ? statusArray[statusArray.length - 1]
-          : 'N/A';
+          : "N/A";
       },
     },
 
@@ -85,14 +86,13 @@ export function getCompetitionColumns(
       field: "payment",
       headerName: "Payment",
       width: 150,
-      renderCell: (params) =>
-        params.row?.competition?.payment ?? "N/A",
+      renderCell: (params) => params.row?.competition?.payment ?? "N/A",
     },
 
     {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
+      field: "actions",
+      headerName: "Actions",
+      type: "actions",
       width: 200,
       getActions: (params) => [
         <div className="flex items-center space-x-2" key="action-buttons">
@@ -103,7 +103,7 @@ export function getCompetitionColumns(
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              handleModifyStatus(params.row, 'competition');
+              handleModifyStatus(params.row, "competition");
             }}
           >
             Modify status
@@ -114,10 +114,10 @@ export function getCompetitionColumns(
             icon={
               <DeleteOutlineIcon
                 sx={{
-                  color: '#ef4444', // red-500
-                  transition: 'color 0.2s ease-in-out',
-                  '&:hover': {
-                    color: '#dc2626', // red-600
+                  color: "#ef4444",
+                  transition: "color 0.2s ease-in-out",
+                  "&:hover": {
+                    color: "#dc2626",
                   },
                 }}
               />
@@ -129,7 +129,7 @@ export function getCompetitionColumns(
             }}
             showInMenu={false}
           />
-        </div>
+        </div>,
       ],
     },
   ];

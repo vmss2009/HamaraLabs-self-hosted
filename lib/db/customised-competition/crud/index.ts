@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db/prisma";
-import { 
-  CustomisedCompetitionCreateInput, 
-  CustomisedCompetitionFilter, 
-  CustomisedCompetitionWithRelations 
+import {
+  CustomisedCompetitionCreateInput,
+  CustomisedCompetitionFilter,
+  CustomisedCompetitionWithRelations,
 } from "../type";
 
 export async function createCustomisedCompetition(
-  data: CustomisedCompetitionCreateInput
+  data: CustomisedCompetitionCreateInput,
 ): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.create({
     data: {
@@ -29,7 +29,7 @@ export async function createCustomisedCompetition(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -44,7 +44,7 @@ export async function createCustomisedCompetition(
 }
 
 export async function getCustomisedCompetitions(
-  filter?: CustomisedCompetitionFilter
+  filter?: CustomisedCompetitionFilter,
 ): Promise<CustomisedCompetitionWithRelations[]> {
   return prisma.customisedCompetition.findMany({
     where: {
@@ -82,7 +82,7 @@ export async function getCustomisedCompetitions(
 }
 
 export async function getCustomisedCompetitionById(
-  id: number
+  id: number,
 ): Promise<CustomisedCompetitionWithRelations | null> {
   return prisma.customisedCompetition.findUnique({
     where: { id },
@@ -101,7 +101,7 @@ export async function getCustomisedCompetitionById(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -117,7 +117,7 @@ export async function getCustomisedCompetitionById(
 
 export async function updateCustomisedCompetition(
   id: number,
-  data: Partial<CustomisedCompetitionCreateInput>
+  data: Partial<CustomisedCompetitionCreateInput>,
 ): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.update({
     where: { id },
@@ -141,7 +141,7 @@ export async function updateCustomisedCompetition(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -156,7 +156,7 @@ export async function updateCustomisedCompetition(
 }
 
 export async function deleteCustomisedCompetition(
-  id: number
+  id: number,
 ): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.delete({
     where: { id },
@@ -175,7 +175,7 @@ export async function deleteCustomisedCompetition(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -187,4 +187,4 @@ export async function deleteCustomisedCompetition(
       },
     },
   });
-} 
+}
