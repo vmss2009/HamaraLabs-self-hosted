@@ -32,18 +32,30 @@ interface School {
     stateId?: number;
     countryId?: number;
     pincode?: string;
-    principalEmail?: string;
-    principalFirstName?: string;
-    principalLastName?: string;
-    principalNumber?: string;
-    correspondentEmail?: string;
-    correspondentFirstName?: string;
-    correspondentLastName?: string;
-    correspondentNumber?: string;
-    inChargeEmail?: string;
-    inChargeFirstName?: string;
-    inChargeLastName?: string;
-    inChargeNumber?: string;
+    principal?: {
+        email: string;
+        first_name: string;
+        last_name: string;
+        user_meta_data?: {
+            phone_number?: string;
+        };
+    } | null;
+    correspondent?: {
+        email: string;
+        first_name: string;
+        last_name: string;
+        user_meta_data?: {
+            phone_number?: string;
+        };
+    } | null;
+    in_charge?: {
+        email: string;
+        first_name: string;
+        last_name: string;
+        user_meta_data?: {
+            phone_number?: string;
+        };
+    } | null;
     city?: string;
     state?: string;
     country?: string;
@@ -136,30 +148,39 @@ export default function Page() {
             }
             const data = await response.json();
             
-            // Transform the data to include parsed JSON fields and flattened address
+            // Transform the data to include flattened address and user data
             const transformedData = data.map((school: any) => {
-                // Parse JSON fields
-                const principal = school.principal ? JSON.parse(school.principal as string) : {};
-                const correspondent = school.correspondent ? JSON.parse(school.correspondent as string) : {};
-                const in_charge = school.in_charge ? JSON.parse(school.in_charge as string) : {};
-                
                 // Flatten address data
                 const address = school.address || {};
                 const city = address.city || {};
                 const state = city.state || {};
                 const country = state.country || {};
                 
+                // Find users by their roles
+                const principal = school.users?.find((user: any) => user.id === school.principal_id);
+                const correspondent = school.users?.find((user: any) => user.id === school.correspondent_id);
+                const in_charge = school.users?.find((user: any) => user.id === school.in_charge_id);
+                
                 return {
                     ...school,
-                    principal,
-                    correspondent,
-                    in_charge,
                     addressLine1: address.address_line1 || "N/A",
                     addressLine2: address.address_line2 || "",
                     city: city.city_name || "N/A",
                     state: state.state_name || "N/A",
                     country: country.country_name || "N/A",
-                    pincode: address.pincode || "N/A"
+                    pincode: address.pincode || "N/A",
+                    principalEmail: principal?.email || "N/A",
+                    principalFirstName: principal?.first_name || "N/A",
+                    principalLastName: principal?.last_name || "N/A",
+                    principalNumber: principal?.user_meta_data?.phone_number || "N/A",
+                    correspondentEmail: correspondent?.email || "N/A",
+                    correspondentFirstName: correspondent?.first_name || "N/A",
+                    correspondentLastName: correspondent?.last_name || "N/A",
+                    correspondentNumber: correspondent?.user_meta_data?.phone_number || "N/A",
+                    inChargeEmail: in_charge?.email || "N/A",
+                    inChargeFirstName: in_charge?.first_name || "N/A",
+                    inChargeLastName: in_charge?.last_name || "N/A",
+                    inChargeNumber: in_charge?.user_meta_data?.phone_number || "N/A"
                 };
             });
             
@@ -392,11 +413,11 @@ export default function Page() {
                                 Principal Details:
                             </Typography>
                             <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.principal && (selectedRow.principal.firstName || selectedRow.principal.lastName) ? (
+                                {selectedRow.principalEmail !== "N/A" ? (
                                     <>
-                                        {formatValue(selectedRow.principal.firstName)} {formatValue(selectedRow.principal.lastName)}
-                                        {selectedRow.principal.email && <><br />Email: {formatValue(selectedRow.principal.email)}</>}
-                                        {selectedRow.principal.whatsapp && <><br />Phone: {formatValue(selectedRow.principal.whatsapp)}</>}
+                                        {formatValue(selectedRow.principalFirstName)} {formatValue(selectedRow.principalLastName)}
+                                        {selectedRow.principalEmail && <><br />Email: {formatValue(selectedRow.principalEmail)}</>}
+                                        {selectedRow.principalNumber && <><br />Phone: {formatValue(selectedRow.principalNumber)}</>}
                                     </>
                                 ) : (
                                     "Not provided"
@@ -409,11 +430,11 @@ export default function Page() {
                                 Correspondent Details:
                             </Typography>
                             <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.correspondent && (selectedRow.correspondent.firstName || selectedRow.correspondent.lastName) ? (
+                                {selectedRow.correspondentEmail !== "N/A" ? (
                                     <>
-                                        {formatValue(selectedRow.correspondent.firstName)} {formatValue(selectedRow.correspondent.lastName)}
-                                        {selectedRow.correspondent.email && <><br />Email: {formatValue(selectedRow.correspondent.email)}</>}
-                                        {selectedRow.correspondent.whatsapp && <><br />Phone: {formatValue(selectedRow.correspondent.whatsapp)}</>}
+                                        {formatValue(selectedRow.correspondentFirstName)} {formatValue(selectedRow.correspondentLastName)}
+                                        {selectedRow.correspondentEmail && <><br />Email: {formatValue(selectedRow.correspondentEmail)}</>}
+                                        {selectedRow.correspondentNumber && <><br />Phone: {formatValue(selectedRow.correspondentNumber)}</>}
                                     </>
                                 ) : (
                                     "Not provided"
@@ -426,11 +447,11 @@ export default function Page() {
                                 In-Charge Details:
                             </Typography>
                             <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {selectedRow.in_charge && (selectedRow.in_charge.firstName || selectedRow.in_charge.lastName) ? (
+                                {selectedRow.inChargeEmail !== "N/A" ? (
                                     <>
-                                        {formatValue(selectedRow.in_charge.firstName)} {formatValue(selectedRow.in_charge.lastName)}
-                                        {selectedRow.in_charge.email && <><br />Email: {formatValue(selectedRow.in_charge.email)}</>}
-                                        {selectedRow.in_charge.whatsapp && <><br />Phone: {formatValue(selectedRow.in_charge.whatsapp)}</>}
+                                        {formatValue(selectedRow.inChargeFirstName)} {formatValue(selectedRow.inChargeLastName)}
+                                        {selectedRow.inChargeEmail && <><br />Email: {formatValue(selectedRow.inChargeEmail)}</>}
+                                        {selectedRow.inChargeNumber && <><br />Phone: {formatValue(selectedRow.inChargeNumber)}</>}
                                     </>
                                 ) : (
                                     "Not provided"

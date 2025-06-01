@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getSchoolById, updateSchool, deleteSchool } from "@/lib/db/school/crud";
 import { getAddressById, updateAddress, deleteAddress } from "@/lib/db/address/crud";
 import { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(
     request: NextRequest,
@@ -59,18 +60,55 @@ export async function PUT(
             
             await updateAddress(school.address_id, data.address);
         }
+
+        // Handle correspondent user creation/update
+        let correspondentId = undefined;
+        if (data.correspondent) {
+            // Check if correspondent email matches principal email
+            const principal = school.users?.find(user => user.id === school.principal_id);
+            const currentCorrespondent = school.users?.find(user => user.id === school.correspondent_id);
+
+            if (data.correspondent.email === principal?.email) {
+                // If emails match, use principal's ID
+                correspondentId = principal?.id;
+            } else if (data.correspondent.email !== currentCorrespondent?.email) {
+                // If email is different from current correspondent, create new user
+                const newCorrespondent = await prisma.user.create({
+                    data: {
+                        id: uuidv4(),
+                        email: data.correspondent.email,
+                        first_name: data.correspondent.first_name,
+                        last_name: data.correspondent.last_name,
+                        user_meta_data: data.correspondent.user_meta_data
+                    }
+                });
+                correspondentId = newCorrespondent.id;
+            } else {
+                // Update existing correspondent
+                await prisma.user.update({
+                    where: { id: currentCorrespondent?.id },
+                    data: {
+                        first_name: data.correspondent.first_name,
+                        last_name: data.correspondent.last_name,
+                        user_meta_data: data.correspondent.user_meta_data
+                    }
+                });
+                correspondentId = currentCorrespondent?.id;
+            }
+        }
         
         // Update school details
         const updatedSchool = await updateSchool(id, {
             name: data.name,
             is_ATL: data.is_ATL,
-            in_charge: data.in_charge ? JSON.stringify(data.in_charge) : Prisma.JsonNull,
-            correspondent: data.correspondent ? JSON.stringify(data.correspondent) : Prisma.JsonNull,
-            principal: data.principal ? JSON.stringify(data.principal) : Prisma.JsonNull,
             syllabus: data.syllabus,
             website_url: data.website_url,
             paid_subscription: data.paid_subscription,
-            social_links: data.social_links
+            social_links: data.social_links,
+            address: data.address,
+            correspondent: data.correspondent,
+            principal: data.principal,
+            in_charge: data.in_charge
         });
         
         return NextResponse.json(updatedSchool);

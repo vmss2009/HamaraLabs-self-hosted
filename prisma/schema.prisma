@@ -10,10 +10,13 @@ datasource db {
 model User {
   id             String    @id
   email          String    @unique
+  first_name     String?
+  last_name      String?
   user_meta_data Json?     @default("{}")
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
   students       Student[]
+  schools        School[]  @relation("UserSchools")
 }
 
 model Country {
@@ -58,15 +61,16 @@ model School {
   name              String
   is_ATL            Boolean
   address_id        Int
-  in_charge         Json?
-  correspondent     Json?
-  principal         Json?
+  in_charge_id      String?
+  correspondent_id  String?
+  principal_id      String?
   syllabus          String[]
   website_url       String?
   paid_subscription Boolean
   social_links      String[]
   address           Address   @relation(fields: [address_id], references: [id])
   students          Student[]
+  users             User[]    @relation("UserSchools")
 }
 
 model Student {

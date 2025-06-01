@@ -8,6 +8,7 @@ import SelectField from "@/components/forms/SelectField";
 import CheckboxGroup from "@/components/forms/CheckboxGroup";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import { useRouter } from "next/navigation";
 
 // Define types based on the Prisma schema
 type Country = {
@@ -27,7 +28,17 @@ type City = {
   stateId: number;
 };
 
+interface Field {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
 export default function SchoolForm() {
+  const router = useRouter();
   // Form states
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
@@ -36,6 +47,7 @@ export default function SchoolForm() {
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sameAsPrincipal, setSameAsPrincipal] = useState<boolean>(false);
   
   // Radio button states
   const [isATL, setIsATL] = useState<string>("No");
@@ -133,6 +145,20 @@ export default function SchoolForm() {
     setSocialLinks(updatedLinks);
   };
 
+  // Handle same as principal checkbox change
+  const handleSameAsPrincipalChange = (checked: boolean) => {
+    setSameAsPrincipal(checked);
+    if (checked) {
+      const form = document.querySelector('form') as HTMLFormElement;
+      if (form) {
+        form.correspondentFirstName.value = form.principalFirstName.value;
+        form.correspondentLastName.value = form.principalLastName.value;
+        form.correspondentEmail.value = form.principalEmail.value;
+        form.correspondentWhatsapp.value = form.principalWhatsapp.value;
+      }
+    }
+  };
+
   // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -152,24 +178,37 @@ export default function SchoolForm() {
           pincode: formData.get("pincode"),
           cityId: parseInt(selectedCity),
         },
-        in_charge: {
-          firstName: formData.get("inChargeFirstName"),
-          lastName: formData.get("inChargeLastName"),
+        in_charge: formData.get("inChargeEmail") ? {
           email: formData.get("inChargeEmail"),
-          whatsapp: formData.get("inChargeWhatsapp"),
-        },
-        correspondent: {
-          firstName: formData.get("correspondentFirstName"),
-          lastName: formData.get("correspondentLastName"),
-          email: formData.get("correspondentEmail"),
-          whatsapp: formData.get("correspondentWhatsapp"),
-        },
-        principal: {
-          firstName: formData.get("principalFirstName"),
-          lastName: formData.get("principalLastName"),
+          first_name: formData.get("inChargeFirstName"),
+          last_name: formData.get("inChargeLastName"),
+          user_meta_data: {
+            phone_number: formData.get("inChargeWhatsapp")
+          }
+        } : undefined,
+        correspondent: sameAsPrincipal ? {
           email: formData.get("principalEmail"),
-          whatsapp: formData.get("principalWhatsapp"),
-        },
+          first_name: formData.get("principalFirstName"),
+          last_name: formData.get("principalLastName"),
+          user_meta_data: {
+            phone_number: formData.get("principalWhatsapp")
+          }
+        } : formData.get("correspondentEmail") ? {
+          email: formData.get("correspondentEmail"),
+          first_name: formData.get("correspondentFirstName"),
+          last_name: formData.get("correspondentLastName"),
+          user_meta_data: {
+            phone_number: formData.get("correspondentWhatsapp")
+          }
+        } : undefined,
+        principal: formData.get("principalEmail") ? {
+          email: formData.get("principalEmail"),
+          first_name: formData.get("principalFirstName"),
+          last_name: formData.get("principalLastName"),
+          user_meta_data: {
+            phone_number: formData.get("principalWhatsapp")
+          }
+        } : undefined,
         syllabus,
         website_url: formData.get("websiteURL"),
         paid_subscription: paidSubscription === "Yes",
@@ -404,28 +443,43 @@ export default function SchoolForm() {
           title="Correspondent Details" 
           description="Enter the details of the correspondent (optional)"
         >
+          <div className="mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={sameAsPrincipal}
+                onChange={(e) => handleSameAsPrincipalChange(e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-600"
+              />
+              <span className="text-sm text-gray-700">Same as Principal</span>
+            </label>
+          </div>
           <TextFieldGroup
             fields={[
               {
                 name: "correspondentFirstName",
                 label: "First Name",
-                placeholder: "Enter first name"
+                placeholder: "Enter first name",
+                disabled: sameAsPrincipal
               },
               {
                 name: "correspondentLastName",
                 label: "Last Name",
-                placeholder: "Enter last name"
+                placeholder: "Enter last name",
+                disabled: sameAsPrincipal
               },
               {
                 name: "correspondentEmail",
                 label: "Email",
                 type: "email",
-                placeholder: "Enter email address"
+                placeholder: "Enter email address",
+                disabled: sameAsPrincipal
               },
               {
                 name: "correspondentWhatsapp",
                 label: "WhatsApp Number",
-                placeholder: "Enter WhatsApp number"
+                placeholder: "Enter WhatsApp number",
+                disabled: sameAsPrincipal
               }
             ]}
           />

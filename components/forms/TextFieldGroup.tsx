@@ -7,7 +7,8 @@ type Field = {
   type?: string;
   multiline?: boolean;
   rows?: number;
-  placeholder?: string; // ✅ Added this line
+  placeholder?: string;
+  disabled?: boolean;
 };
 
 interface TextFieldGroupProps {
@@ -41,7 +42,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 rows={field.rows || 4}
                 required={field.required}
-                placeholder={field.placeholder} // ✅ Used placeholder
+                placeholder={field.placeholder}
                 className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
               />
             ) : (
@@ -50,7 +51,8 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 type={field.type || "text"}
                 required={field.required}
-                placeholder={field.placeholder} // ✅ Used placeholder
+                placeholder={field.placeholder}
+                disabled={field.disabled}
                 className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             )}

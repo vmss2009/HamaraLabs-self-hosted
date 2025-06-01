@@ -1,19 +1,40 @@
-import { School as PrismaSchool } from "@prisma/client";
+import { School as PrismaSchool, User } from "@prisma/client";
 
 export interface SchoolCreateInput {
   name: string;
   is_ATL: boolean;
-  addressId: number;
-  in_charge?: Record<string, any>;
-  correspondent?: Record<string, any>;
-  principal?: Record<string, any>;
+  address_id: number;
+  in_charge?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    user_meta_data?: Record<string, any>;
+  };
+  correspondent?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    user_meta_data?: Record<string, any>;
+  };
+  principal?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    user_meta_data?: Record<string, any>;
+  };
   syllabus: string[];
   website_url?: string;
   paid_subscription: boolean;
   social_links: string[];
 }
 
-export interface SchoolWithAddress extends PrismaSchool {
+export interface SchoolWithAddress extends Omit<PrismaSchool, 'in_charge' | 'correspondent' | 'principal'> {
   address: {
     id: number;
     address_line1?: string | null;
@@ -39,6 +60,10 @@ export interface SchoolWithAddress extends PrismaSchool {
       };
     };
   };
+  in_charge?: User | null;
+  correspondent?: User | null;
+  principal?: User | null;
+  users?: User[];
 }
 
 export interface SchoolFilter {
@@ -48,4 +73,44 @@ export interface SchoolFilter {
   cityId?: number;
   stateId?: number;
   countryId?: number;
-} 
+}
+
+export interface SchoolUpdateInput {
+  name: string;
+  is_ATL: boolean;
+  syllabus: string[];
+  website_url?: string;
+  paid_subscription: boolean;
+  social_links: string[];
+  address: {
+    address_line1: string;
+    address_line2?: string;
+    pincode: string;
+    city_id: number;
+  };
+  correspondent?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    user_meta_data?: {
+      phone_number?: string;
+    };
+    create_new?: boolean;
+  };
+  principal?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    user_meta_data?: {
+      phone_number?: string;
+    };
+  };
+  in_charge?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    user_meta_data?: {
+      phone_number?: string;
+    };
+  };
+}

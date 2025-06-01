@@ -29,6 +29,14 @@ type City = {
   stateId: number;
 };
 
+interface Field {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder: string;
+  disabled?: boolean;
+}
+
 export default function EditSchoolForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
@@ -40,6 +48,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sameAsPrincipal, setSameAsPrincipal] = useState<boolean>(false);
   
   // Radio button states
   const [isATL, setIsATL] = useState<string>("No");
@@ -82,6 +91,16 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
         setCities(citiesData);
         setSelectedCity(data.address.city.id.toString());
 
+        // Find users by their roles
+        const principal = data.users?.find((user: any) => user.id === data.principal_id);
+        const correspondent = data.users?.find((user: any) => user.id === data.correspondent_id);
+        const in_charge = data.users?.find((user: any) => user.id === data.in_charge_id);
+
+        // Check if correspondent and principal are the same
+        if (principal?.email && correspondent?.email && principal.email === correspondent.email) {
+          setSameAsPrincipal(true);
+        }
+
         // Set form field values
         const form = document.querySelector('form') as HTMLFormElement;
         if (form) {
@@ -103,22 +122,22 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           form.pincode.value = data.address.pincode;
 
           // In-Charge Details
-          form.inChargeFirstName.value = data.in_charge?.firstName || '';
-          form.inChargeLastName.value = data.in_charge?.lastName || '';
-          form.inChargeEmail.value = data.in_charge?.email || '';
-          form.inChargeWhatsapp.value = data.in_charge?.whatsapp || '';
+          form.inChargeFirstName.value = in_charge?.first_name || '';
+          form.inChargeLastName.value = in_charge?.last_name || '';
+          form.inChargeEmail.value = in_charge?.email || '';
+          form.inChargeWhatsapp.value = in_charge?.user_meta_data?.phone_number || '';
 
           // Correspondent Details
-          form.correspondentFirstName.value = data.correspondent?.firstName || '';
-          form.correspondentLastName.value = data.correspondent?.lastName || '';
-          form.correspondentEmail.value = data.correspondent?.email || '';
-          form.correspondentWhatsapp.value = data.correspondent?.whatsapp || '';
+          form.correspondentFirstName.value = correspondent?.first_name || '';
+          form.correspondentLastName.value = correspondent?.last_name || '';
+          form.correspondentEmail.value = correspondent?.email || '';
+          form.correspondentWhatsapp.value = correspondent?.user_meta_data?.phone_number || '';
 
           // Principal Details
-          form.principalFirstName.value = data.principal?.firstName || '';
-          form.principalLastName.value = data.principal?.lastName || '';
-          form.principalEmail.value = data.principal?.email || '';
-          form.principalWhatsapp.value = data.principal?.whatsapp || '';
+          form.principalFirstName.value = principal?.first_name || '';
+          form.principalLastName.value = principal?.last_name || '';
+          form.principalEmail.value = principal?.email || '';
+          form.principalWhatsapp.value = principal?.user_meta_data?.phone_number || '';
         }
       } catch (error) {
         setError("Error loading school data. Please try again.");
@@ -216,6 +235,20 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     setSocialLinks(updatedLinks);
   };
 
+  // Handle same as principal checkbox change
+  const handleSameAsPrincipalChange = (checked: boolean) => {
+    setSameAsPrincipal(checked);
+    if (checked) {
+      const form = document.querySelector('form') as HTMLFormElement;
+      if (form) {
+        form.correspondentFirstName.value = form.principalFirstName.value;
+        form.correspondentLastName.value = form.principalLastName.value;
+        form.correspondentEmail.value = form.principalEmail.value;
+        form.correspondentWhatsapp.value = form.principalWhatsapp.value;
+      }
+    }
+  };
+
   // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -224,6 +257,24 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
 
     try {
       const formData = new FormData(event.target as HTMLFormElement);
+      
+      // Get the current school data to check if we need to create a new correspondent
+      const currentSchoolResponse = await fetch(`/api/schools/${resolvedParams.id}`);
+      if (!currentSchoolResponse.ok) {
+        throw new Error("Failed to fetch current school data");
+      }
+      const currentSchool = await currentSchoolResponse.json();
+      
+      // Find current users by their roles
+      const currentPrincipal = currentSchool.users?.find((user: any) => user.id === currentSchool.principal_id);
+      const currentCorrespondent = currentSchool.users?.find((user: any) => user.id === currentSchool.correspondent_id);
+      
+      // Check if we need to create a new correspondent
+      const newCorrespondentEmail = formData.get("correspondentEmail") as string;
+      const shouldCreateNewCorrespondent = !sameAsPrincipal && 
+        newCorrespondentEmail && 
+        newCorrespondentEmail !== currentPrincipal?.email &&
+        newCorrespondentEmail !== currentCorrespondent?.email;
       
       // Process form data into proper structure
       const schoolData = {
@@ -235,24 +286,38 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           pincode: formData.get("pincode"),
           city_id: parseInt(selectedCity),
         },
-        in_charge: {
-          firstName: formData.get("inChargeFirstName"),
-          lastName: formData.get("inChargeLastName"),
+        in_charge: formData.get("inChargeEmail") ? {
           email: formData.get("inChargeEmail"),
-          whatsapp: formData.get("inChargeWhatsapp"),
-        },
-        correspondent: {
-          firstName: formData.get("correspondentFirstName"),
-          lastName: formData.get("correspondentLastName"),
-          email: formData.get("correspondentEmail"),
-          whatsapp: formData.get("correspondentWhatsapp"),
-        },
-        principal: {
-          firstName: formData.get("principalFirstName"),
-          lastName: formData.get("principalLastName"),
+          first_name: formData.get("inChargeFirstName"),
+          last_name: formData.get("inChargeLastName"),
+          user_meta_data: {
+            phone_number: formData.get("inChargeWhatsapp")
+          }
+        } : undefined,
+        correspondent: sameAsPrincipal ? {
           email: formData.get("principalEmail"),
-          whatsapp: formData.get("principalWhatsapp"),
-        },
+          first_name: formData.get("principalFirstName"),
+          last_name: formData.get("principalLastName"),
+          user_meta_data: {
+            phone_number: formData.get("principalWhatsapp")
+          }
+        } : formData.get("correspondentEmail") ? {
+          email: formData.get("correspondentEmail"),
+          first_name: formData.get("correspondentFirstName"),
+          last_name: formData.get("correspondentLastName"),
+          user_meta_data: {
+            phone_number: formData.get("correspondentWhatsapp")
+          },
+          create_new: shouldCreateNewCorrespondent // Flag to indicate if a new user should be created
+        } : undefined,
+        principal: formData.get("principalEmail") ? {
+          email: formData.get("principalEmail"),
+          first_name: formData.get("principalFirstName"),
+          last_name: formData.get("principalLastName"),
+          user_meta_data: {
+            phone_number: formData.get("principalWhatsapp")
+          }
+        } : undefined,
         syllabus,
         website_url: formData.get("websiteURL"),
         paid_subscription: paidSubscription === "Yes",
@@ -273,14 +338,15 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
         throw new Error(errorData.message || "Failed to update school data");
       }
 
-      // Redirect to report page
-      router.push("/protected/school/report");
+      // Redirect to success page or reset form
+      window.location.href = "/protected/school/report";
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
         setError("An unexpected error occurred");
       }
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -480,28 +546,43 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           title="Correspondent Details" 
           description="Enter the details of the correspondent (optional)"
         >
+          <div className="mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={sameAsPrincipal}
+                onChange={(e) => handleSameAsPrincipalChange(e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-600"
+              />
+              <span className="text-sm text-gray-700">Same as Principal</span>
+            </label>
+          </div>
           <TextFieldGroup
             fields={[
               {
                 name: "correspondentFirstName",
                 label: "First Name",
-                placeholder: "Enter first name"
+                placeholder: "Enter first name",
+                disabled: sameAsPrincipal
               },
               {
                 name: "correspondentLastName",
                 label: "Last Name",
-                placeholder: "Enter last name"
+                placeholder: "Enter last name",
+                disabled: sameAsPrincipal
               },
               {
                 name: "correspondentEmail",
                 label: "Email",
                 type: "email",
-                placeholder: "Enter email address"
+                placeholder: "Enter email address",
+                disabled: sameAsPrincipal
               },
               {
                 name: "correspondentWhatsapp",
                 label: "WhatsApp Number",
-                placeholder: "Enter WhatsApp number"
+                placeholder: "Enter WhatsApp number",
+                disabled: sameAsPrincipal
               }
             ]}
           />
