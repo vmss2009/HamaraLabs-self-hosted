@@ -8,6 +8,7 @@ import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/MultiForm";
 import { Input } from "@/components/ui/Input";
 
 type Subject = {
@@ -275,21 +276,11 @@ export default function TinkeringActivityForm() {
           </FormSection>
 
           <FormSection title="Activity Details" className="">
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Goal"
+              setArray={setGoals}
               values={goals}
-              onChange={(index, value) => {
-                const newGoals = [...goals];
-                newGoals[index] = value;
-                setGoals(newGoals);
-              }}
-              onAdd={() => setGoals([...goals, ""])}
-              onRemove={(index) => {
-                const newGoals = [...goals];
-                newGoals.splice(index, 1);
-                setGoals(newGoals);
-              }}
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
