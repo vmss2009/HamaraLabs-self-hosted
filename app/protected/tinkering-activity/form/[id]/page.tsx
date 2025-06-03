@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 
@@ -357,144 +357,74 @@ export default function EditTinkeringActivityForm({
           </FormSection>
 
           <FormSection title="Activity Details">
-            <DynamicFieldArray
+            <MultiForm
               values={goals}
               className="mb-5"
               placeholder="Goal"
-              onChange={(index, value) => {
-                const newGoals = [...goals];
-                newGoals[index] = value;
-                setGoals(newGoals);
-              }}
-              onAdd={() => setGoals([...goals, ""])}
-              onRemove={(index) => {
-                const newGoals = [...goals];
-                newGoals.splice(index, 1);
-                setGoals(newGoals);
-              }}
+              setArray={setGoals}
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
               required
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               values={materials}
               placeholder="Material"
-              onChange={(index, value) => {
-                const newMaterials = [...materials];
-                newMaterials[index] = value;
-                setMaterials(newMaterials);
-              }}
-              onAdd={() => setMaterials([...materials, ""])}
-              onRemove={(index) => {
-                const newMaterials = [...materials];
-                newMaterials.splice(index, 1);
-                setMaterials(newMaterials);
-              }}
+              setArray={setMaterials}
               legend="Materials"
               fieldLabel="Material"
               name="materials"
               required
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               values={instructions}
               placeholder="Instruction"
-              onChange={(index, value) => {
-                const newInstructions = [...instructions];
-                newInstructions[index] = value;
-                setInstructions(newInstructions);
-              }}
-              onAdd={() => setInstructions([...instructions, ""])}
-              onRemove={(index) => {
-                const newInstructions = [...instructions];
-                newInstructions.splice(index, 1);
-                setInstructions(newInstructions);
-              }}
+              setArray={setInstructions}
               legend="Instructions"
               fieldLabel="Instruction"
               name="instructions"
               required
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               values={tips}
               placeholder="Tip"
-              onChange={(index, value) => {
-                const newTips = [...tips];
-                newTips[index] = value;
-                setTips(newTips);
-              }}
-              onAdd={() => setTips([...tips, ""])}
-              onRemove={(index) => {
-                const newTips = [...tips];
-                newTips.splice(index, 1);
-                setTips(newTips);
-              }}
+              setArray={setTips}
               legend="Tips"
               fieldLabel="Tip"
               name="tips"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Observation"
               values={observations}
-              onChange={(index, value) => {
-                const newObservations = [...observations];
-                newObservations[index] = value;
-                setObservations(newObservations);
-              }}
-              onAdd={() => setObservations([...observations, ""])}
-              onRemove={(index) => {
-                const newObservations = [...observations];
-                newObservations.splice(index, 1);
-                setObservations(newObservations);
-              }}
+              setArray={setObservations}
               legend="Observations"
               fieldLabel="Observation"
               name="observations"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               values={extensions}
               className="mb-5"
               placeholder="Extension"
-              onChange={(index, value) => {
-                const newExtensions = [...extensions];
-                newExtensions[index] = value;
-                setExtensions(newExtensions);
-              }}
-              onAdd={() => setExtensions([...extensions, ""])}
-              onRemove={(index) => {
-                const newExtensions = [...extensions];
-                newExtensions.splice(index, 1);
-                setExtensions(newExtensions);
-              }}
+              setArray={setExtensions}
               legend="Extensions"
               fieldLabel="Extension"
               name="extensions"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               values={resources}
               placeholder="Resource"
-              onChange={(index, value) => {
-                const newResources = [...resources];
-                newResources[index] = value;
-                setResources(newResources);
-              }}
-              onAdd={() => setResources([...resources, ""])}
-              onRemove={(index) => {
-                const newResources = [...resources];
-                newResources.splice(index, 1);
-                setResources(newResources);
-              }}
+              setArray={setResources}
               legend="Resources"
               fieldLabel="Resource"
               name="resources"

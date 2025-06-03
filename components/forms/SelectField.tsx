@@ -36,7 +36,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
         value={value?.toString()}
         required={required}
         error={error}
-        className="focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+        className="focus:border-blue-500  focus:ring-blue-500 shadow-sm"
       />
     </div>
   );

@@ -10,45 +10,11 @@ import {
   GridToolbarColumnsButton,
   GridActionsCellItem,
 } from "@mui/x-data-grid";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { prisma } from "@/lib/db/prisma";
 import DetailViewer from "@/components/forms/DetailViewer";
-
-interface School {
-  id: number;
-  name: string;
-  is_ATL: boolean;
-  paid_subscription: boolean;
-  website_url: string;
-  social_links: string[];
-  syllabus: string[];
-  addressLine1: string;
-  addressLine2?: string;
-  cityId?: number;
-  stateId?: number;
-  countryId?: number;
-  pincode?: string;
-  principalEmail?: string;
-  principalFirstName?: string;
-  principalLastName?: string;
-  principalNumber?: string;
-  correspondentEmail?: string;
-  correspondentFirstName?: string;
-  correspondentLastName?: string;
-  correspondentNumber?: string;
-  inChargeEmail?: string;
-  inChargeFirstName?: string;
-  inChargeLastName?: string;
-  inChargeNumber?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-}
+import { School } from "@/lib/db/school/type";
 
 export default function Page() {
   const router = useRouter();

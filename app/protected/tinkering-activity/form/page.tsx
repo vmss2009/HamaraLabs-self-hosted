@@ -7,7 +7,7 @@ import FormSection from "@/components/forms/FormSection";
 import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 import { Input } from "@/components/ui/Input";
 
 type Subject = {
@@ -205,11 +205,11 @@ export default function TinkeringActivityForm() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="focus:border-blue-500 focus:ring-blue-500"
+                  className="focus:border-blue-500 font-bold focus:ring-blue-500"
                 />
               </div>
               <div className="w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Introduction <span className="text-red-600">*</span>
                 </label>
                 <textarea
@@ -275,141 +275,71 @@ export default function TinkeringActivityForm() {
           </FormSection>
 
           <FormSection title="Activity Details" className="">
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Goal"
+              setArray={setGoals}
               values={goals}
-              onChange={(index, value) => {
-                const newGoals = [...goals];
-                newGoals[index] = value;
-                setGoals(newGoals);
-              }}
-              onAdd={() => setGoals([...goals, ""])}
-              onRemove={(index) => {
-                const newGoals = [...goals];
-                newGoals.splice(index, 1);
-                setGoals(newGoals);
-              }}
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               placeholder="Material"
               className="mb-5"
               values={materials}
-              onChange={(index, value) => {
-                const newMaterials = [...materials];
-                newMaterials[index] = value;
-                setMaterials(newMaterials);
-              }}
-              onAdd={() => setMaterials([...materials, ""])}
-              onRemove={(index) => {
-                const newMaterials = [...materials];
-                newMaterials.splice(index, 1);
-                setMaterials(newMaterials);
-              }}
+              setArray={setMaterials}
               legend="Materials"
               fieldLabel="Material"
               name="materials"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               placeholder="Instruction"
               className="mb-5"
               values={instructions}
-              onChange={(index, value) => {
-                const newInstructions = [...instructions];
-                newInstructions[index] = value;
-                setInstructions(newInstructions);
-              }}
-              onAdd={() => setInstructions([...instructions, ""])}
-              onRemove={(index) => {
-                const newInstructions = [...instructions];
-                newInstructions.splice(index, 1);
-                setInstructions(newInstructions);
-              }}
+              setArray={setInstructions}
               legend="Instructions"
               fieldLabel="Instruction"
               name="instructions"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Tip"
               values={tips}
-              onChange={(index, value) => {
-                const newTips = [...tips];
-                newTips[index] = value;
-                setTips(newTips);
-              }}
-              onAdd={() => setTips([...tips, ""])}
-              onRemove={(index) => {
-                const newTips = [...tips];
-                newTips.splice(index, 1);
-                setTips(newTips);
-              }}
+              setArray={setTips}
               legend="Tips"
               fieldLabel="Tip"
               name="tips"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Observation"
               values={observations}
-              onChange={(index, value) => {
-                const newObservations = [...observations];
-                newObservations[index] = value;
-                setObservations(newObservations);
-              }}
-              onAdd={() => setObservations([...observations, ""])}
-              onRemove={(index) => {
-                const newObservations = [...observations];
-                newObservations.splice(index, 1);
-                setObservations(newObservations);
-              }}
+              setArray={setObservations}
               legend="Observations"
               fieldLabel="Observation"
               name="observations"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Extension"
               values={extensions}
-              onChange={(index, value) => {
-                const newExtensions = [...extensions];
-                newExtensions[index] = value;
-                setExtensions(newExtensions);
-              }}
-              onAdd={() => setExtensions([...extensions, ""])}
-              onRemove={(index) => {
-                const newExtensions = [...extensions];
-                newExtensions.splice(index, 1);
-                setExtensions(newExtensions);
-              }}
+              setArray={setExtensions}
               legend="Extensions"
               fieldLabel="Extension"
               name="extensions"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Resourse"
               values={resources}
-              onChange={(index, value) => {
-                const newResources = [...resources];
-                newResources[index] = value;
-                setResources(newResources);
-              }}
-              onAdd={() => setResources([...resources, ""])}
-              onRemove={(index) => {
-                const newResources = [...resources];
-                newResources.splice(index, 1);
-                setResources(newResources);
-              }}
+              setArray={setResources}
               legend="Resources"
               fieldLabel="Resource"
               name="resources"

@@ -31,7 +31,7 @@ const DateFieldGroup: React.FC<DateFieldGroupProps> = ({
 
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={name} className="block text-sm font-bold text-gray-700">
         {formatLabel(name)}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>

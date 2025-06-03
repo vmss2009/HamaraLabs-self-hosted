@@ -1,6 +1,24 @@
 import { Competition as PrismaCompetition } from "@prisma/client";
 
 import { z } from "zod";
+
+export interface Competition {
+  id: string;
+  name: string;
+  description: string;
+  organised_by: string;
+  application_start_date: string;
+  application_end_date: string;
+  competition_start_date: string;
+  competition_end_date: string;
+  eligibility: string[];
+  constraints: string[];
+  reference_links: string[];
+  requirements: string[];
+  payment: string;
+  fee: string | null;
+}
+
 export interface CompetitionCreateInput {
   name: string;
   description: string;
@@ -44,7 +62,7 @@ export const competitionSchema = z
           .transform((val) => val.trim())
           .refine((val) => val.length > 0, {
             message: "Requirement cannot be empty or spaces only",
-          }),
+          })
       )
       .min(1, "At least one requirement is required"),
 
@@ -54,7 +72,7 @@ export const competitionSchema = z
       .refine(
         (links) =>
           links.every((link) => z.string().url().safeParse(link).success),
-        { message: "Each reference link must be a valid URL" },
+        { message: "Each reference link must be a valid URL" }
       ),
     fee: z.string().trim().nullable().optional(),
     payment: z.string().trim().min(1, "Payment method is required"),
@@ -69,5 +87,5 @@ export const competitionSchema = z
     {
       message: "Fee is required when payment is 'paid'",
       path: ["fee"],
-    },
+    }
   );

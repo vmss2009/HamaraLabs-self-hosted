@@ -22,6 +22,12 @@ export function getCompetitionColumns(
       width: 200,
       renderCell: (params) => params.row?.competition?.name ?? "N/A",
     },
+    {
+      field: "description",
+      headerName: "Description",
+      width: 150,
+      renderCell: (params) => params.row?.competition?.description ?? "N/A",
+    },
 
     {
       field: "organised_by",
@@ -87,6 +93,19 @@ export function getCompetitionColumns(
       headerName: "Payment",
       width: 150,
       renderCell: (params) => params.row?.competition?.payment ?? "N/A",
+    },
+
+    {
+      field: "requirements",
+      headerName: "Requirements",
+      width: 150,
+      renderCell: (params) => params.row?.competition?.requirements ?? "N/A",
+    },
+    {
+      field: "reference_links",
+      headerName: "ReferenceLink",
+      width: 150,
+      renderCell: (params) => params.row?.competition?.reference_links ?? "N/A",
     },
 
     {

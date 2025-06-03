@@ -14,23 +14,10 @@ import DetailViewer from "@/components/forms/DetailViewer";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Autocomplete from "@mui/material/Autocomplete";
-import Checkbox from "@mui/material/Checkbox";
-import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import AssignDialog from "@/components/forms/DialogBox";
-
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
+import { Course } from "@/lib/db/courses/type";
+import { Student } from "@/lib/db/student/type";
 
 export default function CourseReport() {
   const router = useRouter();
@@ -49,29 +36,6 @@ export default function CourseReport() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
-  type Course = {
-    id: number;
-    name: string;
-    description: string;
-    organized_by: string;
-    application_start_date: string;
-    application_end_date: string;
-    course_start_date: string;
-    course_end_date: string;
-    eligibility_from: string;
-    eligibility_to: string;
-    reference_link: string;
-    requirements: string[];
-    course_tags: string[];
-    created_at: string;
-    updated_at: string;
-  };
-
-  interface Student {
-    id: string;
-    first_name: string;
-    last_name: string;
-  }
   const fetchCourses = async () => {
     try {
       const response = await fetch("/api/courses");

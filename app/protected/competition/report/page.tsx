@@ -11,41 +11,14 @@ import {
 } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import Alert from "@mui/material/Alert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
-import Checkbox from "@mui/material/Checkbox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import DetailViewer from "@/components/forms/DetailViewer";
 import AssignDialog from "@/components/forms/DialogBox";
-
-interface Competition {
-  id: string;
-  name: string;
-  description: string;
-  organised_by: string;
-  application_start_date: string;
-  application_end_date: string;
-  competition_start_date: string;
-  competition_end_date: string;
-  eligibility: string[];
-  constraints: string[];
-  reference_links: string[];
-  requirements: string[];
-  payment: string;
-  fee: string | null;
-}
+import { Competition } from "@/lib/db/competition/type";
 
 export default function CompetitionReport() {
   const router = useRouter();

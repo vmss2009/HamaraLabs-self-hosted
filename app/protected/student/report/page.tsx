@@ -13,9 +13,6 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import DetailViewer from "@/components/forms/DetailViewer";
 
 export default function StudentReport() {

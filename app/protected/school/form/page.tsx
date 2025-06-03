@@ -7,7 +7,7 @@ import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
 import CheckboxGroup from "@/components/forms/CheckboxGroup";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 
 type Country = {
   id: number;
@@ -485,12 +485,12 @@ export default function SchoolForm() {
                 className="mb-5"
               />
 
-              <DynamicFieldArray
+              <MultiForm
+                className="space-y-4"
                 placeholder="SocialLink"
+                name="SocialLink"
                 values={socialLinks}
-                onChange={handleSocialLinkChange}
-                onAdd={addSocialLink}
-                onRemove={removeSocialLink}
+                setArray={setSocialLinks}
                 legend="Social Links"
                 fieldLabel="Social Link"
               />
