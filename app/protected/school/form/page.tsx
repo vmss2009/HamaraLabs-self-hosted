@@ -10,7 +10,6 @@ import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
 import { useRouter } from "next/navigation";
 
-// Define types based on the Prisma schema
 type Country = {
   id: number;
   country_name: string;
@@ -28,18 +27,7 @@ type City = {
   stateId: number;
 };
 
-interface Field {
-  name: string;
-  label: string;
-  type?: string;
-  placeholder: string;
-  required?: boolean;
-  disabled?: boolean;
-}
-
 export default function SchoolForm() {
-  const router = useRouter();
-  // Form states
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -49,16 +37,13 @@ export default function SchoolForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [sameAsPrincipal, setSameAsPrincipal] = useState<boolean>(false);
   
-  // Radio button states
   const [isATL, setIsATL] = useState<string>("No");
   const [paidSubscription, setPaidSubscription] = useState<string>("No");
   
-  // Selected location states
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
 
-  // Fetch countries on component mount
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -77,7 +62,6 @@ export default function SchoolForm() {
     fetchCountries();
   }, []);
 
-  // Handle country selection change
   const handleCountryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const countryId = e.target.value;
     setSelectedCountry(countryId);
@@ -89,7 +73,7 @@ export default function SchoolForm() {
       }
       const data = await response.json();
       setStates(data);
-      setCities([]); // Reset cities when country changes
+      setCities([]);
       setSelectedState("");
       setSelectedCity("");
     } catch (error) {
@@ -98,7 +82,6 @@ export default function SchoolForm() {
     }
   };
 
-  // Handle state selection change
   const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const stateId = e.target.value;
     setSelectedState(stateId);
@@ -117,7 +100,6 @@ export default function SchoolForm() {
     }
   };
 
-  // Handle syllabus checkbox changes
   const handleSyllabiChange = (value: string, checked: boolean) => {
     if (checked) {
       setSyllabus([...syllabus, value]);
@@ -126,26 +108,22 @@ export default function SchoolForm() {
     }
   };
 
-  // Handle social link changes
   const handleSocialLinkChange = (index: number, value: string) => {
     const updatedLinks = [...socialLinks];
     updatedLinks[index] = value;
     setSocialLinks(updatedLinks);
   };
 
-  // Add new social link field
   const addSocialLink = () => {
     setSocialLinks([...socialLinks, ""]);
   };
 
-  // Remove social link field
   const removeSocialLink = (index: number) => {
     const updatedLinks = [...socialLinks];
     updatedLinks.splice(index, 1);
     setSocialLinks(updatedLinks);
   };
 
-  // Handle same as principal checkbox change
   const handleSameAsPrincipalChange = (checked: boolean) => {
     setSameAsPrincipal(checked);
     if (checked) {
@@ -159,7 +137,6 @@ export default function SchoolForm() {
     }
   };
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
@@ -168,7 +145,6 @@ export default function SchoolForm() {
     try {
       const formData = new FormData(event.target as HTMLFormElement);
       
-      // Process form data into proper structure
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
@@ -215,7 +191,6 @@ export default function SchoolForm() {
         social_links: socialLinks.filter(link => link.trim() !== "")
       };
 
-      // Submit the data to backend
       const response = await fetch("/api/schools", {
         method: "POST",
         headers: {
@@ -229,7 +204,6 @@ export default function SchoolForm() {
         throw new Error(errorData.message || "Failed to submit school data");
       }
 
-      // Redirect to success page or reset form
       window.location.href = "/protected/school/report";
     } catch (error) {
       if (error instanceof Error) {

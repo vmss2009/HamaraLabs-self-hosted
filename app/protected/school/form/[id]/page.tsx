@@ -11,7 +11,6 @@ import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
 import { useRouter } from "next/navigation";
 
-// Define types based on the Prisma schema
 type Country = {
   id: number;
   country_name: string;
@@ -29,18 +28,10 @@ type City = {
   stateId: number;
 };
 
-interface Field {
-  name: string;
-  label: string;
-  type?: string;
-  placeholder: string;
-  disabled?: boolean;
-}
-
 export default function EditSchoolForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  // Form states
+
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -50,16 +41,13 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [sameAsPrincipal, setSameAsPrincipal] = useState<boolean>(false);
   
-  // Radio button states
   const [isATL, setIsATL] = useState<string>("No");
   const [paidSubscription, setPaidSubscription] = useState<string>("No");
   
-  // Selected location states
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
 
-  // Fetch school data on component mount
   useEffect(() => {
     const fetchSchoolData = async () => {
       try {
@@ -69,42 +57,35 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
         }
         const data = await response.json();
         
-        // Set form data
         setIsATL(data.is_ATL ? "Yes" : "No");
         setPaidSubscription(data.paid_subscription ? "Yes" : "No");
         setSyllabus(data.syllabus || []);
         
-        // Handle social links - ensure it's an array and has at least one empty string if empty
         const socialLinksData = data.social_links || [];
         setSocialLinks(socialLinksData.length > 0 ? socialLinksData : [""]);
         
-        // Set location data
         setSelectedCountry(data.address.city.state.country_id.toString());
-        // Fetch states for the country
+
         const statesResponse = await fetch(`/api/states?countryId=${data.address.city.state.country_id}`);
         const statesData = await statesResponse.json();
         setStates(statesData);
         setSelectedState(data.address.city.state_id.toString());
-        // Fetch cities for the state
+
         const citiesResponse = await fetch(`/api/cities?stateId=${data.address.city.state.id}`);
         const citiesData = await citiesResponse.json();
         setCities(citiesData);
         setSelectedCity(data.address.city.id.toString());
 
-        // Find users by their roles
         const principal = data.users?.find((user: any) => user.id === data.principal_id);
         const correspondent = data.users?.find((user: any) => user.id === data.correspondent_id);
         const in_charge = data.users?.find((user: any) => user.id === data.in_charge_id);
 
-        // Check if correspondent and principal are the same
         if (principal?.email && correspondent?.email && principal.email === correspondent.email) {
           setSameAsPrincipal(true);
         }
 
-        // Set form field values
         const form = document.querySelector('form') as HTMLFormElement;
         if (form) {
-          // Basic Information
           const nameInput = form.querySelector('input[name="name"]') as HTMLInputElement;
           const websiteURLInput = form.querySelector('input[name="websiteURL"]') as HTMLInputElement;
 
@@ -116,24 +97,20 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
             websiteURLInput.value = data.website_url || '';
           }
 
-          // Address
           form.addressLine1.value = data.address.address_line1;
           form.addressLine2.value = data.address.address_line2 || '';
           form.pincode.value = data.address.pincode;
 
-          // In-Charge Details
           form.inChargeFirstName.value = in_charge?.first_name || '';
           form.inChargeLastName.value = in_charge?.last_name || '';
           form.inChargeEmail.value = in_charge?.email || '';
           form.inChargeWhatsapp.value = in_charge?.user_meta_data?.phone_number || '';
 
-          // Correspondent Details
           form.correspondentFirstName.value = correspondent?.first_name || '';
           form.correspondentLastName.value = correspondent?.last_name || '';
           form.correspondentEmail.value = correspondent?.email || '';
           form.correspondentWhatsapp.value = correspondent?.user_meta_data?.phone_number || '';
 
-          // Principal Details
           form.principalFirstName.value = principal?.first_name || '';
           form.principalLastName.value = principal?.last_name || '';
           form.principalEmail.value = principal?.email || '';
@@ -148,7 +125,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     fetchSchoolData();
   }, [resolvedParams.id]);
 
-  // Fetch countries on component mount
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -167,7 +143,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     fetchCountries();
   }, []);
 
-  // Handle country selection change
   const handleCountryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const countryId = e.target.value;
     setSelectedCountry(countryId);
@@ -179,7 +154,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
       }
       const data = await response.json();
       setStates(data);
-      setCities([]); // Reset cities when country changes
+      setCities([]);
       setSelectedState("");
       setSelectedCity("");
     } catch (error) {
@@ -188,7 +163,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     }
   };
 
-  // Handle state selection change
   const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const stateId = e.target.value;
     setSelectedState(stateId);
@@ -207,7 +181,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     }
   };
 
-  // Handle syllabus checkbox changes
   const handleSyllabiChange = (value: string, checked: boolean) => {
     if (checked) {
       setSyllabus([...syllabus, value]);
@@ -216,26 +189,22 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     }
   };
 
-  // Handle social link changes
   const handleSocialLinkChange = (index: number, value: string) => {
     const updatedLinks = [...socialLinks];
     updatedLinks[index] = value;
     setSocialLinks(updatedLinks);
   };
 
-  // Add new social link field
   const addSocialLink = () => {
     setSocialLinks([...socialLinks, ""]);
   };
 
-  // Remove social link field
   const removeSocialLink = (index: number) => {
     const updatedLinks = [...socialLinks];
     updatedLinks.splice(index, 1);
     setSocialLinks(updatedLinks);
   };
 
-  // Handle same as principal checkbox change
   const handleSameAsPrincipalChange = (checked: boolean) => {
     setSameAsPrincipal(checked);
     if (checked) {
@@ -249,7 +218,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     }
   };
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
@@ -257,26 +225,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
 
     try {
       const formData = new FormData(event.target as HTMLFormElement);
-      
-      // Get the current school data to check if we need to create a new correspondent
-      const currentSchoolResponse = await fetch(`/api/schools/${resolvedParams.id}`);
-      if (!currentSchoolResponse.ok) {
-        throw new Error("Failed to fetch current school data");
-      }
-      const currentSchool = await currentSchoolResponse.json();
-      
-      // Find current users by their roles
-      const currentPrincipal = currentSchool.users?.find((user: any) => user.id === currentSchool.principal_id);
-      const currentCorrespondent = currentSchool.users?.find((user: any) => user.id === currentSchool.correspondent_id);
-      
-      // Check if we need to create a new correspondent
-      const newCorrespondentEmail = formData.get("correspondentEmail") as string;
-      const shouldCreateNewCorrespondent = !sameAsPrincipal && 
-        newCorrespondentEmail && 
-        newCorrespondentEmail !== currentPrincipal?.email &&
-        newCorrespondentEmail !== currentCorrespondent?.email;
-      
-      // Process form data into proper structure
+            
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
@@ -284,7 +233,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           address_line1: formData.get("addressLine1"),
           address_line2: formData.get("addressLine2"),
           pincode: formData.get("pincode"),
-          city_id: parseInt(selectedCity),
+          cityId: parseInt(selectedCity),
         },
         in_charge: formData.get("inChargeEmail") ? {
           email: formData.get("inChargeEmail"),
@@ -307,8 +256,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           last_name: formData.get("correspondentLastName"),
           user_meta_data: {
             phone_number: formData.get("correspondentWhatsapp")
-          },
-          create_new: shouldCreateNewCorrespondent // Flag to indicate if a new user should be created
+          }
         } : undefined,
         principal: formData.get("principalEmail") ? {
           email: formData.get("principalEmail"),
@@ -324,7 +272,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
         social_links: socialLinks.filter(link => link.trim() !== "")
       };
 
-      // Submit the data to backend
       const response = await fetch(`/api/schools/${resolvedParams.id}`, {
         method: "PUT",
         headers: {
@@ -338,7 +285,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
         throw new Error(errorData.message || "Failed to update school data");
       }
 
-      // Redirect to success page or reset form
       window.location.href = "/protected/school/report";
     } catch (error) {
       if (error instanceof Error) {
@@ -352,7 +298,6 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
     }
   };
 
-  // Convert data for select components
   const countryOptions = countries.map(country => ({
     value: country.id.toString(),
     label: country.country_name
