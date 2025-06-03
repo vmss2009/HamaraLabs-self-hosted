@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DetailViewer from "@/components/forms/DetailViewer";
+import Alert from "@mui/material/Alert";
 
 export default function StudentReport() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function StudentReport() {
   const [error, setError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const fetchStudents = async () => {
     try {
@@ -56,6 +58,9 @@ export default function StudentReport() {
       if (!response.ok) {
         throw new Error("Failed to delete student");
       }
+
+      setSuccess("Student record deleted sucessfully");
+      setTimeout(() => setSuccess(null), 3000);
 
       fetchStudents();
     } catch (error) {
@@ -128,6 +133,34 @@ export default function StudentReport() {
   return (
     <div className="bg-gray-500 flex justify-center h-screen w-auto">
       <div className="pt-20">
+        {error && (
+          <Alert
+            severity="error"
+            className="mb-4"
+            sx={{
+              borderRadius: "8px",
+              backgroundColor: "#FFEBEE",
+              border: "1px solid #FFCDD2",
+              padding: "10px 16px",
+            }}
+          >
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert
+            severity="success"
+            className="mb-2 ml-7 mr-7"
+            sx={{
+              borderRadius: "8px",
+              backgroundColor: "#E3F2E8",
+              border: "1px solid #A5D6A7",
+              padding: "10px 16px",
+            }}
+          >
+            {success}
+          </Alert>
+        )}
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={students}

@@ -76,6 +76,9 @@ export default function CompetitionReport() {
         throw new Error("Failed to delete competition");
       }
 
+      setSuccess("Competition record deleted sucessfully");
+      setTimeout(() => setSuccess(null), 3000);
+
       fetchCompetitions();
     } catch (error) {
       console.error("Error deleting competition:", error);
@@ -303,7 +306,7 @@ export default function CompetitionReport() {
         {success && (
           <Alert
             severity="success"
-            className="mb-4"
+            className="mb-2 ml-7 mr-7"
             sx={{
               borderRadius: "8px",
               backgroundColor: "#E3F2E8",

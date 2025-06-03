@@ -167,6 +167,8 @@ export default function CourseReport() {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete course");
+      setSuccess("Course record deleted sucessfully");
+      setTimeout(() => setSuccess(null), 3000);
       fetchCourses();
     } catch (error) {
       console.error("Error deleting course:", error);
@@ -306,7 +308,7 @@ export default function CourseReport() {
         {success && (
           <Alert
             severity="success"
-            className="mb-4"
+            className="mb-2 ml-7 mr-7"
             sx={{
               borderRadius: "8px",
               backgroundColor: "#E3F2E8",

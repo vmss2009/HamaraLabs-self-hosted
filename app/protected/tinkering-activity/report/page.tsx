@@ -197,6 +197,8 @@ export default function TinkeringActivityReport() {
         throw new Error("Failed to delete tinkering activity");
       }
 
+      setSuccess("Tinkering-activity Record deleted sucessfully");
+      setTimeout(() => setSuccess(null), 3000);
       fetchActivities();
     } catch (error) {
       console.error("Error deleting tinkering activity:", error);
@@ -417,7 +419,7 @@ export default function TinkeringActivityReport() {
         {success && (
           <Alert
             severity="success"
-            className="mb-4"
+            className="mb-2 ml-7 mr-7"
             sx={{
               borderRadius: "8px",
               backgroundColor: "#E3F2E8",
