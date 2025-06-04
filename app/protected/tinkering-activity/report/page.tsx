@@ -20,6 +20,24 @@ import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type"
 import DetailViewer from "@/components/forms/DetailViewer";
 import { Student } from "@/lib/db/student/type";
 
+interface FullActivity {
+  id: number;
+  name: string;
+  introduction?: string;
+  instructions?: string[]; // or string if already truncated
+  goals?: string[];
+  materials?: string[];
+  tips?: string[];
+  observations?: string[];
+  resources?: string[];
+  extensions?: string[];
+  subject_name?: string | null;
+  topic_name?: string | null;
+  subtopic_name?: string | null;
+  subtopic?: any;
+  created_at?: string;
+}
+
 export default function TinkeringActivityReport() {
   const router = useRouter();
   const [activities, setActivities] = useState([]);
@@ -31,6 +49,8 @@ export default function TinkeringActivityReport() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [fullActivities, setFullActivities] = useState<FullActivity[]>([]);
+
   const [schools, setSchools] = useState([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [assignError, setAssignError] = useState<string | null>(null);
@@ -59,65 +79,67 @@ export default function TinkeringActivityReport() {
 
       const data = await response.json();
 
-      // console.log("ActivityDAta", data);
-      // const updatedData = data.map(
-      //   (item: {
-      //     instructions?: string[];
-      //     goals?: string[];
-      //     materials?: string[];
-      //     tips?: string[];
-      //     observations?: string[];
-      //     resources?: string[];
-      //     extensions?: string[];
-      //   }) => ({
-      //     ...item,
+      setFullActivities(data);
 
-      //     instructions:
-      //       Array.isArray(item.instructions) && item.instructions.length > 0
-      //         ? item.instructions[0].slice(0, 50) +
-      //           (item.instructions[0].length > 50 ? "..." : "")
-      //         : "",
+      console.log("ActivityDAta", data);
+      const updatedData = data.map(
+        (item: {
+          instructions?: string[];
+          goals?: string[];
+          materials?: string[];
+          tips?: string[];
+          observations?: string[];
+          resources?: string[];
+          extensions?: string[];
+        }) => ({
+          ...item,
 
-      //     goals:
-      //       Array.isArray(item.goals) && item.goals.length > 0
-      //         ? item.goals[0].slice(0, 50) +
-      //           (item.goals[0].length > 50 ? "..." : "")
-      //         : "",
+          instructions:
+            Array.isArray(item.instructions) && item.instructions.length > 0
+              ? item.instructions[0].slice(0, 50) +
+                (item.instructions[0].length > 50 ? "..." : "")
+              : "",
 
-      //     materials:
-      //       Array.isArray(item.materials) && item.materials.length > 0
-      //         ? item.materials[0].slice(0, 50) +
-      //           (item.materials[0].length > 50 ? "..." : "")
-      //         : "",
+          goals:
+            Array.isArray(item.goals) && item.goals.length > 0
+              ? item.goals[0].slice(0, 50) +
+                (item.goals[0].length > 50 ? "..." : "")
+              : "",
 
-      //     tips:
-      //       Array.isArray(item.tips) && item.tips.length > 0
-      //         ? item.tips[0].slice(0, 50) +
-      //           (item.tips[0].length > 50 ? "..." : "")
-      //         : "",
+          materials:
+            Array.isArray(item.materials) && item.materials.length > 0
+              ? item.materials[0].slice(0, 50) +
+                (item.materials[0].length > 50 ? "..." : "")
+              : "",
 
-      //     observations:
-      //       Array.isArray(item.observations) && item.observations.length > 0
-      //         ? item.observations[0].slice(0, 50) +
-      //           (item.observations[0].length > 50 ? "..." : "")
-      //         : "",
+          tips:
+            Array.isArray(item.tips) && item.tips.length > 0
+              ? item.tips[0].slice(0, 50) +
+                (item.tips[0].length > 50 ? "..." : "")
+              : "",
 
-      //     resources:
-      //       Array.isArray(item.resources) && item.resources.length > 0
-      //         ? item.resources[0].slice(0, 50) +
-      //           (item.resources[0].length > 50 ? "..." : "")
-      //         : "",
+          observations:
+            Array.isArray(item.observations) && item.observations.length > 0
+              ? item.observations[0].slice(0, 50) +
+                (item.observations[0].length > 50 ? "..." : "")
+              : "",
 
-      //     extensions:
-      //       Array.isArray(item.extensions) && item.extensions.length > 0
-      //         ? item.extensions[0].slice(0, 50) +
-      //           (item.extensions[0].length > 50 ? "..." : "")
-      //         : "",
-      //   })
-      // );
+          resources:
+            Array.isArray(item.resources) && item.resources.length > 0
+              ? item.resources[0].slice(0, 50) +
+                (item.resources[0].length > 50 ? "..." : "")
+              : "",
 
-      // console.log("UpdatedData", updatedData);
-      setActivities(data);
+          extensions:
+            Array.isArray(item.extensions) && item.extensions.length > 0
+              ? item.extensions[0].slice(0, 50) +
+                (item.extensions[0].length > 50 ? "..." : "")
+              : "",
+        })
+      );
+
+      console.log("UpdatedData", updatedData);
+      setActivities(updatedData);
 
       if (data.length > 0) {
         const allMissingData = data.every(
@@ -136,6 +158,17 @@ export default function TinkeringActivityReport() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRowClick = (params: any) => {
+    if (!params || !params.row) return;
+
+    console.log("FullActivities", fullActivities);
+
+    const fullRow = fullActivities.find((item) => item.id === params.row.id);
+
+    setSelectedRow(fullRow || params.row);
+    setDrawerOpen(true);
   };
 
   const fetchSchools = async () => {
@@ -203,12 +236,6 @@ export default function TinkeringActivityReport() {
     } catch (error) {
       console.error("Error deleting tinkering activity:", error);
     }
-  };
-
-  const handleRowClick = (params: any) => {
-    if (!params || !params.row) return;
-    setSelectedRow(params.row);
-    setDrawerOpen(true);
   };
 
   const closeDrawer = () => {
