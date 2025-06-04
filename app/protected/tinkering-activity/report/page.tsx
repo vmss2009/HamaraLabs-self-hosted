@@ -19,24 +19,7 @@ import AssignDialog from "@/components/forms/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import DetailViewer from "@/components/forms/DetailViewer";
 import { Student } from "@/lib/db/student/type";
-
-interface FullActivity {
-  id: number;
-  name: string;
-  introduction?: string;
-  instructions?: string[]; // or string if already truncated
-  goals?: string[];
-  materials?: string[];
-  tips?: string[];
-  observations?: string[];
-  resources?: string[];
-  extensions?: string[];
-  subject_name?: string | null;
-  topic_name?: string | null;
-  subtopic_name?: string | null;
-  subtopic?: any;
-  created_at?: string;
-}
+import { FullActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
   const router = useRouter();
