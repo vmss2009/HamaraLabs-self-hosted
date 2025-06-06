@@ -15,9 +15,7 @@ export interface SchoolUpdateInput {
   social_links?: string[];
 }
 
-export async function createSchool(
-  data: SchoolCreateInput
-): Promise<SchoolWithAddress> {
+export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
     const result = schoolSchema.safeParse(data);
     if (!result.success) {
@@ -101,9 +99,7 @@ export async function createSchool(
   }
 }
 
-export async function getSchools(
-  filter?: SchoolFilter
-): Promise<SchoolWithAddress[]> {
+export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddress[]> {
   try {
     const where: any = {};
 
@@ -153,9 +149,7 @@ export async function getSchools(
   }
 }
 
-export async function getSchoolById(
-  id: number
-): Promise<SchoolWithAddress | null> {
+export async function getSchoolById(id: number): Promise<SchoolWithAddress | null> {
   try {
     const school = (await prisma.school.findUnique({
       where: { id },
@@ -195,10 +189,7 @@ export async function getSchoolById(
   }
 }
 
-export async function updateSchool(
-  id: number,
-  data: SchoolUpdateInput
-): Promise<SchoolWithAddress> {
+export async function updateSchool(id: number, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
   try {
     const result = schoolSchema.safeParse(data);
 

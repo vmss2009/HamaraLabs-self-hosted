@@ -67,9 +67,7 @@ export default function CompetitionForm() {
         throw new Error(errorData.error || "Failed to submit the form");
       }
 
-      setTimeout(() => {
-        router.push("/protected/competition/report");
-      }, 2000);
+      router.push("/protected/competition/report");
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);

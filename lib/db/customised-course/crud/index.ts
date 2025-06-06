@@ -1,9 +1,7 @@
 import { CustomisedCourseCreateInput, CustomisedCourseFilter, CustomisedCourseWithRelations } from "../type";
 import { prisma } from "@/lib/db/prisma";
 
-export async function createCustomisedCourse(
-  data: CustomisedCourseCreateInput,
-): Promise<CustomisedCourseWithRelations> {
+export async function createCustomisedCourse(data: CustomisedCourseCreateInput): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.create({
     data: {
       course_id: data.course_id,
@@ -39,9 +37,7 @@ export async function createCustomisedCourse(
   });
 }
 
-export async function getCustomisedCourses(
-  filter?: CustomisedCourseFilter,
-): Promise<CustomisedCourseWithRelations[]> {
+export async function getCustomisedCourses(filter?: CustomisedCourseFilter): Promise<CustomisedCourseWithRelations[]> {
   return prisma.customisedCourse.findMany({
     where: {
       course_id: filter?.course_id,
@@ -77,9 +73,7 @@ export async function getCustomisedCourses(
   });
 }
 
-export async function getCustomisedCourseById(
-  id: number,
-): Promise<CustomisedCourseWithRelations | null> {
+export async function getCustomisedCourseById(id: number): Promise<CustomisedCourseWithRelations | null> {
   return prisma.customisedCourse.findUnique({
     where: { id },
     include: {
@@ -111,10 +105,7 @@ export async function getCustomisedCourseById(
   });
 }
 
-export async function updateCustomisedCourse(
-  id: number,
-  data: Partial<CustomisedCourseCreateInput>,
-): Promise<CustomisedCourseWithRelations> {
+export async function updateCustomisedCourse(id: number, data: Partial<CustomisedCourseCreateInput>): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.update({
     where: { id },
     data: {
@@ -151,9 +142,7 @@ export async function updateCustomisedCourse(
   });
 }
 
-export async function deleteCustomisedCourse(
-  id: number,
-): Promise<CustomisedCourseWithRelations> {
+export async function deleteCustomisedCourse(id: number): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.delete({
     where: { id },
     include: {

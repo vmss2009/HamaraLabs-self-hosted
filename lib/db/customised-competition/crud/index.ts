@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { CustomisedCompetitionCreateInput, CustomisedCompetitionFilter, CustomisedCompetitionWithRelations } from "../type";
 
-export async function createCustomisedCompetition(
-  data: CustomisedCompetitionCreateInput,
-): Promise<CustomisedCompetitionWithRelations> {
+export async function createCustomisedCompetition(data: CustomisedCompetitionCreateInput): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.create({
     data: {
       competition_id: data.competition_id,
@@ -39,9 +37,7 @@ export async function createCustomisedCompetition(
   });
 }
 
-export async function getCustomisedCompetitions(
-  filter?: CustomisedCompetitionFilter,
-): Promise<CustomisedCompetitionWithRelations[]> {
+export async function getCustomisedCompetitions(filter?: CustomisedCompetitionFilter): Promise<CustomisedCompetitionWithRelations[]> {
   return prisma.customisedCompetition.findMany({
     where: {
       competition_id: filter?.competition_id,
@@ -77,9 +73,7 @@ export async function getCustomisedCompetitions(
   });
 }
 
-export async function getCustomisedCompetitionById(
-  id: number,
-): Promise<CustomisedCompetitionWithRelations | null> {
+export async function getCustomisedCompetitionById(id: number): Promise<CustomisedCompetitionWithRelations | null> {
   return prisma.customisedCompetition.findUnique({
     where: { id },
     include: {
@@ -111,10 +105,7 @@ export async function getCustomisedCompetitionById(
   });
 }
 
-export async function updateCustomisedCompetition(
-  id: number,
-  data: Partial<CustomisedCompetitionCreateInput>,
-): Promise<CustomisedCompetitionWithRelations> {
+export async function updateCustomisedCompetition(id: number, data: Partial<CustomisedCompetitionCreateInput>): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.update({
     where: { id },
     data: {
@@ -151,9 +142,7 @@ export async function updateCustomisedCompetition(
   });
 }
 
-export async function deleteCustomisedCompetition(
-  id: number,
-): Promise<CustomisedCompetitionWithRelations> {
+export async function deleteCustomisedCompetition(id: number): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.delete({
     where: { id },
     include: {

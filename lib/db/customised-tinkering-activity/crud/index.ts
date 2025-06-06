@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { CustomisedTinkeringActivityCreateInput, CustomisedTinkeringActivityFilter, CustomisedTinkeringActivityWithRelations } from "../type";
 
-export async function createCustomisedTinkeringActivity(
-  data: CustomisedTinkeringActivityCreateInput,
-): Promise<CustomisedTinkeringActivityWithRelations> {
+export async function createCustomisedTinkeringActivity(data: CustomisedTinkeringActivityCreateInput): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.create({
     data: {
       name: data.name,
@@ -43,9 +41,7 @@ export async function createCustomisedTinkeringActivity(
   });
 }
 
-export async function getCustomisedTinkeringActivities(
-  filter?: CustomisedTinkeringActivityFilter,
-): Promise<CustomisedTinkeringActivityWithRelations[]> {
+export async function getCustomisedTinkeringActivities(filter?: CustomisedTinkeringActivityFilter): Promise<CustomisedTinkeringActivityWithRelations[]> {
   const where: any = {};
 
   if (filter?.name) {
@@ -93,9 +89,7 @@ export async function getCustomisedTinkeringActivities(
   });
 }
 
-export async function getCustomisedTinkeringActivityById(
-  id: number,
-): Promise<CustomisedTinkeringActivityWithRelations | null> {
+export async function getCustomisedTinkeringActivityById(id: number): Promise<CustomisedTinkeringActivityWithRelations | null> {
   return prisma.customisedTinkeringActivity.findUnique({
     where: { id },
     include: {
@@ -121,10 +115,7 @@ export async function getCustomisedTinkeringActivityById(
   });
 }
 
-export async function updateCustomisedTinkeringActivity(
-  id: number,
-  data: Partial<CustomisedTinkeringActivityCreateInput>,
-): Promise<CustomisedTinkeringActivityWithRelations> {
+export async function updateCustomisedTinkeringActivity(id: number, data: Partial<CustomisedTinkeringActivityCreateInput>): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.update({
     where: { id },
     data: {
@@ -165,9 +156,7 @@ export async function updateCustomisedTinkeringActivity(
   });
 }
 
-export async function deleteCustomisedTinkeringActivity(
-  id: number,
-): Promise<CustomisedTinkeringActivityWithRelations> {
+export async function deleteCustomisedTinkeringActivity(id: number): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.delete({
     where: { id },
     include: {

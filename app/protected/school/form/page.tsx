@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import TextFieldGroup from "@/components/TextFieldGroup";
@@ -11,6 +12,8 @@ import MultiForm from "@/components/Multiform";
 import { Country, State, City } from "@/lib/db/location/type"
 
 export default function SchoolForm() {
+  const router = useRouter();
+
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -146,7 +149,7 @@ export default function SchoolForm() {
         throw new Error(errorData.message || "Failed to submit school data");
       }
 
-      window.location.href = "/protected/school/report";
+      router.push("/protected/competition/report");
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
