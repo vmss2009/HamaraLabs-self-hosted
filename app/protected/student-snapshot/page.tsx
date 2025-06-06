@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { DataGrid, GridColumnVisibilityModel, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
+import {FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { Button } from "@/components/Button";
 import DetailViewer from "@/components/DetailViewer";
-import {FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
-
-import EditActivityDialog from "./tinkering-activity/customised-activity-edit-form/page";
+import EditActivityDialog from "./tinkering-activity/tinkering-activity-edit-form/page";
 import { getCourseColumns } from "./course/page";
 import { getCompetitionColumns } from "./competition/page";
 import { getTinkeringActivityColumns } from "./tinkering-activity/page";
+
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
   "Mentor needed",

@@ -5,24 +5,10 @@ import { use } from "react";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import SelectField from "@/components/SelectField";
-import MultiForm from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/Multiform";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/Input";
-
-type Subject = {
-  id: number;
-  subject_name: string;
-};
-
-type Topic = {
-  id: number;
-  topic_name: string;
-};
-
-type Subtopic = {
-  id: number;
-  subtopic_name: string;
-};
+import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type"
 
 export default function EditTinkeringActivityForm({ params }: { params: Promise<{ id: string }>} ) {
   const resolvedParams = use(params);

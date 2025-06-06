@@ -5,7 +5,7 @@ import React, { ChangeEvent } from "react";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import { useRouter } from "next/navigation";
-import MultiForm from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/Multiform";
 import DateFieldGroup from "@/components/DateField";
 import { Input } from "@/components/Input";
 

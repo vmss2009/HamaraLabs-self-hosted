@@ -7,21 +7,8 @@ import FormSection from "@/components/FormSection";
 import SelectField from "@/components/SelectField";
 import MultiForm from "@/components/Multiform";
 import { Input } from "@/components/Input";
+import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type"
 
-type Subject = {
-  id: number;
-  subject_name: string;
-};
-
-type Topic = {
-  id: number;
-  topic_name: string;
-};
-
-type Subtopic = {
-  id: number;
-  subtopic_name: string;
-};
 
 export default function TinkeringActivityForm() {
   const router = useRouter();

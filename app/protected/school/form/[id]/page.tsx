@@ -8,25 +8,9 @@ import TextFieldGroup from "@/components/TextFieldGroup";
 import SelectField from "@/components/SelectField";
 import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import DynamicFieldArray from "@/components/Multiform";
 import { useRouter } from "next/navigation";
-
-type Country = {
-  id: number;
-  country_name: string;
-};
-
-type State = {
-  id: number;
-  state_name: string;
-  countryId: number;
-};
-
-type City = {
-  id: number;
-  city_name: string;
-  stateId: number;
-};
+import { Country, State, City } from "@/lib/db/location/type"
 
 export default function EditSchoolForm({
   params,

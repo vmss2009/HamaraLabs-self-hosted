@@ -8,7 +8,7 @@ import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import DateFieldGroup from "@/components/DateField";
 import { Input } from "@/components/Input";
-import MultiForm from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/Multiform";
 
 export default function EditCourseForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);

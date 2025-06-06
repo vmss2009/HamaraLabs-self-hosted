@@ -10,7 +10,7 @@ import Alert from "@mui/material/Alert";
 import AssignDialog from "@/components/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import DetailViewer from "@/components/DetailViewer";
-import { FullActivity } from "@/lib/db/tinkering-activity/type";
+import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function TinkeringActivityReport() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [missingRelationships, setMissingRelationships] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [fullActivities, setFullActivities] = useState<FullActivity[]>([]);
+  const [fullActivities, setFullActivities] = useState<TinkeringActivity[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<TinkeringActivityWithSubtopic | null>(null);
   const [columnVisibilityModel, setColumnVisibilityModel] =

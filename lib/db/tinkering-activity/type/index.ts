@@ -30,6 +30,24 @@ export interface SubtopicCreateInput {
 export interface SubtopicWithTopic extends PrismaSubtopic {
   topic: TopicWithSubject;
 }
+
+export type Subject = {
+  id: number;
+  subject_name: string;
+};
+
+export type Topic = {
+  id: number;
+  topic_name: string;
+};
+
+export type Subtopic = {
+  id: number;
+  subtopic_name: string;
+};
+
+
+
 export interface EditActivityDialogProps {
   open: boolean;
   onClose: () => void;
@@ -62,6 +80,24 @@ export interface TinkeringActivityCreateInput {
   extensions: string[];
   resources: string[];
   type: "customised" | "default";
+}
+
+export interface TinkeringActivity {
+  id: number;
+  name: string;
+  introduction?: string;
+  instructions?: string[];
+  goals?: string[];
+  materials?: string[];
+  tips?: string[];
+  observations?: string[];
+  resources?: string[];
+  extensions?: string[];
+  subject_name?: string | null;
+  topic_name?: string | null;
+  subtopic_name?: string | null;
+  subtopic?: any;
+  created_at?: string;
 }
 
 export interface TinkeringActivityWithSubtopic extends PrismaTinkeringActivity {

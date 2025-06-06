@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
-import MultiForm from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/Multiform";
 import { Input } from "@/components/Input";
 import DateFieldGroup from "@/components/DateField";
 

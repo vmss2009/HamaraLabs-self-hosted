@@ -7,24 +7,8 @@ import TextFieldGroup from "@/components/TextFieldGroup";
 import SelectField from "@/components/SelectField";
 import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
-import MultiForm from "@/components/forms/DynamicFieldArray";
-
-type Country = {
-  id: number;
-  country_name: string;
-};
-
-type State = {
-  id: number;
-  state_name: string;
-  countryId: number;
-};
-
-type City = {
-  id: number;
-  city_name: string;
-  stateId: number;
-};
+import MultiForm from "@/components/Multiform";
+import { Country, State, City } from "@/lib/db/location/type"
 
 export default function SchoolForm() {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -166,6 +150,7 @@ export default function SchoolForm() {
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
+        console.log(error.message);
       } else {
         setError("An unexpected error occurred");
       }
