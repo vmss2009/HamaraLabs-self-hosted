@@ -7,7 +7,7 @@ import FormSection from "@/components/forms/FormSection";
 import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import MultiForm from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/MultiForm";
 import { Input } from "@/components/ui/Input";
 
 type Subject = {
