@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCourse, getCourses } from "@/lib/db/courses/crud";
-import { CourseCreateInput } from "@/lib/db/courses/type";
+import { createCourse, getCourses } from "@/lib/db/course/crud";
+import { CourseCreateInput } from "@/lib/db/course/type";
 
 export async function POST(req: NextRequest) {
   try {

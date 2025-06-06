@@ -9,7 +9,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Alert from "@mui/material/Alert";
 import AssignDialog from "@/components/DialogBox";
-import { Course } from "@/lib/db/courses/type";
+import { Course } from "@/lib/db/course/type";
 
 export default function CourseReport() {
   const router = useRouter();

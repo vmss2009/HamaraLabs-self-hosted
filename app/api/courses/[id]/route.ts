@@ -3,8 +3,8 @@ import {
   getCourseById,
   updateCourse,
   deleteCourse,
-} from "@/lib/db/courses/crud";
-import { CourseUpdateInput } from "@/lib/db/courses/type";
+} from "@/lib/db/course/crud";
+import { CourseUpdateInput } from "@/lib/db/course/type";
 
 export async function GET(req: NextRequest, { params }: any) {
   try {
