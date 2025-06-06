@@ -1,12 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getCustomisedTinkeringActivityById,
-  updateCustomisedTinkeringActivity,
-  deleteCustomisedTinkeringActivity,
-  createCustomisedTinkeringActivity,
-  getCustomisedTinkeringActivities,
-} from "@/lib/db/customised-tinkering-activity/crud";
-import { CustomisedTinkeringActivityCreateInput } from "@/lib/db/customised-tinkering-activity/type";
+import { getCustomisedTinkeringActivityById, updateCustomisedTinkeringActivity, deleteCustomisedTinkeringActivity, getCustomisedTinkeringActivities } from "@/lib/db/customised-tinkering-activity/crud";
 
 export async function GET(request: Request, { params }: any) {
   try {

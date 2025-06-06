@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  createTinkeringActivity,
-  getTinkeringActivitiesBySubtopic,
-  getAllTinkeringActivities,
-} from "@/lib/db/tinkering-activity/crud";
+import { createTinkeringActivity, getTinkeringActivitiesBySubtopic, getAllTinkeringActivities } from "@/lib/db/tinkering-activity/crud";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 
 export async function GET(request: Request) {

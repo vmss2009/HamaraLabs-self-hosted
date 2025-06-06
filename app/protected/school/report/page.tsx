@@ -1,20 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridColumnVisibilityModel,
-  GridToolbarQuickFilter,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-  GridActionsCellItem,
-} from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridColumnVisibilityModel, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton, GridActionsCellItem } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import Alert from "@mui/material/Alert";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 import { School } from "@/lib/db/school/type";
 
 export default function Page() {
@@ -208,39 +200,6 @@ export default function Page() {
     } catch (error) {
       console.error("Error deleting school:", error);
     }
-  };
-
-  const formatValue = (value: any): React.ReactNode => {
-    console.log("Formatting value:", value);
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.country_name) return value.country_name;
-      if (value.state_name) return value.state_name;
-      if (value.city_name) return value.city_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
-
-  const formatFieldName = (key: string): string => {
-    if (key === "serial" || key === "id") return "";
-
-    return key
-      .replace(/_/g, " ")
-      .replace(/([A-Z])/g, " $1")
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim();
   };
 
   return (

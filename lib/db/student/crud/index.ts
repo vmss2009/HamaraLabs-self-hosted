@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { StudentCreateInput, StudentFilter } from "../type";
+import { StudentFilter } from "../type";
 import { studentSchema } from "../type";
 
 export async function createStudent(data: any) {

@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import {
-  CompetitionCreateInput,
-  CompetitionUpdateInput,
-  CompetitionFilter,
-} from "../type";
+import { CompetitionFilter } from "../type";
 import { competitionSchema } from "../type";
 
 export async function createCompetition(data: any) {

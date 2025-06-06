@@ -2,23 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
-import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import TextFieldGroup from "@/components/TextFieldGroup";
+import SelectField from "@/components/SelectField";
+import RadioButtonGroup from "@/components/RadioButtonGroup";
 import { useRouter } from "next/navigation";
 
-export default function EditStudentForm({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditStudentForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>(
-    []
-  );
+  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedSchool, setSelectedSchool] = useState<string>("");

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
-import { CourseCreateInput, CourseUpdateInput, CourseFilter } from "../type";
+import { CourseFilter } from "../type";
 
 import { courseSchema } from "../type";
 

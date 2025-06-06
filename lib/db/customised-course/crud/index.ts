@@ -1,12 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
-
-console.log(Object.keys(prisma));
-import {
-  CustomisedCourseCreateInput,
-  CustomisedCourseFilter,
-  CustomisedCourseWithRelations,
-} from "../type";
+import { CustomisedCourseCreateInput, CustomisedCourseFilter, CustomisedCourseWithRelations } from "../type";
+import { prisma } from "@/lib/db/prisma";
 
 export async function createCustomisedCourse(
   data: CustomisedCourseCreateInput,

@@ -1,34 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridColumnVisibilityModel,
-  GridToolbarQuickFilter,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-} from "@mui/x-data-grid";
+import { DataGrid, GridColumnVisibilityModel, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
-import { Button } from "@/components/ui/Button";
-import DetailViewer from "@/components/forms/DetailViewer";
-import {
-  FormControl,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormLabel,
-} from "@mui/material";
+import { Button } from "@/components/Button";
+import DetailViewer from "@/components/DetailViewer";
+import {FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
 
-import EditActivityDialog from "./tinkering-activities/edit_activity/page";
-import { getCourseColumns } from "./courses/page";
+import EditActivityDialog from "./tinkering-activity/customised-activity-edit-form/page";
+import { getCourseColumns } from "./course/page";
 import { getCompetitionColumns } from "./competition/page";
-import { getTinkeringActivityColumns } from "./tinkering-activities/page";
+import { getTinkeringActivityColumns } from "./tinkering-activity/page";
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
   "Mentor needed",
@@ -67,9 +50,7 @@ export default function StudentSnapshot() {
   const [students, setStudents] = useState<any[]>([]);
   const [selectedSchool, setSelectedSchool] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "tinkering" | "competition" | "courses"
-  >("tinkering");
+  const [activeTab, setActiveTab] = useState<"tinkering" | "competition" | "courses">("tinkering");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tinkeringActivities, setTinkeringActivities] = useState<any[]>([]);
@@ -81,20 +62,12 @@ export default function StudentSnapshot() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [statusType, setStatusType] = useState<
-    "tinkering" | "competition" | "courses"
-  >("tinkering");
+  const [statusType, setStatusType] = useState<"tinkering" | "competition" | "courses">("tinkering");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
-  const [subjects, setSubjects] = useState<
-    Array<{ id: number; subject_name: string }>
-  >([]);
-  const [topics, setTopics] = useState<
-    Array<{ id: number; topic_name: string }>
-  >([]);
-  const [subtopics, setSubtopics] = useState<
-    Array<{ id: number; subtopic_name: string }>
-  >([]);
+  const [subjects, setSubjects] = useState<Array<{ id: number; subject_name: string }>>([]);
+  const [topics, setTopics] = useState<Array<{ id: number; topic_name: string }>>([]);
+  const [subtopics, setSubtopics] = useState<Array<{ id: number; subtopic_name: string }>>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");

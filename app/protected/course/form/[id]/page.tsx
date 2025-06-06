@@ -4,18 +4,13 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import React, { ChangeEvent } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
-import DateFieldGroup from "@/components/forms/DateField";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import DateFieldGroup from "@/components/DateField";
+import { Input } from "@/components/Input";
 import MultiForm from "@/components/forms/DynamicFieldArray";
 
-export default function EditCourseForm({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditCourseForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
 

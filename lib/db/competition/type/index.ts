@@ -1,5 +1,3 @@
-import { Competition as PrismaCompetition } from "@prisma/client";
-
 import { z } from "zod";
 
 export interface Competition {

@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getTinkeringActivityById,
-  updateTinkeringActivity,
-  deleteTinkeringActivity,
-} from "@/lib/db/tinkering-activity/crud";
+import { getTinkeringActivityById, updateTinkeringActivity, deleteTinkeringActivity } from "@/lib/db/tinkering-activity/crud";
 
 export async function GET(request: Request, { params }: any) {
   try {

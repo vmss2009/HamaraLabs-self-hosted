@@ -1,7 +1,7 @@
 import React from "react";
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/Button";
 
 type ModifyStatusHandler = (
   item: any,

@@ -1,11 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import {
-  SubjectCreateInput,
-  TopicCreateInput,
-  SubtopicCreateInput,
-  TinkeringActivityCreateInput,
-  TinkeringActivityWithSubtopic,
-} from "../type";
+import { SubjectCreateInput, TopicCreateInput, SubtopicCreateInput, TinkeringActivityWithSubtopic } from "../type";
 import { tinkeringActivitySchema } from "../type";
 
 export async function createSubject(data: SubjectCreateInput) {

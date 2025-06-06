@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  createTopic,
-  getTopicsBySubject,
-} from "@/lib/db/tinkering-activity/crud";
+import { createTopic, getTopicsBySubject } from "@/lib/db/tinkering-activity/crud";
 
 export async function GET(request: Request) {
   try {

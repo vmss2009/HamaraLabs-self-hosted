@@ -51,7 +51,6 @@ const MultiForm: React.FC<MultiFormProps> = ({
   };
 
   const displayLabel = legend || label || "Field";
-  const displayFieldLabel = fieldLabel || label || "Item";
 
   return (
     <div className={`space-y-4 text-black ${className}`}>

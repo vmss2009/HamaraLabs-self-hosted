@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import SelectField from "@/components/SelectField";
 import MultiForm from "@/components/forms/DynamicFieldArray";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@/components/Input";
 
 type Subject = {
   id: number;
@@ -25,11 +24,7 @@ type Subtopic = {
   subtopic_name: string;
 };
 
-export default function EditTinkeringActivityForm({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditTinkeringActivityForm({ params }: { params: Promise<{ id: string }>} ) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);

@@ -1,19 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridActionsCellItem,
-  GridToolbarQuickFilter,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-} from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
+import { DataGrid, GridColDef, GridActionsCellItem, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 import Alert from "@mui/material/Alert";
 
 export default function StudentReport() {

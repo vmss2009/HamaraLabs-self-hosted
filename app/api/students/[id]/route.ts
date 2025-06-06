@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getStudentById,
-  updateStudent,
-  deleteStudent,
-} from "@/lib/db/student/crud";
+import { getStudentById, updateStudent, deleteStudent } from "@/lib/db/student/crud";
 import { StudentCreateInput } from "@/lib/db/student/type";
 
 export async function GET(request: Request, { params }: any) {

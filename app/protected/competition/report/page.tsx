@@ -1,23 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridActionsCellItem,
-  GridToolbarQuickFilter,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-} from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
+import { DataGrid, GridColDef, GridActionsCellItem, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
+import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import DetailViewer from "@/components/forms/DetailViewer";
-import AssignDialog from "@/components/forms/DialogBox";
+import DetailViewer from "@/components/DetailViewer";
+import AssignDialog from "@/components/DialogBox";
 import { Competition } from "@/lib/db/competition/type";
 
 export default function CompetitionReport() {
@@ -29,18 +20,7 @@ export default function CompetitionReport() {
   const [selectedRow, setSelectedRow] = useState<Competition | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [schools, setSchools] = useState<any[]>([]);
-  const [selectedSchool, setSelectedSchool] = useState<string>("");
-  const [students, setStudents] = useState<any[]>([]);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [assignLoading, setAssignLoading] = useState(false);
-  const [assignError, setAssignError] = useState<string | null>(null);
-  const [selectedActivity, setSelectedActivity] = useState<Competition | null>(
-    null
-  );
-
-  const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-  const checkedIcon = <CheckBoxIcon fontSize="small" />;
+  const [selectedActivity, setSelectedActivity] = useState<Competition | null>(null);
 
   const fetchCompetitions = async () => {
     try {
@@ -95,25 +75,6 @@ export default function CompetitionReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
-
   const formatDate = (dateString: string): string => {
     if (!dateString) return "N/A";
     try {
@@ -129,96 +90,10 @@ export default function CompetitionReport() {
     setAssignDialogOpen(true);
   };
 
-  const handleAssignSubmit = async () => {
-    if (!selectedStudents.length || !selectedActivity) return;
-
-    try {
-      setAssignLoading(true);
-      setAssignError(null);
-
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      const promises = selectedStudents.map((studentId) =>
-        fetch("/api/customised-competitions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            competition_id: selectedActivity.id,
-            student_id: studentId,
-            status: [`Assigned - ${formattedDate}`],
-          }),
-        })
-      );
-
-      await Promise.all(promises);
-      setAssignDialogOpen(false);
-      setSelectedStudents([]);
-      setSelectedSchool("");
-      setSelectedActivity(null);
-      setSuccess("Competition assigned successfully");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      console.error("Error assigning competition:", error);
-      setAssignError("Failed to assign competition");
-    } finally {
-      setAssignLoading(false);
-    }
-  };
-
   const closeAssignDialog = () => {
     setAssignDialogOpen(false);
-    setSelectedSchool("");
-    setSelectedStudents([]);
-    setAssignError(null);
     setSelectedActivity(null);
   };
-
-  const fetchSchools = async () => {
-    try {
-      const response = await fetch("/api/schools");
-      if (!response.ok) {
-        throw new Error("Failed to fetch schools");
-      }
-      const data = await response.json();
-      setSchools(data);
-    } catch (error) {
-      console.error("Error fetching schools:", error);
-    }
-  };
-
-  const fetchStudents = async (schoolId: string) => {
-    try {
-      const response = await fetch(`/api/students?school_id=${schoolId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch students");
-      }
-      const data = await response.json();
-      setStudents(data);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchSchools();
-  }, []);
-
-  useEffect(() => {
-    if (selectedSchool) {
-      fetchStudents(selectedSchool);
-    } else {
-      setStudents([]);
-    }
-  }, [selectedSchool]);
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 100 },

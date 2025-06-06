@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import {
-  CustomisedCompetitionCreateInput,
-  CustomisedCompetitionFilter,
-  CustomisedCompetitionWithRelations,
-} from "../type";
+import { CustomisedCompetitionCreateInput, CustomisedCompetitionFilter, CustomisedCompetitionWithRelations } from "../type";
 
 export async function createCustomisedCompetition(
   data: CustomisedCompetitionCreateInput,

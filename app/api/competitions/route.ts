@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createCompetition, getCompetitions } from "@/lib/db/competition/crud";
 import { CompetitionCreateInput } from "@/lib/db/competition/type";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -44,11 +45,6 @@ export async function POST(request: Request) {
       payment: body.payment,
       fee: body.payment === "paid" ? body.fee : null,
     };
-
-    console.log(
-      "Sending competition data:",
-      JSON.stringify(competitionData, null, 2)
-    );
 
     const competition = await createCompetition(competitionData);
     return NextResponse.json(competition);

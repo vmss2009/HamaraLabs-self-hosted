@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getCustomisedCompetitionById,
-  updateCustomisedCompetition,
-  deleteCustomisedCompetition,
-  getCustomisedCompetitions,
-} from "@/lib/db/customised-competition/crud";
+import { getCustomisedCompetitionById, updateCustomisedCompetition, deleteCustomisedCompetition, getCustomisedCompetitions } from "@/lib/db/customised-competition/crud";
 import { CustomisedCompetitionCreateInput } from "@/lib/db/customised-competition/type";
 
 export async function GET(request: Request, { params }: any) {

@@ -1,23 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridActionsCellItem,
-  GridToolbarQuickFilter,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-} from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
-import DetailViewer from "@/components/forms/DetailViewer";
+import { DataGrid, GridColDef, GridActionsCellItem, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
+import { Button } from "@/components/Button";
+import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Alert from "@mui/material/Alert";
-import AssignDialog from "@/components/forms/DialogBox";
+import AssignDialog from "@/components/DialogBox";
 import { Course } from "@/lib/db/courses/type";
-import { Student } from "@/lib/db/student/type";
 
 export default function CourseReport() {
   const router = useRouter();
@@ -27,13 +19,7 @@ export default function CourseReport() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Course | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [assignError, setAssignError] = useState<string | null>(null);
-  const [selectedSchool, setSelectedSchool] = useState("");
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [schools, setSchools] = useState([]);
   const [error, setError] = useState<string | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [assignLoading, setAssignLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
   const fetchCourses = async () => {
@@ -64,100 +50,12 @@ export default function CourseReport() {
 
   const closeAssignDialog = () => {
     setAssignDialogOpen(false);
-    setSelectedSchool("");
-    setSelectedStudents([]);
-    setAssignError(null);
     setSelectedActivity(null);
-  };
-  const fetchSchools = async () => {
-    try {
-      const response = await fetch("/api/schools");
-      if (!response.ok) {
-        throw new Error("Failed to fetch schools");
-      }
-      const data = await response.json();
-      setSchools(data);
-    } catch (error) {
-      console.error("Error fetching schools:", error);
-    }
-  };
-
-  const fetchStudents = async (schoolId: string) => {
-    try {
-      const response = await fetch(`/api/students?school_id=${schoolId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch students");
-      }
-      const data = await response.json();
-      setStudents(data);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-    }
   };
 
   useEffect(() => {
     fetchCourses();
   }, []);
-
-  useEffect(() => {
-    if (assignDialogOpen) {
-      fetchSchools();
-    }
-  }, [assignDialogOpen]);
-
-  useEffect(() => {
-    if (selectedSchool) {
-      fetchStudents(selectedSchool);
-    } else {
-      setStudents([]);
-      setSelectedStudents([]);
-    }
-  }, [selectedSchool]);
-
-  const handleAssignSubmit = async () => {
-    if (!selectedStudents.length || !selectedActivity) return;
-
-    try {
-      setAssignLoading(true);
-      setAssignError(null);
-
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      const promises = selectedStudents.map((studentId) =>
-        fetch("/api/customised-courses", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            course_id: selectedActivity.id,
-            student_id: studentId,
-            status: [`Assigned - ${formattedDate}`],
-          }),
-        })
-      );
-
-      await Promise.all(promises);
-      setAssignDialogOpen(false);
-      setSelectedStudents([]);
-      setSelectedSchool("");
-      setSelectedActivity(null);
-      setSuccess("Course assigned successfully");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      console.error("Error assigning competition:", error);
-      setAssignError("Failed to assign competition");
-    } finally {
-      setAssignLoading(false);
-    }
-  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
@@ -181,28 +79,6 @@ export default function CourseReport() {
   };
 
   const closeDrawer = () => setDrawerOpen(false);
-
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.subtopic_name) return value.subtopic_name;
-      if (value.topic_name) return value.topic_name;
-      if (value.subject_name) return value.subject_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const handleAssign = (activity: Course) => {
     setSelectedActivity(activity);

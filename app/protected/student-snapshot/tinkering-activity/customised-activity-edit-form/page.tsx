@@ -1,19 +1,6 @@
 import React from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Typography,
-  Box,
-} from "@mui/material";
-import { Button } from "@/components/ui/Button";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Grid, TextField, FormControl, InputLabel, Select, MenuItem, Typography, Box } from "@mui/material";
+import { Button } from "@/components/Button";
 import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
 
 const EditActivityDialog: React.FC<EditActivityDialogProps> = ({

@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import {
-  getSchoolById,
-  updateSchool,
-  deleteSchool,
-} from "@/lib/db/school/crud";
-import {
-  getAddressById,
-  updateAddress,
-  deleteAddress,
-} from "@/lib/db/address/crud";
+import { getSchoolById, updateSchool, deleteSchool } from "@/lib/db/school/crud";
+import { getAddressById, updateAddress, deleteAddress } from "@/lib/db/address/crud";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest, { params }: any) {

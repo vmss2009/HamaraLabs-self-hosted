@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import React, { ChangeEvent } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
 import { useRouter } from "next/navigation";
 import MultiForm from "@/components/forms/DynamicFieldArray";
-import DateFieldGroup from "@/components/forms/DateField";
-import { Input } from "@/components/ui/Input";
+import DateFieldGroup from "@/components/DateField";
+import { Input } from "@/components/Input";
 
-export default function CourseRegistrationForm() {
+export default function CourseForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

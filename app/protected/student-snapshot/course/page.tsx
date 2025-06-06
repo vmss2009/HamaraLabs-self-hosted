@@ -1,9 +1,5 @@
-import {
-  GridColDef,
-  GridRenderCellParams,
-  GridActionsCellItem,
-} from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
+import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
+import { Button } from "@/components/Button";
 
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 

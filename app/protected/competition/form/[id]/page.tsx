@@ -2,21 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/Input";
-import DateFieldGroup from "@/components/forms/DateField";
+import { Input } from "@/components/Input";
+import DateFieldGroup from "@/components/DateField";
 import MultiForm from "@/components/forms/DynamicFieldArray";
 
-export default function EditCompetitionForm({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditCompetitionForm({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);

@@ -1,24 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridColumnVisibilityModel,
-  GridActionsCellItem,
-  GridToolbarQuickFilter,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-} from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
+import { DataGrid, GridColDef, GridColumnVisibilityModel, GridActionsCellItem, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
+import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Alert from "@mui/material/Alert";
-import AssignDialog from "@/components/forms/DialogBox";
+import AssignDialog from "@/components/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
-import DetailViewer from "@/components/forms/DetailViewer";
-import { Student } from "@/lib/db/student/type";
+import DetailViewer from "@/components/DetailViewer";
 import { FullActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
@@ -30,18 +21,9 @@ export default function TinkeringActivityReport() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [missingRelationships, setMissingRelationships] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState("");
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [fullActivities, setFullActivities] = useState<FullActivity[]>([]);
-
-  const [schools, setSchools] = useState([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [assignError, setAssignError] = useState<string | null>(null);
-  const [assignLoading, setAssignLoading] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedActivity, setSelectedActivity] =
-    useState<TinkeringActivityWithSubtopic | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<TinkeringActivityWithSubtopic | null>(null);
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
       goals: false,
@@ -64,7 +46,6 @@ export default function TinkeringActivityReport() {
 
       setFullActivities(data);
 
-      console.log("ActivityDAta", data);
       const updatedData = data.map(
         (item: {
           instructions?: string[];
@@ -154,50 +135,9 @@ export default function TinkeringActivityReport() {
     setDrawerOpen(true);
   };
 
-  const fetchSchools = async () => {
-    try {
-      const response = await fetch("/api/schools");
-      if (!response.ok) {
-        throw new Error("Failed to fetch schools");
-      }
-      const data = await response.json();
-      setSchools(data);
-    } catch (error) {
-      console.error("Error fetching schools:", error);
-    }
-  };
-
-  const fetchStudents = async (schoolId: string) => {
-    try {
-      const response = await fetch(`/api/students?school_id=${schoolId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch students");
-      }
-      const data = await response.json();
-      setStudents(data);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-    }
-  };
-
   useEffect(() => {
     fetchActivities();
   }, []);
-
-  useEffect(() => {
-    if (assignDialogOpen) {
-      fetchSchools();
-    }
-  }, [assignDialogOpen]);
-
-  useEffect(() => {
-    if (selectedSchool) {
-      fetchStudents(selectedSchool);
-    } else {
-      setStudents([]);
-      setSelectedStudents([]);
-    }
-  }, [selectedSchool]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this tinkering activity?")) {
@@ -252,66 +192,8 @@ export default function TinkeringActivityReport() {
     setAssignDialogOpen(true);
   };
 
-  const handleAssignSubmit = async () => {
-    if (!selectedStudents.length || !selectedActivity) return;
-
-    try {
-      setAssignLoading(true);
-      setAssignError(null);
-
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      const promises = selectedStudents.map((studentId) =>
-        fetch("/api/customised-tinkering-activities", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: selectedActivity.name,
-            subtopic_id: selectedActivity.subtopic_id,
-            introduction: selectedActivity.introduction,
-            goals: selectedActivity.goals,
-            materials: selectedActivity.materials,
-            instructions: selectedActivity.instructions,
-            tips: selectedActivity.tips,
-            observations: selectedActivity.observations,
-            extensions: selectedActivity.extensions,
-            resources: selectedActivity.resources,
-            base_ta_id: selectedActivity.id,
-            student_id: studentId,
-            status: [`Assigned - ${formattedDate}`],
-          }),
-        })
-      );
-
-      await Promise.all(promises);
-      setAssignDialogOpen(false);
-      setSelectedStudents([]);
-      setSelectedSchool("");
-      setSelectedActivity(null);
-      setSuccess("Tinkering activity assigned successfully");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      console.error("Error assigning tinkering activity:", error);
-      setAssignError("Failed to assign tinkering activity");
-    } finally {
-      setAssignLoading(false);
-    }
-  };
-
   const closeAssignDialog = () => {
     setAssignDialogOpen(false);
-    setSelectedSchool("");
-    setSelectedStudents([]);
-    setAssignError(null);
     setSelectedActivity(null);
   };
 

@@ -2,17 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
 import MultiForm from "@/components/forms/DynamicFieldArray";
-import { Input } from "@/components/ui/Input";
-import DateFieldGroup from "@/components/forms/DateField";
+import { Input } from "@/components/Input";
+import DateFieldGroup from "@/components/DateField";
 
 export default function CompetitionForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -68,7 +67,6 @@ export default function CompetitionForm() {
         throw new Error(errorData.error || "Failed to submit the form");
       }
 
-      setSuccess(true);
       setTimeout(() => {
         router.push("/protected/competition/report");
       }, 2000);

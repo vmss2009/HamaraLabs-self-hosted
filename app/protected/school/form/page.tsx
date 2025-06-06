@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
-import CheckboxGroup from "@/components/forms/CheckboxGroup";
-import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import TextFieldGroup from "@/components/TextFieldGroup";
+import SelectField from "@/components/SelectField";
+import CheckboxGroup from "@/components/CheckboxGroup";
+import RadioButtonGroup from "@/components/RadioButtonGroup";
 import MultiForm from "@/components/forms/DynamicFieldArray";
 
 type Country = {
@@ -106,22 +106,6 @@ export default function SchoolForm() {
     } else {
       setSyllabus(syllabus.filter((item) => item !== value));
     }
-  };
-
-  const handleSocialLinkChange = (index: number, value: string) => {
-    const updatedLinks = [...socialLinks];
-    updatedLinks[index] = value;
-    setSocialLinks(updatedLinks);
-  };
-
-  const addSocialLink = () => {
-    setSocialLinks([...socialLinks, ""]);
-  };
-
-  const removeSocialLink = (index: number) => {
-    const updatedLinks = [...socialLinks];
-    updatedLinks.splice(index, 1);
-    setSocialLinks(updatedLinks);
   };
 
   const onSubmit = async (event: React.FormEvent) => {

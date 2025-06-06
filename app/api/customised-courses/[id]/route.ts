@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getCustomisedCourseById,
-  updateCustomisedCourse,
-  deleteCustomisedCourse,
-  getCustomisedCourses,
-} from "@/lib/db/customised-course/crud";
+import { getCustomisedCourseById, updateCustomisedCourse, deleteCustomisedCourse, getCustomisedCourses } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
 
 export async function GET(request: Request, { params }: any) {

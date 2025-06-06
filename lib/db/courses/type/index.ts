@@ -1,4 +1,3 @@
-import { Course as PrismaCourse } from "@prisma/client";
 import { z } from "zod";
 
 export type Course = {

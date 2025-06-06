@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import {
-  CustomisedTinkeringActivityCreateInput,
-  CustomisedTinkeringActivityFilter,
-  CustomisedTinkeringActivityWithRelations,
-} from "../type";
+import { CustomisedTinkeringActivityCreateInput, CustomisedTinkeringActivityFilter, CustomisedTinkeringActivityWithRelations } from "../type";
 
 export async function createCustomisedTinkeringActivity(
   data: CustomisedTinkeringActivityCreateInput,

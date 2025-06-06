@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/Card";
 
 interface FormSectionProps {
   title: string;
