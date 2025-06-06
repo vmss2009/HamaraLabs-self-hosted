@@ -2,12 +2,10 @@
 
 import React, { useState } from "react";
 
-interface DynamicFieldArrayProps {
+interface MultiFormProps {
   values?: string[];
-  onChange?: (index: number, value: string) => void;
-  onAdd?: () => void;
-  onRemove?: (index: number) => void;
   legend?: string;
+  setArray: (newArray: string[]) => void; // <-- changed here
   fieldLabel?: string;
   className?: string;
   label?: string;
@@ -16,12 +14,10 @@ interface DynamicFieldArrayProps {
   required?: boolean;
 }
 
-const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
+const MultiForm: React.FC<MultiFormProps> = ({
   values = [],
-  onChange,
-  onAdd,
-  onRemove,
   legend,
+  setArray,
   fieldLabel,
   className = "",
   label,
@@ -36,31 +32,22 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
   const displayValues = values.length > 0 ? values : internalValues;
 
   const handleChange = (index: number, value: string) => {
-    if (onChange) {
-      onChange(index, value);
-    } else {
-      const updated = [...internalValues];
-      updated[index] = value;
-      setInternalValues(updated);
-    }
+    const newValues = [...displayValues];
+    newValues[index] = value;
+    setInternalValues(newValues);
+    setArray(newValues);
   };
 
   const handleAdd = () => {
-    if (onAdd) {
-      onAdd();
-    } else {
-      setInternalValues([...internalValues, ""]);
-    }
+    const newValues = [...displayValues, ""];
+    setInternalValues(newValues);
+    setArray(newValues);
   };
 
   const handleRemove = (index: number) => {
-    if (onRemove) {
-      onRemove(index);
-    } else {
-      const updated = [...internalValues];
-      updated.splice(index, 1);
-      setInternalValues(updated);
-    }
+    const newValues = displayValues.filter((_, i) => i !== index);
+    setInternalValues(newValues);
+    setArray(newValues);
   };
 
   const displayLabel = legend || label || "Field";
@@ -114,4 +101,4 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
   );
 };
 
-export default DynamicFieldArray;
+export default MultiForm;

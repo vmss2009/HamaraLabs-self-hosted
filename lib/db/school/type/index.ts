@@ -1,5 +1,36 @@
 import { School as PrismaSchool } from "@prisma/client";
 import { z } from "zod";
+
+export interface School {
+  id: number;
+  name: string;
+  is_ATL: boolean;
+  paid_subscription: boolean;
+  website_url: string;
+  social_links: string[];
+  syllabus: string[];
+  addressLine1: string;
+  addressLine2?: string;
+  cityId?: number;
+  stateId?: number;
+  countryId?: number;
+  pincode?: string;
+  principalEmail?: string;
+  principalFirstName?: string;
+  principalLastName?: string;
+  principalNumber?: string;
+  correspondentEmail?: string;
+  correspondentFirstName?: string;
+  correspondentLastName?: string;
+  correspondentNumber?: string;
+  inChargeEmail?: string;
+  inChargeFirstName?: string;
+  inChargeLastName?: string;
+  inChargeNumber?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
 export interface SchoolCreateInput {
   name: string;
   is_ATL: boolean;

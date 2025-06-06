@@ -63,6 +63,16 @@ export function getTinkeringActivityColumns(
           ? params.row.status[params.row.status.length - 1]
           : "N/A",
     },
+
+    { field: "goals", headerName: "Goals", width: 200 },
+
+    { field: "materials", headerName: "Materials", width: 200 },
+    { field: "instructions", headerName: "Instructions", width: 200 },
+    { field: "tips", headerName: "Tips", width: 200 },
+    { field: "observations", headerName: "Observations", width: 200 },
+    { field: "resources", headerName: "Resourses", width: 200 },
+    { field: "extensions", headerName: "Extensions", width: 200 },
+
     {
       field: "tinkering_actions",
       headerName: "Actions",

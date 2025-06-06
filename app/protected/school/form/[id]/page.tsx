@@ -565,9 +565,7 @@ export default function EditSchoolForm({
               <DynamicFieldArray
                 values={socialLinks}
                 placeholder="SocialLink"
-                onChange={handleSocialLinkChange}
-                onAdd={addSocialLink}
-                onRemove={removeSocialLink}
+                setArray={setSocialLinks}
                 legend="Social Links"
                 fieldLabel="Social Link"
               />

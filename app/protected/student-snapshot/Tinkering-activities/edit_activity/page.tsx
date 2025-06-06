@@ -14,26 +14,7 @@ import {
   Box,
 } from "@mui/material";
 import { Button } from "@/components/ui/Button";
-
-interface EditActivityDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: () => void;
-  editFormData: any;
-  handleEditFormChange: (field: string, value: string) => void;
-  handleArrayFieldChange: (field: string, index: number, value: string) => void;
-  handleAddArrayItem: (field: string) => void;
-  handleRemoveArrayItem: (field: string, index: number) => void;
-  selectedSubject: string;
-  setSelectedSubject: (value: string) => void;
-  selectedTopic: string;
-  setSelectedTopic: (value: string) => void;
-  selectedSubtopic: string;
-  setSelectedSubtopic: (value: string) => void;
-  subjects: any[];
-  topics: any[];
-  subtopics: any[];
-}
+import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
 
 const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
   open,

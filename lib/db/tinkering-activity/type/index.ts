@@ -30,6 +30,25 @@ export interface SubtopicCreateInput {
 export interface SubtopicWithTopic extends PrismaSubtopic {
   topic: TopicWithSubject;
 }
+export interface EditActivityDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  editFormData: any;
+  handleEditFormChange: (field: string, value: string) => void;
+  handleArrayFieldChange: (field: string, index: number, value: string) => void;
+  handleAddArrayItem: (field: string) => void;
+  handleRemoveArrayItem: (field: string, index: number) => void;
+  selectedSubject: string;
+  setSelectedSubject: (value: string) => void;
+  selectedTopic: string;
+  setSelectedTopic: (value: string) => void;
+  selectedSubtopic: string;
+  setSelectedSubtopic: (value: string) => void;
+  subjects: any[];
+  topics: any[];
+  subtopics: any[];
+}
 
 export interface TinkeringActivityCreateInput {
   name: string;

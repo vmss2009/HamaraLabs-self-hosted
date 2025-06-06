@@ -5,7 +5,7 @@ import React, { ChangeEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 import { useRouter } from "next/navigation";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 import DateFieldGroup from "@/components/forms/DateField";
 import { Input } from "@/components/ui/Input";
 
@@ -121,9 +121,10 @@ export default function CourseRegistrationForm() {
 
               <div>
                 <Input
-                  id="competition-name"
+                  id="course-name"
                   name="name"
                   label="Course Name"
+                  setvalue={setOrganizedBy}
                   required
                   placeholder="Enter course name"
                   className="focus:border-blue-500 focus:ring-blue-500"
@@ -131,7 +132,7 @@ export default function CourseRegistrationForm() {
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-bold text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -143,7 +144,7 @@ export default function CourseRegistrationForm() {
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-bold text-gray-700">
                   Organized By
                 </label>
 
@@ -158,8 +159,10 @@ export default function CourseRegistrationForm() {
                 </select>
 
                 {isExternal && (
-                  <input
+                  <Input
                     type="text"
+                    name="organizedby"
+                    id="organizedby"
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -197,7 +200,7 @@ export default function CourseRegistrationForm() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                  <label className="block mb-2 text-sm font-bold text-gray-700">
                     From
                   </label>
                   <select
@@ -215,7 +218,7 @@ export default function CourseRegistrationForm() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                  <label className="block mb-2 text-sm font-bold text-gray-700">
                     To
                   </label>
                   <select
@@ -244,21 +247,11 @@ export default function CourseRegistrationForm() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <DynamicFieldArray
+                  <MultiForm
                     placeholder="Requirement"
                     className="space-y-4"
                     values={requirements}
-                    onChange={(index, value) => {
-                      const newRequirements = [...requirements];
-                      newRequirements[index] = value;
-                      setRequirements(newRequirements);
-                    }}
-                    onAdd={() => setRequirements([...requirements, ""])}
-                    onRemove={(index) => {
-                      const newRequirements = [...requirements];
-                      newRequirements.splice(index, 1);
-                      setRequirements(newRequirements);
-                    }}
+                    setArray={setRequirements}
                     legend="Requirements"
                     fieldLabel="Requirement"
                     name="requirements"
@@ -267,21 +260,11 @@ export default function CourseRegistrationForm() {
                 </div>
 
                 <div>
-                  <DynamicFieldArray
+                  <MultiForm
                     placeholder="Tag"
                     className="space-y-4"
                     values={courseTags}
-                    onChange={(index, value) => {
-                      const newTags = [...courseTags];
-                      newTags[index] = value;
-                      setCourseTags(newTags);
-                    }}
-                    onAdd={() => setCourseTags([...courseTags, ""])}
-                    onRemove={(index) => {
-                      const newTags = [...courseTags];
-                      newTags.splice(index, 1);
-                      setCourseTags(newTags);
-                    }}
+                    setArray={setCourseTags}
                     legend="Course Tags"
                     fieldLabel="Tag"
                     name="courseTags"
@@ -294,7 +277,7 @@ export default function CourseRegistrationForm() {
 
           <FormSection title="Reference">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
+              <label className="block mb-2 text-sm font-bold text-gray-700">
                 Reference Link
               </label>
               <input

@@ -4,20 +4,17 @@ import { useState, useEffect } from "react";
 import {
   DataGrid,
   GridColDef,
+  GridColumnVisibilityModel,
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
-  GridActionsCellItem,
 } from "@mui/x-data-grid";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { Button } from "@/components/ui/Button";
 import DetailViewer from "@/components/forms/DetailViewer";
 import {
-  Select,
-  MenuItem,
   FormControl,
-  InputLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -26,15 +23,12 @@ import {
   RadioGroup,
   FormControlLabel,
   FormLabel,
-  TextField,
-  Grid,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import EditActivityDialog from "./Edit_Activity/page";
-import { getCourseColumns } from "./Courses/page";
-import { getCompetitionColumns } from "./Competition/page";
-import { getTinkeringActivityColumns } from "./Tinkering-activities/page";
+
+import EditActivityDialog from "./tinkering-activities/edit_activity/page";
+import { getCourseColumns } from "./courses/page";
+import { getCompetitionColumns } from "./competition/page";
+import { getTinkeringActivityColumns } from "./tinkering-activities/page";
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
   "Mentor needed",
@@ -105,6 +99,25 @@ export default function StudentSnapshot() {
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
+  const [columnVisibilityModel, setColumnVisibilityModel] =
+    useState<GridColumnVisibilityModel>({
+      goals: false,
+      materials: false,
+      instructions: false,
+      tips: false,
+      observations: false,
+      extensions: false,
+      resources: false,
+    });
+
+  const [
+    columnVisibilityCompetitionModel,
+    setColumnVisibilitycompetitionModel,
+  ] = useState<GridColumnVisibilityModel>({
+    reference_links: false,
+    requirements: false,
+    description: false,
+  });
 
   const latestStatus =
     selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(
@@ -260,7 +273,7 @@ export default function StudentSnapshot() {
         throw new Error("Failed to fetch competitions");
       }
       const customisedCompetitions = await response.json();
-      console.log(customisedCompetitions);
+      console.log("Compettt", customisedCompetitions);
       setCompetitions(customisedCompetitions);
     } catch (error) {
       console.error("Error fetching competitions:", error);
@@ -780,6 +793,10 @@ export default function StudentSnapshot() {
               }}
               pageSizeOptions={[5, 10, 25, 50]}
               disableRowSelectionOnClick
+              columnVisibilityModel={columnVisibilityModel}
+              onColumnVisibilityModelChange={(newModel) =>
+                setColumnVisibilityModel(newModel)
+              }
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}
@@ -822,6 +839,10 @@ export default function StudentSnapshot() {
               }}
               pageSizeOptions={[5, 10, 25, 50]}
               disableRowSelectionOnClick
+              columnVisibilityModel={columnVisibilityCompetitionModel}
+              onColumnVisibilityModelChange={(newModel) =>
+                setColumnVisibilitycompetitionModel(newModel)
+              }
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}

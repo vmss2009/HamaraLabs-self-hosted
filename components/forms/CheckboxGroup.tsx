@@ -31,7 +31,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <div className="text-sm font-medium text-gray-800 mb-2">
+      <div className="text-sm font-bold text-gray-800 mb-2">
         {legend} {required && <span className="text-red-600">*</span>}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

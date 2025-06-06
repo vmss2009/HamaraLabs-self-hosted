@@ -20,7 +20,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-800 mb-1.5">
+          <label className="block text-sm font-bold text-gray-800 mb-1.5">
             {label} {props.required && <span className="text-red-600">*</span>}
           </label>
         )}

@@ -14,32 +14,12 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
 import AssignDialog from "@/components/forms/DialogBox";
-import Checkbox from "@mui/material/Checkbox";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import DetailViewer from "@/components/forms/DetailViewer";
-
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
-
-interface Student {
-  id: string;
-  first_name: string;
-  last_name: string;
-}
+import { Student } from "@/lib/db/student/type";
+import { FullActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
   const router = useRouter();
@@ -52,6 +32,8 @@ export default function TinkeringActivityReport() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [fullActivities, setFullActivities] = useState<FullActivity[]>([]);
+
   const [schools, setSchools] = useState([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [assignError, setAssignError] = useState<string | null>(null);
@@ -62,13 +44,13 @@ export default function TinkeringActivityReport() {
     useState<TinkeringActivityWithSubtopic | null>(null);
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
-      Goals: false,
+      goals: false,
       materials: false,
       instructions: false,
       tips: false,
       observations: false,
       extensions: false,
-      resourses: false,
+      resources: false,
     });
 
   const fetchActivities = async () => {
@@ -77,8 +59,70 @@ export default function TinkeringActivityReport() {
       if (!response.ok) {
         throw new Error("Failed to fetch tinkering activities");
       }
+
       const data = await response.json();
-      setActivities(data);
+
+      setFullActivities(data);
+
+      console.log("ActivityDAta", data);
+      const updatedData = data.map(
+        (item: {
+          instructions?: string[];
+          goals?: string[];
+          materials?: string[];
+          tips?: string[];
+          observations?: string[];
+          resources?: string[];
+          extensions?: string[];
+        }) => ({
+          ...item,
+
+          instructions:
+            Array.isArray(item.instructions) && item.instructions.length > 0
+              ? item.instructions[0].slice(0, 50) +
+                (item.instructions[0].length > 50 ? "..." : "")
+              : "",
+
+          goals:
+            Array.isArray(item.goals) && item.goals.length > 0
+              ? item.goals[0].slice(0, 50) +
+                (item.goals[0].length > 50 ? "..." : "")
+              : "",
+
+          materials:
+            Array.isArray(item.materials) && item.materials.length > 0
+              ? item.materials[0].slice(0, 50) +
+                (item.materials[0].length > 50 ? "..." : "")
+              : "",
+
+          tips:
+            Array.isArray(item.tips) && item.tips.length > 0
+              ? item.tips[0].slice(0, 50) +
+                (item.tips[0].length > 50 ? "..." : "")
+              : "",
+
+          observations:
+            Array.isArray(item.observations) && item.observations.length > 0
+              ? item.observations[0].slice(0, 50) +
+                (item.observations[0].length > 50 ? "..." : "")
+              : "",
+
+          resources:
+            Array.isArray(item.resources) && item.resources.length > 0
+              ? item.resources[0].slice(0, 50) +
+                (item.resources[0].length > 50 ? "..." : "")
+              : "",
+
+          extensions:
+            Array.isArray(item.extensions) && item.extensions.length > 0
+              ? item.extensions[0].slice(0, 50) +
+                (item.extensions[0].length > 50 ? "..." : "")
+              : "",
+        })
+      );
+
+      console.log("UpdatedData", updatedData);
+      setActivities(updatedData);
 
       if (data.length > 0) {
         const allMissingData = data.every(
@@ -97,6 +141,17 @@ export default function TinkeringActivityReport() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRowClick = (params: any) => {
+    if (!params || !params.row) return;
+
+    console.log("FullActivities", fullActivities);
+
+    const fullRow = fullActivities.find((item) => item.id === params.row.id);
+
+    setSelectedRow(fullRow || params.row);
+    setDrawerOpen(true);
   };
 
   const fetchSchools = async () => {
@@ -158,16 +213,12 @@ export default function TinkeringActivityReport() {
         throw new Error("Failed to delete tinkering activity");
       }
 
+      setSuccess("Tinkering-activity Record deleted sucessfully");
+      setTimeout(() => setSuccess(null), 3000);
       fetchActivities();
     } catch (error) {
       console.error("Error deleting tinkering activity:", error);
     }
-  };
-
-  const handleRowClick = (params: any) => {
-    if (!params || !params.row) return;
-    setSelectedRow(params.row);
-    setDrawerOpen(true);
   };
 
   const closeDrawer = () => {
@@ -271,45 +322,29 @@ export default function TinkeringActivityReport() {
       field: "name",
       headerName: "Activity Name",
       width: 200,
-      renderCell: (params) => (
-        <div className="whitespace-pre-line break-words p-2 flex items-center justify-center w-full h-full text-center">
-          {params.value}
-        </div>
-      ),
     },
     {
       field: "introduction",
       headerName: "Introduction",
       width: 200,
-      renderCell: (params) => (
-        <div className="whitespace-pre-line break-words p-2 flex items-center justify-center w-full h-full text-center">
-          {params.value}
-        </div>
-      ),
     },
     {
       field: "subtopic_name",
       headerName: "Subtopic",
       width: 200,
-      renderCell: (params) => (
-        <div className="flex items-center h-full">{params.value}</div>
-      ),
     },
     {
       field: "topic_name",
       headerName: "Topic",
       width: 200,
-      renderCell: (params) => (
-        <div className="flex items-center h-full">{params.value}</div>
-      ),
     },
-    { field: "Goals", headerName: "Goals", width: 200 },
+    { field: "goals", headerName: "Goals", width: 200 },
 
     { field: "materials", headerName: "Materials", width: 200 },
     { field: "instructions", headerName: "Instructions", width: 200 },
     { field: "tips", headerName: "Tips", width: 200 },
     { field: "observations", headerName: "Observations", width: 200 },
-    { field: "resourses", headerName: "Resourses", width: 200 },
+    { field: "resources", headerName: "Resourses", width: 200 },
     { field: "extensions", headerName: "Extensions", width: 200 },
 
     {
@@ -394,7 +429,7 @@ export default function TinkeringActivityReport() {
         {success && (
           <Alert
             severity="success"
-            className="mb-4"
+            className="mb-2 ml-7 mr-7"
             sx={{
               borderRadius: "8px",
               backgroundColor: "#E3F2E8",

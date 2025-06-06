@@ -1,5 +1,13 @@
 import { Student as PrismaStudent } from "@prisma/client";
 import { z } from "zod";
+
+export interface Student {
+  instructions?: string;
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
 export interface StudentCreateInput {
   first_name: string;
   last_name: string;

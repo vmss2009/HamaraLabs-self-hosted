@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 import { Input } from "@/components/ui/Input";
 import DateFieldGroup from "@/components/forms/DateField";
 
@@ -144,7 +144,7 @@ export default function CompetitionForm() {
               </div>
 
               <div className="w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Description <span className="text-red-600">*</span>
                 </label>
                 <textarea
@@ -197,7 +197,7 @@ export default function CompetitionForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Payment Type <span className="text-red-600">*</span>
                 </label>
                 <select
@@ -231,62 +231,32 @@ export default function CompetitionForm() {
           </FormSection>
 
           <FormSection title="Competition Details">
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Eligibility"
               values={eligibility}
-              onChange={(index, value) => {
-                const newEligibility = [...eligibility];
-                newEligibility[index] = value;
-                setEligibility(newEligibility);
-              }}
-              onAdd={() => setEligibility([...eligibility, ""])}
-              onRemove={(index) => {
-                const newEligibility = [...eligibility];
-                newEligibility.splice(index, 1);
-                setEligibility(newEligibility);
-              }}
+              setArray={setEligibility}
               legend="Eligibility Criteria"
               fieldLabel="Eligibility"
               name="eligibility"
               required
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="ReferenceLink"
               values={referenceLinks}
-              onChange={(index, value) => {
-                const newReferenceLinks = [...referenceLinks];
-                newReferenceLinks[index] = value;
-                setReferenceLinks(newReferenceLinks);
-              }}
-              onAdd={() => setReferenceLinks([...referenceLinks, ""])}
-              onRemove={(index) => {
-                const newReferenceLinks = [...referenceLinks];
-                newReferenceLinks.splice(index, 1);
-                setReferenceLinks(newReferenceLinks);
-              }}
+              setArray={setReferenceLinks}
               legend="Reference Links"
               fieldLabel="Link"
               name="referenceLinks"
             />
 
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Requirement"
               values={requirements}
-              onChange={(index, value) => {
-                const newRequirements = [...requirements];
-                newRequirements[index] = value;
-                setRequirements(newRequirements);
-              }}
-              onAdd={() => setRequirements([...requirements, ""])}
-              onRemove={(index) => {
-                const newRequirements = [...requirements];
-                newRequirements.splice(index, 1);
-                setRequirements(newRequirements);
-              }}
+              setArray={setRequirements}
               legend="Requirements"
               fieldLabel="Requirement"
               name="requirements"
@@ -295,7 +265,12 @@ export default function CompetitionForm() {
           </FormSection>
 
           <div className="flex justify-end space-x-4">
-            <Button type="submit" isLoading={isLoading} size="lg">
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
               Submit
             </Button>
           </div>

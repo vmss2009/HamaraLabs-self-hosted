@@ -10,51 +10,20 @@ import {
   GridToolbarColumnsButton,
   GridActionsCellItem,
 } from "@mui/x-data-grid";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
+import Alert from "@mui/material/Alert";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { prisma } from "@/lib/db/prisma";
 import DetailViewer from "@/components/forms/DetailViewer";
-
-interface School {
-  id: number;
-  name: string;
-  is_ATL: boolean;
-  paid_subscription: boolean;
-  website_url: string;
-  social_links: string[];
-  syllabus: string[];
-  addressLine1: string;
-  addressLine2?: string;
-  cityId?: number;
-  stateId?: number;
-  countryId?: number;
-  pincode?: string;
-  principalEmail?: string;
-  principalFirstName?: string;
-  principalLastName?: string;
-  principalNumber?: string;
-  correspondentEmail?: string;
-  correspondentFirstName?: string;
-  correspondentLastName?: string;
-  correspondentNumber?: string;
-  inChargeEmail?: string;
-  inChargeFirstName?: string;
-  inChargeLastName?: string;
-  inChargeNumber?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-}
+import { School } from "@/lib/db/school/type";
 
 export default function Page() {
   const router = useRouter();
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
       syllabus: false,
@@ -232,6 +201,9 @@ export default function Page() {
         throw new Error("Failed to delete school");
       }
 
+      setSuccess("School record deleted sucessfully");
+      setTimeout(() => setSuccess(null), 3000);
+
       fetchSchools();
     } catch (error) {
       console.error("Error deleting school:", error);
@@ -275,6 +247,34 @@ export default function Page() {
     <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
       <div className="pt-20  h-auto w-[calc(100vw-6rem)]  m-10">
         <div className="bg-white rounded-xl shadow-sm">
+          {error && (
+            <Alert
+              severity="error"
+              className="mb-4"
+              sx={{
+                borderRadius: "8px",
+                backgroundColor: "#FFEBEE",
+                border: "1px solid #FFCDD2",
+                padding: "10px 16px",
+              }}
+            >
+              {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert
+              severity="success"
+              className="mb-2 ml-7 mr-7"
+              sx={{
+                borderRadius: "8px",
+                backgroundColor: "#E3F2E8",
+                border: "1px solid #A5D6A7",
+                padding: "10px 16px",
+              }}
+            >
+              {success}
+            </Alert>
+          )}
           <DataGrid
             rows={schools}
             columns={columns}

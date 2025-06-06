@@ -7,7 +7,7 @@ import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
 import CheckboxGroup from "@/components/forms/CheckboxGroup";
 import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 
 type Country = {
   id: number;
@@ -485,12 +485,12 @@ export default function SchoolForm() {
                 className="mb-5"
               />
 
-              <DynamicFieldArray
+              <MultiForm
+                className="space-y-4"
                 placeholder="SocialLink"
+                name="SocialLink"
                 values={socialLinks}
-                onChange={handleSocialLinkChange}
-                onAdd={addSocialLink}
-                onRemove={removeSocialLink}
+                setArray={setSocialLinks}
                 legend="Social Links"
                 fieldLabel="Social Link"
               />
@@ -498,7 +498,12 @@ export default function SchoolForm() {
           </FormSection>
 
           <div className="flex justify-end space-x-4">
-            <Button type="submit" isLoading={isLoading} size="lg">
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
               Submit
             </Button>
           </div>

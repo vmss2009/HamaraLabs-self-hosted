@@ -9,6 +9,7 @@ import FormSection from "@/components/forms/FormSection";
 import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
 import DateFieldGroup from "@/components/forms/DateField";
 import { Input } from "@/components/ui/Input";
+import MultiForm from "@/components/forms/DynamicFieldArray";
 
 export default function EditCourseForm({
   params,
@@ -196,7 +197,7 @@ export default function EditCourseForm({
               <div>
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-bold text-gray-700"
                 >
                   Description
                 </label>
@@ -211,7 +212,7 @@ export default function EditCourseForm({
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-bold text-gray-700">
                   Organized By
                 </label>
 
@@ -227,8 +228,10 @@ export default function EditCourseForm({
                 </select>
 
                 {isExternal && (
-                  <input
+                  <Input
                     type="text"
+                    name="organizedby"
+                    id="organizedby"
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -289,7 +292,7 @@ export default function EditCourseForm({
                 <div>
                   <label
                     htmlFor="eligibilityFrom"
-                    className="block mb-2 text-sm font-medium text-gray-700"
+                    className="block mb-2 text-sm font-bold text-gray-700"
                   >
                     Eligibility From
                   </label>
@@ -314,7 +317,7 @@ export default function EditCourseForm({
                 <div>
                   <label
                     htmlFor="eligibilityTo"
-                    className="block mb-2 text-sm font-medium text-gray-700"
+                    className="block mb-2 text-sm font-bold text-gray-700"
                   >
                     Eligibility To
                   </label>
@@ -347,21 +350,11 @@ export default function EditCourseForm({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <DynamicFieldArray
+                  <MultiForm
                     placeholder="Requirement"
                     className="space-y-4"
                     values={requirements}
-                    onChange={(index, value) => {
-                      const newRequirements = [...requirements];
-                      newRequirements[index] = value;
-                      setRequirements(newRequirements);
-                    }}
-                    onAdd={() => setRequirements([...requirements, ""])}
-                    onRemove={(index) => {
-                      const newRequirements = [...requirements];
-                      newRequirements.splice(index, 1);
-                      setRequirements(newRequirements);
-                    }}
+                    setArray={setRequirements}
                     legend="Requirements"
                     fieldLabel="Requirement"
                     name="requirements"
@@ -370,21 +363,11 @@ export default function EditCourseForm({
                 </div>
 
                 <div>
-                  <DynamicFieldArray
+                  <MultiForm
                     placeholder="Tag"
                     className="space-y-4"
                     values={courseTags}
-                    onChange={(index, value) => {
-                      const newTags = [...courseTags];
-                      newTags[index] = value;
-                      setCourseTags(newTags);
-                    }}
-                    onAdd={() => setCourseTags([...courseTags, ""])}
-                    onRemove={(index) => {
-                      const newTags = [...courseTags];
-                      newTags.splice(index, 1);
-                      setCourseTags(newTags);
-                    }}
+                    setArray={setCourseTags}
                     legend="Course Tags"
                     fieldLabel="Tag"
                     name="courseTags"
@@ -399,7 +382,7 @@ export default function EditCourseForm({
             <div>
               <label
                 htmlFor="referenceLink"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-bold text-gray-700"
               >
                 Reference Link
               </label>
