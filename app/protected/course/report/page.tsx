@@ -32,7 +32,7 @@ const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
 export default function CourseReport() {
   const router = useRouter();
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -240,7 +240,12 @@ export default function CourseReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 90 },
+    { 
+        field: "id", 
+        headerName: "S.No", 
+        width: 90,
+        renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    },
     { field: "name", headerName: "Course Name", width: 200 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "organized_by", headerName: "Organized By", width: 200 },
@@ -370,6 +375,15 @@ export default function CourseReport() {
               <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
                 Course Details
               </Typography>
+
+              <Box sx={{ marginBottom: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                  S.No:
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {courses.findIndex(course => course.id === selectedRow.id) + 1}
+                </Typography>
+              </Box>
 
               <Box sx={{ marginBottom: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>

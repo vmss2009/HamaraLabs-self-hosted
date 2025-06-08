@@ -243,7 +243,12 @@ export default function CompetitionReport() {
   }, [selectedSchool]);
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    { 
+        field: "id", 
+        headerName: "S.No", 
+        width: 100,
+        renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    },
     { field: "name", headerName: "Name", width: 200 },
     { field: "organised_by", headerName: "Organised By", width: 200 },
     {
@@ -408,10 +413,10 @@ export default function CompetitionReport() {
                   variant="subtitle1"
                   sx={{ fontWeight: "bold", color: "#4b5563" }}
                 >
-                  ID:
+                  S.No:
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.id)}
+                  {competitions.findIndex(competition => competition.id === selectedRow.id) + 1}
                 </Typography>
               </Box>
 

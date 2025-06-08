@@ -122,8 +122,9 @@ export default function MentorReport() {
   const columns: GridColDef[] = [
     {
       field: "id",
-      headerName: "ID",
-      width: 200,
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
     },
     {
       field: "name",
@@ -244,10 +245,10 @@ export default function MentorReport() {
             
             <Box sx={{ marginBottom: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                ID:
+                S.No:
               </Typography>
               <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.id)}
+                {mentors.findIndex(mentor => mentor.id === selectedRow.id) + 1}
               </Typography>
             </Box>
 

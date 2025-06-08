@@ -39,7 +39,7 @@ interface Student {
 
 export default function TinkeringActivityReport() {
   const router = useRouter();
-  const [activities, setActivities] = useState([]);
+  const [activities, setActivities] = useState<TinkeringActivityWithSubtopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -250,7 +250,12 @@ export default function TinkeringActivityReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    { 
+        field: "id", 
+        headerName: "S.No", 
+        width: 100,
+        renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    },
     {
       field: 'name',
       headerName: 'Activity Name',
@@ -453,10 +458,10 @@ export default function TinkeringActivityReport() {
 
             <Box sx={{ marginBottom: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                ID:
+                S.No:
               </Typography>
               <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.id)}
+                {activities.findIndex(activity => activity.id === selectedRow.id) + 1}
               </Typography>
             </Box>
 

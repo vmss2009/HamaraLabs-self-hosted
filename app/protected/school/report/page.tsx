@@ -93,7 +93,12 @@ export default function Page() {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     const columns: GridColDef[] = [
-        { field: "id", headerName: "ID", width: 100 },
+        { 
+            field: "id", 
+            headerName: "S.No", 
+            width: 100,
+            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+        },
         { field: "name", headerName: "Name", width: 200 },
         { field: "is_ATL", headerName: "Is ATL ?", width: 200 },
         { field: "ATL_establishment_year", headerName: "ATL Establishment Year", width: 200 },
@@ -319,10 +324,10 @@ export default function Page() {
 
                         <Box sx={{ marginBottom: 3 }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                                ID:
+                                S.No:
                             </Typography>
                             <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                                {formatValue(selectedRow.id)}
+                                {schools.findIndex(school => school.id === selectedRow.id) + 1}
                             </Typography>
                         </Box>
 

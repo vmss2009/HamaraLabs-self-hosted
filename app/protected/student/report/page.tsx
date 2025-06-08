@@ -9,7 +9,6 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -17,9 +16,22 @@ import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
+interface Student {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  gender: string;
+  school: any;
+  class: string;
+  section: string;
+  aspiration: string;
+  comments: string;
+}
+
 export default function StudentReport() {
   const router = useRouter();
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -90,7 +102,12 @@ export default function StudentReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    { 
+        field: "id", 
+        headerName: "S.No", 
+        width: 100,
+        renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    },
     { field: "first_name", headerName: "First Name", width: 150 },
     { field: "last_name", headerName: "Last Name", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
@@ -192,10 +209,10 @@ export default function StudentReport() {
 
             <Box sx={{ marginBottom: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                ID:
+                S.No:
               </Typography>
               <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.id)}
+                {students.findIndex(student => student.id === selectedRow.id) + 1}
               </Typography>
             </Box>
 

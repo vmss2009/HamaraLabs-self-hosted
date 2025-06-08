@@ -601,10 +601,10 @@ export default function StudentSnapshot() {
 
   const tinkeringActivityColumns: GridColDef[] = [
     {
-      field: 'id',
-      headerName: 'ID',
-      width: 80,
-      renderCell: (params) => params.row?.id ?? "N/A",
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
     },
     {
       field: 'name',
@@ -714,7 +714,12 @@ export default function StudentSnapshot() {
   ];
 
   const competitionColumns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 80 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    },
     {
       field: 'competition_actions',
       headerName: "Competition",
@@ -826,7 +831,12 @@ export default function StudentSnapshot() {
     },
   ];
   const courseColumns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 80 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    },
     {
       field: 'course_actions',
       headerName: "Course",

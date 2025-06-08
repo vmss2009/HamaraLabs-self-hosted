@@ -233,7 +233,7 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
           throw new Error("Please enter a valid 4-digit year from 2000 onwards");
         }
       }
-      
+            
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
@@ -388,13 +388,13 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
             </div>
             
             <div className="space-y-4">
-              <RadioButtonGroup
-                name="isATL"
-                legend="Is ATL?"
-                options={yesNoOptions}
-                value={isATL}
-                onChange={setIsATL}
-              />
+            <RadioButtonGroup
+              name="isATL"
+              legend="Is ATL?"
+              options={yesNoOptions}
+              value={isATL}
+              onChange={setIsATL}
+            />
               
               {isATL === "Yes" && (
                 <TextFieldGroup

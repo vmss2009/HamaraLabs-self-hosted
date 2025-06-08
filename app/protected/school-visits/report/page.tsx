@@ -85,7 +85,13 @@ export default function SchoolVisitReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    { 
+      field: "id", 
+      headerName: "S.No", 
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+    
+    },
     {
       field: "school",
       headerName: "School",
@@ -217,10 +223,10 @@ export default function SchoolVisitReport() {
 
               <Box sx={{ marginBottom: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                  ID:
+                  S.No:
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatValue(selectedRow.id)}
+                  {visits.findIndex(visit => visit.id === selectedRow.id) + 1}
                 </Typography>
               </Box>
 
