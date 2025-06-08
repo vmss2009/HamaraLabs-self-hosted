@@ -17,6 +17,7 @@ model User {
   updated_at     DateTime  @updatedAt
   students       Student[]
   schools        School[]  @relation("UserSchools")
+  school_visits  SchoolVisit[] @relation("VisitPOC")
 }
 
 model Country {
@@ -60,6 +61,7 @@ model School {
   created_at        DateTime  @default(now())
   name              String
   is_ATL            Boolean
+  ATL_establishment_year Int?
   address_id        Int
   in_charge_id      String?
   correspondent_id  String?
@@ -71,6 +73,9 @@ model School {
   address           Address   @relation(fields: [address_id], references: [id])
   students          Student[]
   users             User[]    @relation("UserSchools")
+  hub_school        Hub[]     @relation("HubSchool")
+  hub_spokes        Hub[]     @relation("HubSpokes")
+  visits            SchoolVisit[]
 }
 
 model Student {
@@ -90,7 +95,7 @@ model Student {
   user                  User?                         @relation(fields: [user_id], references: [id])
   customised_activities CustomisedTinkeringActivity[]
   CustomisedCompetition CustomisedCompetition[]
-  CustomisedCourse     CustomisedCourse[] // <-- Add this line
+  CustomisedCourse     CustomisedCourse[]
 }
 
 model Subject {
@@ -167,11 +172,11 @@ model Course {
   eligibility_from       String
   eligibility_to         String
   reference_link         String
-  requirements           String[] // ⬅️ new field
-  course_tags            String[] // ⬅️ new field
+  requirements           String[]
+  course_tags            String[]
   created_at             DateTime           @default(now())
   updated_at             DateTime           @updatedAt
-  CustomisedCourse      CustomisedCourse[] // <-- Add this line
+  CustomisedCourse      CustomisedCourse[]
 }
 
 model CustomisedCourse {
@@ -215,4 +220,36 @@ model CustomisedCompetition {
   status         String[]
   competition    Competition @relation(fields: [competition_id], references: [id])
   student        Student     @relation(fields: [student_id], references: [id])
+}
+
+model Hub {
+  id            Int       @id @default(autoincrement())
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  hub_school_id Int
+  hub_school    School    @relation("HubSchool", fields: [hub_school_id], references: [id])
+  spokes        School[]  @relation("HubSpokes")
+  clusters      Cluster[] @relation("HubClusters")
+}
+
+model Cluster {
+  id          Int       @id @default(autoincrement())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  name        String
+  hubs        Hub[]     @relation("HubClusters")
+}
+
+model SchoolVisit {
+  id              Int       @id @default(autoincrement())
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  school_id       Int
+  school_performance String?
+  visit_date      DateTime
+  poc_id          String?
+  other_poc       String?
+  details         Json
+  school          School    @relation(fields: [school_id], references: [id])
+  point_of_contact User?    @relation("VisitPOC", fields: [poc_id], references: [id])
 }

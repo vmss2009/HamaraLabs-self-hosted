@@ -225,10 +225,19 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
 
     try {
       const formData = new FormData(event.target as HTMLFormElement);
-            
+      
+      // Validate ATL establishment year if ATL is Yes
+      if (isATL === "Yes") {
+        const year = formData.get("ATL_establishment_year");
+        if (!year || typeof year === 'string' && (!/^\d{4}$/.test(year) || parseInt(year) < 2000)) {
+          throw new Error("Please enter a valid 4-digit year from 2000 onwards");
+        }
+      }
+      
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
+        ATL_establishment_year: isATL === "Yes" ? parseInt(formData.get("ATL_establishment_year") as string) : null,
         address: {
           address_line1: formData.get("addressLine1"),
           address_line2: formData.get("addressLine2"),
@@ -378,13 +387,29 @@ export default function EditSchoolForm({ params }: { params: Promise<{ id: strin
               />
             </div>
             
-            <RadioButtonGroup
-              name="isATL"
-              legend="Is ATL?"
-              options={yesNoOptions}
-              value={isATL}
-              onChange={setIsATL}
-            />
+            <div className="space-y-4">
+              <RadioButtonGroup
+                name="isATL"
+                legend="Is ATL?"
+                options={yesNoOptions}
+                value={isATL}
+                onChange={setIsATL}
+              />
+              
+              {isATL === "Yes" && (
+                <TextFieldGroup
+                  fields={[
+                    {
+                      name: "ATL_establishment_year",
+                      label: "ATL Establishment Year",
+                      required: true,
+                      placeholder: "Enter year (e.g., 2024)",
+                      type: "number"
+                    }
+                  ]}
+                />
+              )}
+            </div>
           </div>
         </FormSection>
         

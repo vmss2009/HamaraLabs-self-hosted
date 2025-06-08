@@ -48,8 +48,8 @@ export async function getStudents(filter?: StudentFilter) {
       where.section = filter.section;
     }
     
-    if (filter?.schoolId) {
-      where.schoolId = filter.schoolId;
+    if (filter?.school_id) {
+      where.school_id = filter.school_id;
     }
     
     const students = await prisma.student.findMany({

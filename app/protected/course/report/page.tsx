@@ -250,19 +250,9 @@ export default function CourseReport() {
     { field: "course_end_date", headerName: "Course End", width: 150 },
     { field: "eligibility_from", headerName: "Eligible From", width: 150 },
     { field: "eligibility_to", headerName: "Eligible To", width: 150 },
-    {
-      field: "requirements",
-      headerName: "Requirements",
-      width: 200,
-    },
-
-    {
-      field: "course_tags",
-      headerName: "Course Tags",
-      width: 200,
-    },
+    { field: "requirements", headerName: "Requirements", width: 200 },
+    { field: "course_tags", headerName: "Course Tags", width: 200 },
     { field: "reference_link", headerName: "Reference Link", width: 200 },
-
     {
       field: "actions",
       type: "actions",

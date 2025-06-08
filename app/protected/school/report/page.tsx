@@ -16,12 +16,12 @@ import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { prisma } from "@/lib/db/prisma";
 
 interface School {
     id: number;
     name: string;
     is_ATL: boolean;
+    ATL_establishment_year: number | null;
     paid_subscription: boolean;
     website_url: string;
     social_links: string[];
@@ -86,6 +86,7 @@ export default function Page() {
         inChargeFirstName: false,
         inChargeLastName: false,
         inChargeNumber: false,
+        ATL_establishment_year: false
     });
 
     const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -95,6 +96,7 @@ export default function Page() {
         { field: "id", headerName: "ID", width: 100 },
         { field: "name", headerName: "Name", width: 200 },
         { field: "is_ATL", headerName: "Is ATL ?", width: 200 },
+        { field: "ATL_establishment_year", headerName: "ATL Establishment Year", width: 200 },
         { field: "paid_subscription", headerName: "Paid subscription", width: 200 },
         { field: "website_url", headerName: "Website URL", width: 300 },
         { field: "social_links", headerName: "Social Links", width: 300 },
@@ -252,24 +254,11 @@ export default function Page() {
         return String(value);
     };
 
-    const formatFieldName = (key: string): string => {
-        if (key === 'serial' || key === 'id') return '';
-        
-        return key
-            .replace(/_/g, ' ')
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/^./, str => str.toUpperCase())
-            .trim();
-    };
-
     return (
         <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
-
-    
         <div className="pt-20 ">
             <div className="bg-white rounded-xl shadow-sm">
                 <DataGrid
-                  
                     rows={schools}
                     columns={columns}
                     loading={loading}
@@ -354,6 +343,17 @@ export default function Page() {
                                 {formatValue(selectedRow.is_ATL ? "Yes" : "No")}
                             </Typography>
                         </Box>
+
+                        {selectedRow.is_ATL && (
+                            <Box sx={{ marginBottom: 3 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
+                                    ATL Establishment Year:
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                                    {formatValue(selectedRow.ATL_establishment_year)}
+                                </Typography>
+                            </Box>
+                        )}
 
                         <Box sx={{ marginBottom: 3 }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>

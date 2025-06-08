@@ -26,5 +26,5 @@ export interface StudentFilter {
   gender?: string;
   class?: string;
   section?: string;
-  schoolId?: number;
+  school_id?: number;
 } 

@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         const school = await createSchool({
             name: body.name,
             is_ATL: body.is_ATL,
+            ATL_establishment_year: body.is_ATL ? body.ATL_establishment_year : null,
             address_id: address.id,
             in_charge: body.in_charge,
             correspondent: body.correspondent,

@@ -105,6 +105,7 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
       data: {
         name: data.name,
         is_ATL: data.is_ATL,
+        ATL_establishment_year: data.ATL_establishment_year,
         address_id: data.address_id,
         in_charge_id: in_charge?.id,
         correspondent_id: correspondent?.id,
@@ -174,6 +175,9 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
     
     const schools = await prisma.school.findMany({
       where,
+      orderBy: {
+        name: 'asc'
+      },
       include: {
         address: {
           include: {
@@ -418,6 +422,7 @@ export async function updateSchool(id: number, data: SchoolUpdateInput): Promise
       data: {
         name: data.name,
         is_ATL: data.is_ATL,
+        ATL_establishment_year: data.ATL_establishment_year,
         syllabus: data.syllabus,
         website_url: data.website_url,
         paid_subscription: data.paid_subscription,

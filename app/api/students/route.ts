@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       gender: searchParams.get('gender') || undefined,
       class: searchParams.get('class') || undefined,
       section: searchParams.get('section') || undefined,
-      schoolId: searchParams.get('schoolId') ? parseInt(searchParams.get('schoolId') as string) : undefined
+      school_id: searchParams.get('school_id') ? parseInt(searchParams.get('school_id') as string) : undefined
     };
     
     const students = await getStudents(filter);

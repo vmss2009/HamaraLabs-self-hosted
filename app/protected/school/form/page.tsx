@@ -28,6 +28,8 @@ type City = {
 };
 
 export default function SchoolForm() {
+  const router = useRouter();
+
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -145,9 +147,18 @@ export default function SchoolForm() {
     try {
       const formData = new FormData(event.target as HTMLFormElement);
       
+      // Validate ATL establishment year if ATL is Yes
+      if (isATL === "Yes") {
+        const year = formData.get("ATL_establishment_year");
+        if (!year || typeof year === 'string' && (!/^\d{4}$/.test(year) || parseInt(year) < 2000)) {
+          throw new Error("Please enter a valid 4-digit year from 2000 onwards");
+        }
+      }
+      
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
+        ATL_establishment_year: isATL === "Yes" ? parseInt(formData.get("ATL_establishment_year") as string) : null,
         address: {
           address_line1: formData.get("addressLine1"),
           address_line2: formData.get("addressLine2"),
@@ -204,7 +215,7 @@ export default function SchoolForm() {
         throw new Error(errorData.message || "Failed to submit school data");
       }
 
-      window.location.href = "/protected/school/report";
+      router.push("/protected/school/report");
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -311,6 +322,20 @@ export default function SchoolForm() {
               value={isATL}
               onChange={setIsATL}
             />
+            
+            {isATL === "Yes" && (
+              <TextFieldGroup
+                fields={[
+                  {
+                    name: "ATL_establishment_year",
+                    label: "ATL Establishment Year",
+                    required: true,
+                    placeholder: "Enter year (e.g., 2024)",
+                    type: "number"
+                  }
+                ]}
+              />
+            )}
           </div>
         </FormSection>
         

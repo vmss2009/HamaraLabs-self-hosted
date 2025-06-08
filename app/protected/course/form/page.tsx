@@ -53,7 +53,7 @@ export default function CourseRegistrationForm() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit the form");
       }
-       router.push("/protected/course/report");
+      router.push("/protected/course/report");
 
     }
     catch (error) {

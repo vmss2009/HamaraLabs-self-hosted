@@ -63,6 +63,15 @@ export default function StudentSnapshot() {
   const [competitions, setCompetitions] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
 
+  // New state variables for Cluster and Hub
+  const [clusters, setClusters] = useState<any[]>([]);
+  const [selectedCluster, setSelectedCluster] = useState("");
+  const [hubs, setHubs] = useState<any[]>([]);
+  const [selectedHub, setSelectedHub] = useState("");
+
+  // State for controlling the view
+  const [currentView, setCurrentView] = useState<'cluster' | 'school'>('cluster');
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -79,14 +88,59 @@ export default function StudentSnapshot() {
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
 
-
-
   const latestStatus = selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(" - ")[0] || "";
 
-  // Fetch schools on component mount
+  // Fetch clusters and schools on component mount
   useEffect(() => {
-    fetchSchools();
+    const fetchData = async () => {
+      try {
+        // Fetch clusters
+        const clustersResponse = await fetch("/api/cluster");
+        if (!clustersResponse.ok) {
+          throw new Error("Failed to fetch clusters");
+        }
+        const clustersData = await clustersResponse.json();
+        setClusters(clustersData);
+
+        // Fetch all schools initially (needed for dropdown options before filtering)
+        const schoolsResponse = await fetch("/api/schools");
+        if (!schoolsResponse.ok) {
+          throw new Error("Failed to fetch schools");
+        }
+        const schoolsData = await schoolsResponse.json();
+        setSchools(schoolsData);
+
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        setError("Failed to load initial data. Please try again later.");
+      }
+    };
+    
+    fetchData();
   }, []);
+
+  // Filter hubs when cluster is selected
+  useEffect(() => {
+      if (currentView === 'cluster' && selectedCluster) {
+          const cluster = clusters.find(c => c.id.toString() === selectedCluster);
+          if (cluster) {
+              setHubs(cluster.hubs);
+              setSelectedHub(""); // Reset selected hub
+              setSelectedSchool(""); // Reset selected school
+              setStudents([]); // Clear students
+          } else {
+              setHubs([]);
+              setSelectedHub("");
+              setSelectedSchool("");
+              setStudents([]);
+          }
+      } else if (currentView === 'cluster' && !selectedCluster) {
+          setHubs([]);
+          setSelectedHub("");
+          setSelectedSchool("");
+          setStudents([]);
+      }
+  }, [selectedCluster, clusters, currentView]);
 
   // Fetch students when school is selected
   useEffect(() => {
@@ -180,17 +234,8 @@ export default function StudentSnapshot() {
   }, [selectedTopic]);
 
   const fetchSchools = async () => {
-    try {
-      const response = await fetch("/api/schools");
-      if (!response.ok) {
-        throw new Error("Failed to fetch schools");
-      }
-      const data = await response.json();
-      setSchools(data);
-    } catch (error) {
-      console.error("Error fetching schools:", error);
-      setError("Failed to load schools");
-    }
+    // Schools are fetched on mount, so this function is less critical now for the initial load
+    // It could be used for refreshing, but the effect hook handles initial load
   };
 
   const fetchStudents = async (schoolId: string) => {
@@ -260,7 +305,6 @@ export default function StudentSnapshot() {
     }
   };
 
-
   const handleModifyStatus = (item: any, type: 'tinkering' | 'competition' | 'courses') => {
     setSelectedActivity(item);
     setStatusType(type);
@@ -273,7 +317,6 @@ export default function StudentSnapshot() {
     courses: COURSE_STATUS_OPTIONS,
   };
 
-
   const statusOptions = STATUS_OPTIONS_MAP[statusType] || [];
 
   const getLatestStatus = (item: any) => {
@@ -283,8 +326,6 @@ export default function StudentSnapshot() {
     }
     return null;
   };
-
-
 
   useEffect(() => {
     if (selectedActivity?.status?.length > 0) {
@@ -377,7 +418,6 @@ export default function StudentSnapshot() {
       alert("Failed to update status. Check console for details.");
     }
   };
-
 
   const parseStatusDate = (status: string) => {
     // Extract the date part after the hyphen
@@ -559,24 +599,19 @@ export default function StudentSnapshot() {
     }
   };
 
-
   const tinkeringActivityColumns: GridColDef[] = [
     {
       field: 'id',
       headerName: 'ID',
       width: 80,
       renderCell: (params) => params.row?.id ?? "N/A",
-
     },
-
     {
       field: 'name',
       headerName: 'Activity Name',
       width: 200,
       renderCell: (params) =>
         params.value ?? "N/A",
-
-
     },
     {
       field: 'introduction',
@@ -584,7 +619,6 @@ export default function StudentSnapshot() {
       width: 200,
       renderCell: (params) =>
         params.value ?? "N/A",
-
     },
     {
       field: 'subject',
@@ -592,8 +626,6 @@ export default function StudentSnapshot() {
       width: 150,
       renderCell: (params) =>
         params.row?.subtopic?.topic?.subject?.subject_name ?? 'N/A'
-
-
     },
     {
       field: 'topic',
@@ -601,7 +633,6 @@ export default function StudentSnapshot() {
       width: 150,
       renderCell: (params) =>
         params.row?.subtopic?.topic?.topic_name ?? 'N/A'
-
     },
     {
       field: 'subtopic',
@@ -609,7 +640,6 @@ export default function StudentSnapshot() {
       width: 150,
       renderCell: (params) =>
         params.row?.subtopic?.subtopic_name ?? 'N/A'
-
     },
     {
       field: 'status',
@@ -619,7 +649,6 @@ export default function StudentSnapshot() {
         Array.isArray(params.row?.status) && params.row.status.length > 0
           ? params.row.status[params.row.status.length - 1]
           : 'N/A',
-
     },
     {
       field: 'tinkering_actions',
@@ -627,15 +656,7 @@ export default function StudentSnapshot() {
       type: 'actions',
       width: 200,
       renderCell: (params) => (
-        // <div>Charan sala is there</div>
         <div className="flex items-center justify-center space-x-2 w-full h-full">
-          {/* Modify Button */}
-          {/* <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-sm px-4 py-1.5 text-sm shadow transition duration-200"
-           
-          >
-            Modify
-          </button> */}
           <Button
             variant="default"
             color="primary"
@@ -647,8 +668,6 @@ export default function StudentSnapshot() {
           >
             Modify status
           </Button>
-
-          {/* Edit Icon */}
           <GridActionsCellItem
             icon={
               <EditIcon
@@ -669,8 +688,6 @@ export default function StudentSnapshot() {
             }}
             showInMenu={false}
           />
-
-          {/* Delete Icon */}
           <GridActionsCellItem
             icon={
               <DeleteOutlineIcon
@@ -692,15 +709,12 @@ export default function StudentSnapshot() {
             showInMenu={false}
           />
         </div>
-
-
       ),
     },
   ];
 
   const competitionColumns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 80 },
-
     {
       field: 'competition_actions',
       headerName: "Competition",
@@ -708,7 +722,6 @@ export default function StudentSnapshot() {
       renderCell: (params) =>
         params.row?.competition?.name ?? "N/A",
     },
-
     {
       field: "organised_by",
       headerName: "Organised By",
@@ -716,7 +729,6 @@ export default function StudentSnapshot() {
       renderCell: (params) =>
         params.row?.competition?.organised_by ?? "N/A",
     },
-
     {
       field: "status",
       headerName: "Status",
@@ -728,7 +740,6 @@ export default function StudentSnapshot() {
           : 'N/A';
       },
     },
-
     {
       field: "application_start_date",
       headerName: "Application Start",
@@ -738,7 +749,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "application_end_date",
       headerName: "Application End",
@@ -748,7 +758,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "competition_start_date",
       headerName: "Competition Start",
@@ -758,7 +767,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "competition_end_date",
       headerName: "Competition End",
@@ -768,7 +776,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "payment",
       headerName: "Payment",
@@ -783,7 +790,6 @@ export default function StudentSnapshot() {
       width: 200,
       getActions: (params) => [
         <div className="flex items-center space-x-2">
-          {/* Modify Button */}
           <Button
             variant="default"
             color="primary"
@@ -795,7 +801,6 @@ export default function StudentSnapshot() {
           >
             Modify status
           </Button>
-          {/* Delete Icon */}
           <GridActionsCellItem
             key="delete"
             icon={
@@ -822,21 +827,18 @@ export default function StudentSnapshot() {
   ];
   const courseColumns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 80 },
-
     {
       field: 'course_actions',
       headerName: "Course",
       width: 200,
       renderCell: (params) => params.row?.course?.name ?? "N/A",
     },
-
     {
       field: "organized_by",
       headerName: "Organized By",
       width: 180,
       renderCell: (params) => params.row?.course?.organized_by ?? "N/A",
     },
-
     {
       field: "status",
       headerName: "Status",
@@ -848,7 +850,6 @@ export default function StudentSnapshot() {
           : 'N/A';
       },
     },
-
     {
       field: "application_start_date",
       headerName: "Application Start",
@@ -858,7 +859,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "application_end_date",
       headerName: "Application End",
@@ -868,7 +868,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "course_start_date",
       headerName: "Course Start",
@@ -878,7 +877,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "course_end_date",
       headerName: "Course End",
@@ -888,7 +886,6 @@ export default function StudentSnapshot() {
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "eligibility",
       headerName: "Eligibility",
@@ -899,7 +896,6 @@ export default function StudentSnapshot() {
         return from && to ? `${from} - ${to}` : "N/A";
       },
     },
-
     {
       field: "reference_link",
       headerName: "Reference",
@@ -912,9 +908,7 @@ export default function StudentSnapshot() {
           </a>
         ) : "N/A";
       }
-
     },
-
     {
       field: "requirements",
       headerName: "Requirements",
@@ -924,7 +918,6 @@ export default function StudentSnapshot() {
         return reqs.length > 0 ? reqs.join(", ") : "N/A";
       },
     },
-
     {
       field: "course_tags",
       headerName: "Tags",
@@ -934,7 +927,6 @@ export default function StudentSnapshot() {
         return tags.length > 0 ? tags.join(", ") : "N/A";
       },
     },
-
     {
       field: 'actions',
       headerName: 'Actions',
@@ -942,7 +934,6 @@ export default function StudentSnapshot() {
       width: 200,
       getActions: (params) => [
         <div className="flex items-center space-x-2">
-          {/* Modify Button */}
           <Button
             variant="default"
             color="primary"
@@ -954,8 +945,6 @@ export default function StudentSnapshot() {
           >
             Modify status
           </Button>
-
-          {/* Delete Icon */}
           <GridActionsCellItem
             key="delete"
             icon={
@@ -977,7 +966,6 @@ export default function StudentSnapshot() {
             showInMenu={false}
           />
         </div>
-
       ],
     },
   ];
@@ -1036,7 +1024,6 @@ export default function StudentSnapshot() {
     return '';
   };
 
-
   const getLatestStatusDate = (statusArray: string[]) => {
     if (!Array.isArray(statusArray) || statusArray.length === 0) {
       return new Date(0);
@@ -1057,17 +1044,53 @@ export default function StudentSnapshot() {
     return dateB.getTime() - dateA.getTime();
   });
 
-
   const sortedCompetitions = [...competitions].sort((a, b) => {
     const dateA = getLatestStatusDate(a.status);
     const dateB = getLatestStatusDate(b.status);
     return dateB.getTime() - dateA.getTime();
   });
 
+  // Filter schools for the dropdown based on selected hub (only in cluster view)
+  const filteredSchools = (currentView === 'cluster' && selectedHub) 
+    ? schools.filter(school => {
+        const hub = hubs.find(h => h.id.toString() === selectedHub);
+        if (hub) {
+           // Include the hub school and its spokes
+           return school.id === hub.hub_school.id || hub.spokes.some((spoke: any) => spoke.id === school.id);
+        }
+        return false;
+      })
+    : (currentView === 'school' ? schools : []); // Show all schools in school view, empty if no view selected (shouldn't happen)
+
+  // Reorder filteredSchools to put the hub school first when in cluster view and a hub is selected
+  const orderedFilteredSchools = (currentView === 'cluster' && selectedHub) 
+    ? (() => {
+        const hub = hubs.find(h => h.id.toString() === selectedHub);
+        if (hub) {
+          const hubSchool = schools.find(s => s.id === hub.hub_school.id);
+          const spokeSchools = schools.filter(s => hub.spokes.some((spoke: any) => spoke.id === s.id));
+          // Ensure hubSchool is found before adding
+          if (hubSchool) {
+            return [hubSchool, ...spokeSchools];
+          }
+        }
+        return filteredSchools; // Fallback to original filtered list if hub or hubSchool not found
+      })()
+    : filteredSchools; // Use original filtered list or all schools in other views
+
+  // Function to switch views and reset selections
+  const handleViewChange = (view: 'cluster' | 'school') => {
+      setCurrentView(view);
+      // Reset all relevant selections when switching views
+      setSelectedCluster("");
+      setSelectedHub("");
+      setSelectedSchool("");
+      setSelectedStudent("");
+      setStudents([]);
+  };
+
   return (
     <div className="bg-slate-400 h-screen  w-screen ">
-
-
       <div className=" p-6 ">
         {error && (
           <Alert
@@ -1079,7 +1102,66 @@ export default function StudentSnapshot() {
           </Alert>
         )}
 
-        <div className="mt-10 flex items-start space-x-4 mb-6">
+        {/* View Toggle Buttons */}
+        <div className="flex justify-center items-center space-x-4 mb-6">
+            <Button
+                variant={currentView === 'cluster' ? 'default' : 'outline'}
+                onClick={() => handleViewChange('cluster')}
+            >
+                Cluster View
+            </Button>
+            <Button
+                variant={currentView === 'school' ? 'default' : 'outline'}
+                onClick={() => handleViewChange('school')}
+            >
+                School View
+            </Button>
+        </div>
+
+        <div className="mt-4 flex items-start space-x-4 mb-6">
+          {/* Cluster and Hub Dropdowns (Visible in Cluster View) */}
+          {currentView === 'cluster' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-white mb-1">
+                  Cluster:
+                </label>
+                <select
+                  className="w-64 p-2 border rounded-md text-black"
+                  value={selectedCluster}
+                  onChange={(e) => setSelectedCluster(e.target.value)}
+                >
+                  <option value="">SELECT</option>
+                  {clusters.map((cluster) => (
+                    <option key={cluster.id} value={cluster.id.toString()}>
+                      {cluster.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white mb-1">
+                  Hub:
+                </label>
+                <select
+                  className="w-64 p-2 border rounded-md text-black"
+                  value={selectedHub}
+                  onChange={(e) => setSelectedHub(e.target.value)}
+                  disabled={!selectedCluster}
+                >
+                  <option value="">SELECT</option>
+                  {hubs.map((hub) => (
+                    <option key={hub.id} value={hub.id.toString()}>
+                      {hub.hub_school.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* School Dropdown (Visible in both views, options change) */}
           <div>
             <label className="block text-sm font-medium text-white mb-1">
               School:
@@ -1088,16 +1170,19 @@ export default function StudentSnapshot() {
               className="w-64 p-2 border rounded-md text-black"
               value={selectedSchool}
               onChange={(e) => setSelectedSchool(e.target.value)}
+              disabled={currentView === 'cluster' && !selectedHub} // Disable in cluster view if no hub selected
             >
               <option value="">SELECT</option>
-              {schools.map((school) => (
-                <option key={school.id} value={school.id}>
+              {/* Use filteredSchools in cluster view, all schools in school view */}
+              {orderedFilteredSchools.map((school) => (
+                <option key={school.id} value={school.id.toString()}>
                   {school.name}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Student Dropdown (Visible in both views) */}
           <div>
             <label className="block text-sm font-medium text-white mb-1">
               Student:
@@ -1169,7 +1254,6 @@ export default function StudentSnapshot() {
                   color: '#1f2937',
                   paddingTop: '10px', // 👈 Add horizontal padding
                   paddingBottom: '10px',
-
                 },
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f3f4f6',
@@ -1252,9 +1336,8 @@ export default function StudentSnapshot() {
                 backgroundColor: '#f3f4f6',
                 '& .MuiDataGrid-cell': {
                   color: '#1f2937',
-                  paddingTop: '10px', // 👈 Add horizontal padding
+                  paddingTop: '10px',
                   paddingBottom: '10px',
-
                 },
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f3f4f6',
@@ -1589,7 +1672,6 @@ export default function StudentSnapshot() {
 
                   <Box sx={{ marginBottom: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-
                       organized_by
                     </Typography>
                     <Typography variant="body1" sx={{ color: "#1f2937" }}>
@@ -1675,9 +1757,6 @@ export default function StudentSnapshot() {
                     )}
                   </Box>
 
-
-
-
                   <Box sx={{ marginBottom: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
                       Status:
@@ -1710,7 +1789,6 @@ export default function StudentSnapshot() {
                   />
                 ))}
               </RadioGroup>
-
 
               {getLatestStatus(selectedActivity) && (
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>

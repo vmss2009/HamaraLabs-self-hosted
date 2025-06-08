@@ -1,4 +1,5 @@
 import { prisma } from "../prisma";
+import { User } from "@prisma/client";
 
 // Fetch a user by email
 export const getUserByEmail = async (email: string) => {
@@ -67,21 +68,46 @@ export const updateUserMetadata = async (id: string, userMetaData: any) => {
     }
 };
 
-// Handle user sign-in process
-export const handleUserSignIn = async (id: string, email: string, userMetaData?: any) => {
-    try {
-        // Ensure the user exists in our database
-        const user = await ensureUserExists(id, email, userMetaData);
-        
-        // You can add additional logic here, such as:
-        // - Logging the sign-in
-        // - Updating last sign-in timestamp
-        // - Checking for any pending notifications
-        // - etc.
-        
-        return user;
-    } catch (error) {
-        console.error("Error handling user sign-in:", error);
-        throw error;
+export async function getUsersBySchool(school_id: number): Promise<User[]> {
+  return prisma.user.findMany({
+    where: {
+      schools: {
+        some: {
+          id: school_id
+        }
+      }
     }
-};
+  });
+}
+
+export async function createUser(data: {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  user_meta_data?: any;
+}): Promise<User> {
+  return prisma.user.create({
+    data: {
+      id: crypto.randomUUID(),
+      ...data,
+    },
+  });
+}
+
+export async function updateUser(id: string, data: {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  user_meta_data?: any;
+}): Promise<User> {
+  return prisma.user.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteUser(id: string): Promise<User> {
+  return prisma.user.delete({
+    where: { id },
+  });
+}

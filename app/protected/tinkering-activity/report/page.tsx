@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -28,9 +27,6 @@ import Checkbox from "@mui/material/Checkbox";
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
-
-
-
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -56,7 +52,6 @@ export default function TinkeringActivityReport() {
   const [students, setStudents] = useState<Student[]>([]);
   const [assignError, setAssignError] = useState<string | null>(null);
   const [assignLoading, setAssignLoading] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<TinkeringActivityWithSubtopic | null>(null);
 
@@ -256,7 +251,6 @@ export default function TinkeringActivityReport() {
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 100 },
-  
     {
       field: 'name',
       headerName: 'Activity Name',

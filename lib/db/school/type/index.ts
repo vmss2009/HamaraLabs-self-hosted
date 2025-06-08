@@ -3,6 +3,7 @@ import { School as PrismaSchool, User } from "@prisma/client";
 export interface SchoolCreateInput {
   name: string;
   is_ATL: boolean;
+  ATL_establishment_year?: number | null;
   address_id: number;
   in_charge?: {
     id: string;
@@ -78,6 +79,7 @@ export interface SchoolFilter {
 export interface SchoolUpdateInput {
   name: string;
   is_ATL: boolean;
+  ATL_establishment_year?: number | null;
   syllabus: string[];
   website_url?: string;
   paid_subscription: boolean;

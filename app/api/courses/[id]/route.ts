@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCourseById,updateCourse,deleteCourse } from "@/lib/db/courses/crud";
-import { CourseUpdateInput } from "@/lib/db/courses/type";
+import { getCourseById,updateCourse,deleteCourse } from "@/lib/db/course/crud";
+import { CourseUpdateInput } from "@/lib/db/course/type";
 
 
 // Get course by ID

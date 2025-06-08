@@ -47,6 +47,7 @@ export async function PUT(
         const updatedSchool = await updateSchool(id, {
             name: data.name,
             is_ATL: data.is_ATL,
+            ATL_establishment_year: data.is_ATL ? data.ATL_establishment_year : null,
             syllabus: data.syllabus,
             website_url: data.website_url,
             paid_subscription: data.paid_subscription,
