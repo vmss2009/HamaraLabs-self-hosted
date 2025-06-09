@@ -175,7 +175,7 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
         throw new Error(errorData.message || "Failed to update the form");
       }
 
-      router.push("/protected/school-visits/report");
+      router.push("/protected/sarthi");
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -368,7 +368,7 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
           <div className="flex justify-end space-x-4">
             <Button
               type="button"
-              onClick={() => router.push("/protected/school-visits/report")}
+              onClick={() => router.push("/protected/sarthi")}
               variant="outline"
               size="lg"
             >

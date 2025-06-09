@@ -50,6 +50,20 @@ const Drawer: React.FC = () => {
                         </div>
 
                         <div className="p-3 rounded-md bg-blue-800">
+                            <h3 className="text-lg font-semibold mb-2 text-white">Sarthi</h3>
+                            <ul className="flex flex-col gap-4">
+                                <li>
+                                    <Link
+                                        href="/protected/sarthi"
+                                        className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="p-3 rounded-md bg-blue-800">
                             <h3 className="text-lg font-semibold mb-2 text-white">Cluster</h3>
                             <ul className="flex flex-col gap-4">
                                 <li>
@@ -212,14 +226,6 @@ const Drawer: React.FC = () => {
                                     className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
                                 >
                                     Form
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/protected/school-visits/report"
-                                    className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
-                                >
-                                    Report
                                 </Link>
                             </li>
                         </ul>
