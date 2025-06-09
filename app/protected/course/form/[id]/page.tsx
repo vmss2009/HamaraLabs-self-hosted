@@ -10,7 +10,11 @@ import DateFieldGroup from "@/components/DateField";
 import { Input } from "@/components/Input";
 import MultiForm from "@/components/Multiform";
 
-export default function EditCourseForm({ params }: { params: Promise<{ id: string }> }) {
+export default function EditCourseForm({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const router = useRouter();
 
@@ -173,9 +177,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         <form onSubmit={onSubmit} className="space-y-8 text-black">
           <FormSection title="Basic Information">
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">
-                Basic Information
-              </h3>
               <div>
                 <Input
                   id="competition-name"
@@ -194,9 +195,10 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                   htmlFor="description"
                   className="block text-sm font-bold text-gray-700"
                 >
-                  Description
+                  Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
+                  required
                   id="description"
                   name="description"
                   value={description}
@@ -208,7 +210,7 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
               <div>
                 <label className="block mb-2 text-sm font-bold text-gray-700">
-                  Organized By
+                  Organized By <span className="text-red-500">*</span>
                 </label>
 
                 <select
@@ -280,9 +282,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
           <FormSection title="Eligibility">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
-                Eligibility
-              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
                   <label
@@ -339,10 +338,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
           <FormSection title="Requirements & Tags">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
-                Additional Details
-              </h3>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <MultiForm
@@ -353,7 +348,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                     legend="Requirements"
                     fieldLabel="Requirement"
                     name="requirements"
-                    required
                   />
                 </div>
 
@@ -366,7 +360,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                     legend="Course Tags"
                     fieldLabel="Tag"
                     name="courseTags"
-                    required
                   />
                 </div>
               </div>
@@ -377,15 +370,16 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
             <div>
               <label
                 htmlFor="referenceLink"
-                className="block text-sm font-bold text-gray-700"
+                className="block text-sm font-bold text-gray-700 mb-4"
               >
                 Reference Link
               </label>
-              <input
+              <Input
                 type="url"
                 id="referenceLink"
                 name="referenceLink"
                 value={referenceLink}
+                placeholder="Enter referencelink"
                 onChange={(e) => setReferenceLink(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"
               />

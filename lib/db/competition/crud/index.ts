@@ -1,22 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { CompetitionFilter } from "../type";
-import { competitionSchema } from "../type";
 
 export async function createCompetition(data: any) {
   try {
-    const result = competitionSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      throw new Error(errorMessages[0]);
-    }
-
-    const { id, ...validatedData } = result.data as any;
-
     const competition = await prisma.competition.create({
-      data: validatedData,
+      data: data,
     });
 
     return competition;
@@ -77,21 +65,9 @@ export async function getCompetitionById(id: number) {
 
 export async function updateCompetition(id: number, data: any) {
   try {
-    const result = competitionSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const validatedData = result.data;
-
     const updatedCompetition = await prisma.competition.update({
       where: { id },
-      data: validatedData,
+      data: data,
     });
 
     return updatedCompetition;

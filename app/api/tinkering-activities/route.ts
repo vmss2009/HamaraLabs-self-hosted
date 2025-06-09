@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
-import { createTinkeringActivity, getTinkeringActivitiesBySubtopic, getAllTinkeringActivities } from "@/lib/db/tinkering-activity/crud";
+import {
+  createTinkeringActivity,
+  getTinkeringActivitiesBySubtopic,
+  getAllTinkeringActivities,
+} from "@/lib/db/tinkering-activity/crud";
+import { z } from "zod";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
+
+export const tinkeringActivitySchema = z.object({
+  name: z.string().min(1, "Activity name is required"),
+  subtopicId: z
+    .number()
+    .int()
+    .positive("Subtopic ID must be a positive number"),
+  introduction: z.string().min(1, "Introduction is required"),
+  goals: z.array(z.string()).optional().default([]),
+  materials: z.array(z.string()).optional().default([]),
+  instructions: z.array(z.string()).optional().default([]),
+  tips: z.array(z.string()).optional().default([]),
+  observations: z.array(z.string()).optional().default([]),
+  extensions: z.array(z.string()).optional().default([]),
+  resources: z.array(z.string()).optional().default([]),
+});
 
 export async function GET(request: Request) {
   try {
@@ -39,7 +60,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const tinkeringActivity = await createTinkeringActivity(data);
+
+    const result = tinkeringActivitySchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const validatedData = result.data;
+    const tinkeringActivity = await createTinkeringActivity(validatedData);
+
     return NextResponse.json(tinkeringActivity);
   } catch (error) {
     console.error("Error creating tinkering activity:", error);

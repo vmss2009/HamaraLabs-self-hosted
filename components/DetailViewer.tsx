@@ -49,7 +49,7 @@ interface ColumnType {
   label: string;
   field?: string;
   fields?: FieldLabelPair[];
-  type?: "text" | "address" | "date" | "fields";
+  type?: "text" | "address" | "date" | "fields" | "Details" | "compare";
 }
 
 interface DetailsDrawerProps {
@@ -75,12 +75,20 @@ const DetailsDrawer: React.FC<DetailsDrawerProps> = ({
       PaperProps={{
         sx: {
           width: "40%",
-          padding: 3,
           backgroundColor: "#ffffff",
         },
       }}
     >
-      <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          padding: 3,
+          paddingBottom: 5,
+          overflowY: "auto",
+        }}
+      >
         <IconButton
           onClick={closeDrawer}
           sx={{ position: "absolute", top: 8, right: 8 }}
@@ -101,65 +109,123 @@ const DetailsDrawer: React.FC<DetailsDrawerProps> = ({
         </Typography>
 
         {selectedRow ? (
-          columns.map((col) => (
-            <Box key={col.field || col.label} sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                {col.label}:
-              </Typography>
-
-              {col.type === "date" && col.field ? (
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {formatDate(getNestedValue(selectedRow, col.field))}
-                </Typography>
-              ) : col.type === "address" && Array.isArray(col.fields) ? (
-                <Box sx={{ color: "#1f2937", pl: 2 }}>
-                  {col.fields.map(({ label, field }) => {
-                    const value = getNestedValue(selectedRow, field);
-                    return (
-                      <Typography key={field} variant="body2" sx={{ mb: 0.5 }}>
-                        - <strong>{label}</strong>:{" "}
-                        {typeof value === "object" && value !== null
-                          ? JSON.stringify(value)
-                          : value ?? "N/A"}
-                      </Typography>
-                    );
-                  })}
-                </Box>
-              ) : col.field &&
-                Array.isArray(getNestedValue(selectedRow, col.field)) ? (
-                <Box
-                  component="ul"
+          columns
+            .filter((col) => col.field !== "id")
+            .map((col) => (
+              <Box key={col.field || col.label} sx={{ marginBottom: 3 }}>
+                <Typography
+                  variant="subtitle1"
                   sx={{
-                    color: "#1f2937",
-                    pl: 3,
-                    mb: 0,
-                    listStyleType: "disc",
+                    fontWeight: "bold",
+                    color: "#4b5563",
+                    fontSize: "15px",
                   }}
                 >
-                  {getNestedValue(selectedRow, col.field).map(
-                    (item: string, index: number) => (
-                      <li key={index}>
-                        <Typography variant="body2" component="span">
-                          {item}
-                        </Typography>
-                      </li>
-                    )
-                  )}
-                </Box>
-              ) : (
-                <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                  {col.field
-                    ? formatValue(getNestedValue(selectedRow, col.field))
-                    : "N/A"}
+                  {col.label}:
                 </Typography>
-              )}
-            </Box>
-          ))
+
+                {col.type === "date" && col.field ? (
+                  <Typography
+                    variant="body1"
+                    sx={{ color: "#1f2937", fontSize: "14px", fontWeight: 500 }}
+                  >
+                    {formatDate(getNestedValue(selectedRow, col.field))}
+                  </Typography>
+                ) : col.type === "compare" && Array.isArray(col.fields) ? (
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: "#1f2937",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {`${
+                      getNestedValue(selectedRow, col.fields[0]?.field) || "N/A"
+                    } - ${
+                      getNestedValue(selectedRow, col.fields[1]?.field) || "N/A"
+                    }`}
+                  </Typography>
+                ) : col.type === "address" && selectedRow?.address ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      color: "#1f2937",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: "14px", fontWeight: "" }}
+                    >
+                      {[
+                        selectedRow.address.address_line1,
+                        selectedRow.address.address_line2,
+                        selectedRow.address.city?.city_name,
+                        selectedRow.address.city?.state?.state_name,
+                        selectedRow.address.city?.state?.country?.country_name,
+                      ]
+                        .filter((val) => val && val.trim() !== "")
+                        .join(", ")}
+                      {" - "}
+                      <span style={{ fontWeight: 500 }}>
+                        {selectedRow.address.pincode || ""}
+                      </span>
+                    </Typography>
+                  </Box>
+                ) : col.field &&
+                  Array.isArray(getNestedValue(selectedRow, col.field)) ? (
+                  <Box
+                    component="ul"
+                    sx={{
+                      color: "#1f2937",
+                      pl: 3,
+                      mb: 0,
+                      listStyleType: "disc",
+                    }}
+                  >
+                    {getNestedValue(selectedRow, col.field).map(
+                      (item: string, index: number) => (
+                        <li key={index}>
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            sx={{
+                              fontSize: "14px",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {item}
+                          </Typography>
+                        </li>
+                      )
+                    )}
+                  </Box>
+                ) : (
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: "#1f2937",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {col.field
+                      ? formatValue(getNestedValue(selectedRow, col.field))
+                      : "N/A"}
+                  </Typography>
+                )}
+              </Box>
+            ))
         ) : (
-          <Typography variant="body1" sx={{ color: "#1f2937" }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: "#1f2937",
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
             No data available
           </Typography>
         )}

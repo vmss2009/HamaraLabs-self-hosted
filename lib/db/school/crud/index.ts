@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { SchoolCreateInput, SchoolFilter, SchoolWithAddress } from "../type";
 import { Prisma } from "@prisma/client";
-import { schoolSchema } from "../type";
 
 export interface SchoolUpdateInput {
   name?: string;
@@ -19,29 +18,18 @@ export async function createSchool(
   data: SchoolCreateInput
 ): Promise<SchoolWithAddress> {
   try {
-    const result = schoolSchema.safeParse(data);
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const sanitizedData = result.data;
-
     const school = (await prisma.school.create({
       data: {
-        name: sanitizedData.name,
-        is_ATL: sanitizedData.is_ATL,
-        address_id: sanitizedData.addressId,
+        name: data.name,
+        is_ATL: data.is_ATL,
+        address_id: data.addressId,
         in_charge: Prisma.JsonNull,
         correspondent: Prisma.JsonNull,
         principal: Prisma.JsonNull,
-        syllabus: sanitizedData.syllabus,
-        website_url: sanitizedData.website_url,
-        paid_subscription: sanitizedData.paid_subscription,
-        social_links: sanitizedData.social_links,
+        syllabus: data.syllabus,
+        website_url: data.website_url,
+        paid_subscription: data.paid_subscription,
+        social_links: data.social_links,
       },
       include: {
         address: {
@@ -60,14 +48,14 @@ export async function createSchool(
       },
     })) as unknown as SchoolWithAddress;
 
-    const in_charge = sanitizedData.in_charge
-      ? { ...sanitizedData.in_charge, school_id: school.id }
+    const in_charge = data.in_charge
+      ? { ...data.in_charge, school_id: school.id }
       : null;
-    const principal = sanitizedData.principal
-      ? { ...sanitizedData.principal, school_id: school.id }
+    const principal = data.principal
+      ? { ...data.principal, school_id: school.id }
       : null;
-    const correspondent = sanitizedData.correspondent
-      ? { ...sanitizedData.correspondent, school_id: school.id }
+    const correspondent = data.correspondent
+      ? { ...data.correspondent, school_id: school.id }
       : null;
 
     const updatedSchool = (await prisma.school.update({
@@ -177,15 +165,9 @@ export async function getSchoolById(
     })) as unknown as SchoolWithAddress | null;
 
     if (school) {
-      school.in_charge = school.in_charge
-        ? JSON.parse(school.in_charge as string)
-        : null;
-      school.correspondent = school.correspondent
-        ? JSON.parse(school.correspondent as string)
-        : null;
-      school.principal = school.principal
-        ? JSON.parse(school.principal as string)
-        : null;
+      school.in_charge = safeParseJson(school.in_charge);
+      school.correspondent = safeParseJson(school.correspondent);
+      school.principal = safeParseJson(school.principal);
     }
 
     return school;
@@ -195,22 +177,24 @@ export async function getSchoolById(
   }
 }
 
+function safeParseJson(json: unknown) {
+  if (!json) return null;
+  if (typeof json === "string") {
+    try {
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
+  return json;
+}
+
 export async function updateSchool(
   id: number,
   data: SchoolUpdateInput
 ): Promise<SchoolWithAddress> {
   try {
-    const result = schoolSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const validatedData = result.data;
+    const validatedData = data;
 
     const updateData: Prisma.SchoolUpdateInput = {
       ...validatedData,

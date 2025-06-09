@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getTinkeringActivityById, updateTinkeringActivity, deleteTinkeringActivity } from "@/lib/db/tinkering-activity/crud";
+import {
+  getTinkeringActivityById,
+  updateTinkeringActivity,
+  deleteTinkeringActivity,
+} from "@/lib/db/tinkering-activity/crud";
+import { tinkeringActivitySchema } from "../route";
 
 export async function GET(request: Request, { params }: any) {
   try {
@@ -36,8 +41,17 @@ export async function PUT(request: Request, { params }: any) {
     if (isNaN(id)) {
       return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
     }
+    const result = tinkeringActivitySchema.safeParse(data);
 
-    const activity = await updateTinkeringActivity(id, data);
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const validatedData = result.data;
+
+    const activity = await updateTinkeringActivity(id, validatedData);
     return NextResponse.json(activity);
   } catch (error) {
     console.error("Error updating tinkering activity:", error);

@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSchoolById, updateSchool, deleteSchool } from "@/lib/db/school/crud";
-import { getAddressById, updateAddress, deleteAddress } from "@/lib/db/address/crud";
+import {
+  getSchoolById,
+  updateSchool,
+  deleteSchool,
+} from "@/lib/db/school/crud";
+import {
+  getAddressById,
+  updateAddress,
+  deleteAddress,
+} from "@/lib/db/address/crud";
 import { Prisma } from "@prisma/client";
+import { schoolSchema } from "../route";
 
 export async function GET(request: NextRequest, { params }: any) {
   try {
@@ -24,7 +33,9 @@ export async function GET(request: NextRequest, { params }: any) {
 
 export async function PUT(request: NextRequest, { params }: any) {
   try {
-    const id = parseInt(params.id);
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id);
+
     const school = await getSchoolById(id);
 
     if (!school) {
@@ -33,8 +44,18 @@ export async function PUT(request: NextRequest, { params }: any) {
 
     const data = await request.json();
 
-    if (data.address) {
-      const address = await getAddressById(school.address_id);
+    const result = schoolSchema.partial().safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const validatedData = result.data;
+
+    if (validatedData.address) {
+      const address = await getAddressById(school.address.id);
       if (!address) {
         return NextResponse.json(
           { error: "Address not found" },
@@ -42,37 +63,43 @@ export async function PUT(request: NextRequest, { params }: any) {
         );
       }
 
-      await updateAddress(school.address_id, data.address);
+      await updateAddress(school.address_id, validatedData.address);
     }
 
-    const updatedSchool = await updateSchool(id, {
-      name: data.name,
-      is_ATL: data.is_ATL,
-      in_charge: data.in_charge
-        ? JSON.stringify(data.in_charge)
-        : Prisma.JsonNull,
-      correspondent: data.correspondent
-        ? JSON.stringify(data.correspondent)
-        : Prisma.JsonNull,
-      principal: data.principal
-        ? JSON.stringify(data.principal)
-        : Prisma.JsonNull,
-      syllabus: data.syllabus,
-      website_url: data.website_url,
-      paid_subscription: data.paid_subscription,
-      social_links: data.social_links,
-    });
+    const updatePayload = {
+      name: validatedData.name ?? school.name,
+      is_ATL: validatedData.is_ATL ?? school.is_ATL,
+      address_id: school.address.id,
+      in_charge:
+        validatedData.in_charge !== undefined
+          ? validatedData.in_charge
+          : school.in_charge ?? Prisma.JsonNull,
+      correspondent:
+        validatedData.correspondent !== undefined
+          ? validatedData.correspondent
+          : school.correspondent ?? Prisma.JsonNull,
+      principal:
+        validatedData.principal !== undefined
+          ? validatedData.principal
+          : school.principal ?? Prisma.JsonNull,
+      syllabus: validatedData.syllabus ?? school.syllabus,
+      website_url: validatedData.website_url ?? school.website_url,
+      paid_subscription:
+        validatedData.paid_subscription ?? school.paid_subscription,
+      social_links: validatedData.social_links ?? school.social_links ?? [],
+    };
+
+    const updatedSchool = await updateSchool(id, updatePayload);
 
     return NextResponse.json(updatedSchool);
   } catch (error) {
     console.error("Error updating school:", error);
     return NextResponse.json(
-      { error: "Failed to update school" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
 }
-
 export async function DELETE(request: NextRequest, { params }: any) {
   try {
     const id = parseInt(params.id);

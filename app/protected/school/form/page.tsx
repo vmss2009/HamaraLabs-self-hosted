@@ -8,7 +8,7 @@ import SelectField from "@/components/SelectField";
 import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
 import MultiForm from "@/components/Multiform";
-import { Country, State, City } from "@/lib/db/location/type"
+import { Country, State, City } from "@/lib/db/location/type";
 
 export default function SchoolForm() {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -141,20 +141,22 @@ export default function SchoolForm() {
         body: JSON.stringify(schoolData),
       });
 
+      console.log("SchholData", schoolData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit school data");
+        const errorResponse = await response.json();
+        throw new Error(
+          errorResponse.error || errorResponse.message || "Unknown error"
+        );
       }
 
       window.location.href = "/protected/school/report";
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
-        console.log(error.message);
       } else {
         setError("An unexpected error occurred");
       }
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -339,11 +341,13 @@ export default function SchoolForm() {
                   name: "inChargeFirstName",
                   label: "First Name",
                   placeholder: "Enter first name",
+                  required: true,
                 },
                 {
                   name: "inChargeLastName",
                   label: "Last Name",
                   placeholder: "Enter last name",
+                  required: true,
                 },
                 {
                   name: "inChargeEmail",
@@ -370,11 +374,13 @@ export default function SchoolForm() {
                   name: "correspondentFirstName",
                   label: "First Name",
                   placeholder: "Enter first name",
+                  required: true,
                 },
                 {
                   name: "correspondentLastName",
                   label: "Last Name",
                   placeholder: "Enter last name",
+                  required: true,
                 },
                 {
                   name: "correspondentEmail",
@@ -401,11 +407,13 @@ export default function SchoolForm() {
                   name: "principalFirstName",
                   label: "First Name",
                   placeholder: "Enter first name",
+                  required: true,
                 },
                 {
                   name: "principalLastName",
                   label: "Last Name",
                   placeholder: "Enter last name",
+                  required: true,
                 },
                 {
                   name: "principalEmail",

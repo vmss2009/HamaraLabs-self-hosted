@@ -10,7 +10,7 @@ import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
 import DynamicFieldArray from "@/components/Multiform";
 import { useRouter } from "next/navigation";
-import { Country, State, City } from "@/lib/db/location/type"
+import { Country, State, City } from "@/lib/db/location/type";
 
 export default function EditSchoolForm({
   params,
@@ -33,6 +33,19 @@ export default function EditSchoolForm({
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
+
+  console.log(
+    countries,
+    states,
+    cities,
+    syllabus,
+    socialLinks,
+    isATL,
+    paidSubscription,
+    selectedCountry,
+    selectedState,
+    selectedCity
+  );
 
   useEffect(() => {
     const fetchSchoolData = async () => {
@@ -207,7 +220,7 @@ export default function EditSchoolForm({
           address_line1: formData.get("addressLine1"),
           address_line2: formData.get("addressLine2"),
           pincode: formData.get("pincode"),
-          city_id: parseInt(selectedCity),
+          cityId: parseInt(selectedCity),
         },
         in_charge: {
           firstName: formData.get("inChargeFirstName"),
@@ -242,8 +255,10 @@ export default function EditSchoolForm({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update school data");
+        const errorResponse = await response.json();
+        throw new Error(
+          errorResponse.error || errorResponse.message || "Unknown error"
+        );
       }
 
       router.push("/protected/school/report");
@@ -431,11 +446,13 @@ export default function EditSchoolForm({
                   name: "inChargeFirstName",
                   label: "First Name",
                   placeholder: "Enter first name",
+                  required: true,
                 },
                 {
                   name: "inChargeLastName",
                   label: "Last Name",
                   placeholder: "Enter last name",
+                  required: true,
                 },
                 {
                   name: "inChargeEmail",
@@ -462,11 +479,13 @@ export default function EditSchoolForm({
                   name: "correspondentFirstName",
                   label: "First Name",
                   placeholder: "Enter first name",
+                  required: true,
                 },
                 {
                   name: "correspondentLastName",
                   label: "Last Name",
                   placeholder: "Enter last name",
+                  required: true,
                 },
                 {
                   name: "correspondentEmail",
@@ -493,11 +512,13 @@ export default function EditSchoolForm({
                   name: "principalFirstName",
                   label: "First Name",
                   placeholder: "Enter first name",
+                  required: true,
                 },
                 {
                   name: "principalLastName",
                   label: "Last Name",
                   placeholder: "Enter last name",
+                  required: true,
                 },
                 {
                   name: "principalEmail",

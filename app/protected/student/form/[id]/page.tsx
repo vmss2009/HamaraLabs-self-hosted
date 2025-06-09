@@ -9,10 +9,16 @@ import SelectField from "@/components/SelectField";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
 import { useRouter } from "next/navigation";
 
-export default function EditStudentForm({ params }: { params: Promise<{ id: string }> }) {
+export default function EditStudentForm({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>([]);
+  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>(
+    []
+  );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedSchool, setSelectedSchool] = useState<string>("");
@@ -35,6 +41,7 @@ export default function EditStudentForm({ params }: { params: Promise<{ id: stri
           throw new Error("Failed to fetch student data");
         }
         const studentData = await studentResponse.json();
+        console.log("Student data", studentData);
 
         setSelectedSchool(studentData.school_id.toString());
         setGender(studentData.gender);
@@ -165,16 +172,23 @@ export default function EditStudentForm({ params }: { params: Promise<{ id: stri
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
                 { name: "aspiration", label: "Aspiration", required: true },
-                { name: "comments", label: "Comments", required: false },
+                {
+                  name: "comments",
+                  label: "Comments",
+                  required: false,
+                  multiline: true,
+                  rows: 3,
+                },
               ]}
             />
             <RadioButtonGroup
               legend="Gender"
+              className="mt-4"
               name="gender"
               options={[
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" },
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+                { value: "other", label: "Other" },
               ]}
               value={gender}
               onChange={(value) => setGender(value)}

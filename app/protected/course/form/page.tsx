@@ -115,10 +115,6 @@ export default function CourseForm() {
         <form onSubmit={onSubmit} className="space-y-8 text-black">
           <FormSection title="Basic Information">
             <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">
-                Basic Information
-              </h3>
-
               <div>
                 <Input
                   id="course-name"
@@ -133,9 +129,10 @@ export default function CourseForm() {
 
               <div>
                 <label className="block mb-2 text-sm font-bold text-gray-700">
-                  Description
+                  Description <span className="text-red-600">*</span>
                 </label>
                 <textarea
+                  required
                   name="description"
                   rows={4}
                   placeholder="Enter description"
@@ -145,10 +142,11 @@ export default function CourseForm() {
 
               <div>
                 <label className="block mb-2 text-sm font-bold text-gray-700">
-                  Organized By
+                  Organized By <span className="text-red-600">*</span>
                 </label>
 
                 <select
+                  required
                   value={isExternal ? "External" : organizedBy}
                   onChange={handleSelectChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
@@ -195,9 +193,6 @@ export default function CourseForm() {
 
           <FormSection title="Eligibility">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
-                Eligibility
-              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
                   <label className="block mb-2 text-sm font-bold text-gray-700">
@@ -241,10 +236,6 @@ export default function CourseForm() {
 
           <FormSection title="Requirements & Tags">
             <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">
-                Additional Details
-              </h3>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <MultiForm
@@ -255,7 +246,6 @@ export default function CourseForm() {
                     legend="Requirements"
                     fieldLabel="Requirement"
                     name="requirements"
-                    required
                   />
                 </div>
 
@@ -268,7 +258,6 @@ export default function CourseForm() {
                     legend="Course Tags"
                     fieldLabel="Tag"
                     name="courseTags"
-                    required
                   />
                 </div>
               </div>

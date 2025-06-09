@@ -1,19 +1,9 @@
 import { prisma } from "@/lib/db/prisma";
 import { StudentFilter } from "../type";
-import { studentSchema } from "../type";
 
 export async function createStudent(data: any) {
   try {
-    const result = studentSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      throw new Error(errorMessages[0]);
-    }
-
-    const validatedData = result.data;
+    const validatedData = data;
 
     const student = await prisma.student.create({
       data: {
@@ -102,17 +92,7 @@ export async function getStudentById(id: number) {
 
 export async function updateStudent(id: number, data: any) {
   try {
-    const result = studentSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const validatedData = result.data;
+    const validatedData = data;
 
     const updatedStudent = await prisma.student.update({
       where: { id },

@@ -6,15 +6,18 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model User {
   id             String    @id
   email          String    @unique
   user_meta_data Json?     @default("{}")
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
-  comments       String?     schools        School[]  @relation("UserSchools")   students       Student[]
+  comments       String?
+
+  schools        School[]  @relation("UserSchools")
+  students       Student[]
 }
+
 
 model Country {
   id           Int      @id @default(autoincrement())
@@ -52,7 +55,6 @@ model Address {
   schools       School[]
 }
 
-
 model School {
   id                Int       @id @default(autoincrement())
   created_at        DateTime  @default(now())
@@ -66,9 +68,11 @@ model School {
   website_url       String?
   paid_subscription Boolean
   social_links      String[]
+  
   address           Address   @relation(fields: [address_id], references: [id])
   students          Student[]
-  users             User[]    @relation("UserSchools") }
+  users             User[]    @relation("UserSchools")
+}
 
 model Student {
   id                    Int                           @id @default(autoincrement())
@@ -83,11 +87,15 @@ model Student {
   comments              String?
   school_id             Int
   user_id               String?
+
   school                School                        @relation(fields: [school_id], references: [id])
   user                  User?                         @relation(fields: [user_id], references: [id])
+
   customised_activities CustomisedTinkeringActivity[]
   CustomisedCompetition CustomisedCompetition[]
-  CustomisedCourse     CustomisedCourse[] }
+  CustomisedCourse      CustomisedCourse[]
+}
+
 
 model Subject {
   id           Int      @id @default(autoincrement())
@@ -150,9 +158,8 @@ model Competition {
   updated_at             DateTime                @updatedAt
   CustomisedCompetition  CustomisedCompetition[]
 }
-
 model Course {
-  id                     Int                @id @default(autoincrement())
+  id                     Int                  @id @default(autoincrement())
   name                   String
   description            String
   organized_by           String
@@ -163,9 +170,13 @@ model Course {
   eligibility_from       String
   eligibility_to         String
   reference_link         String
-  requirements           String[]   course_tags            String[]   created_at             DateTime           @default(now())
-  updated_at             DateTime           @updatedAt
-  CustomisedCourse      CustomisedCourse[] }
+  requirements           String[]
+  course_tags            String[]
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @updatedAt
+  CustomisedCourse       CustomisedCourse[]
+}
+
 
 model CustomisedCourse {
   id         Int      @id @default(autoincrement())

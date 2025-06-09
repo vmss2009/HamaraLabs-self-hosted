@@ -2,29 +2,15 @@ import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 import { CourseFilter } from "../type";
 
-import { courseSchema } from "../type";
-
 export async function createCourse(data: any) {
   try {
-    const result = courseSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const { id, ...sanitizedData } = result.data as any;
-
     const formattedData = {
-      ...sanitizedData,
-      application_start_date: new Date(sanitizedData.application_start_date),
-      application_end_date: new Date(sanitizedData.application_end_date),
-      course_start_date: new Date(sanitizedData.course_start_date),
-      course_end_date: new Date(sanitizedData.course_end_date),
-      reference_link: sanitizedData.reference_link || "",
+      ...data,
+      application_start_date: new Date(data.application_start_date),
+      application_end_date: new Date(data.application_end_date),
+      course_start_date: new Date(data.course_start_date),
+      course_end_date: new Date(data.course_end_date),
+      reference_link: data.reference_link || "",
     };
 
     const course = await prisma.course.create({
@@ -84,21 +70,9 @@ export async function getCourseById(id: number) {
 
 export async function updateCourse(id: number, data: any) {
   try {
-    const result = courseSchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const validatedData = result.data;
-
     const updatedCourse = await prisma.course.update({
       where: { id },
-      data: validatedData,
+      data: data,
     });
 
     return updatedCourse;

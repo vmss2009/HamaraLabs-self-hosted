@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { DataGrid, GridColDef, GridColumnVisibilityModel, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton, GridActionsCellItem } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridColumnVisibilityModel,
+  GridToolbarQuickFilter,
+  GridToolbarContainer,
+  GridToolbarColumnsButton,
+  GridActionsCellItem,
+} from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import Alert from "@mui/material/Alert";
@@ -293,32 +301,32 @@ export default function Page() {
             },
             {
               label: "Principal Details",
-              type: "address",
+              type: "Details",
               fields: [
-                { label: "Firstame", field: "principal.firstName" },
-                { label: "Lastname", field: "principal.lastName" },
-                { label: "Email", field: "principal.email" },
-                { label: "Phone", field: "principal.whatsapp" },
+                { label: "firstname", field: "principal.firstName" },
+                { label: "lastname", field: "principal.lastName" },
+                { label: "email", field: "principal.email" },
+                { label: "phone", field: "principal.whatsapp" },
               ],
             },
             {
               label: "Correspondent Details",
-              type: "address",
+              type: "Details",
               fields: [
                 { label: "firstname", field: "correspondent.firstName" },
                 { label: "lastname", field: "correspondent.lastName" },
-                { label: "Email", field: "correspondent.email" },
-                { label: "Phone", field: "correspondent.whatsapp" },
+                { label: "email", field: "correspondent.email" },
+                { label: "phone", field: "correspondent.whatsapp" },
               ],
             },
             {
               label: "In-Charge Details",
-              type: "address",
+              type: "Details",
               fields: [
                 { label: "firstname", field: "in_charge.firstName" },
-                { label: "Lastname", field: "in_charge.lastName" },
-                { label: "Email", field: "in_charge.email" },
-                { label: "Phone", field: "in_charge.whatsapp" },
+                { label: "lastname", field: "in_charge.lastName" },
+                { label: "email", field: "in_charge.email" },
+                { label: "phone", field: "in_charge.whatsapp" },
               ],
             },
 

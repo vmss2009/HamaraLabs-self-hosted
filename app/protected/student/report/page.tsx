@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DataGrid, GridColDef, GridActionsCellItem, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridActionsCellItem,
+  GridToolbarQuickFilter,
+  GridToolbarContainer,
+  GridToolbarColumnsButton,
+} from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -197,16 +204,7 @@ export default function StudentReport() {
             { label: "Last Name", field: "last_name" },
             { label: "Email", field: "email" },
             { label: "Gender", field: "gender" },
-            {
-              label: "School",
-              type: "address",
-              fields: [
-                { label: "ID", field: "school.id" },
-                { label: "Name", field: "school.name" },
-                { label: "IsAtl", field: "school.is_ATL" },
-              ],
-            },
-
+            { label: "School", field: "school.name" },
             { label: "Class", field: "class" },
             { label: "Section", field: "section" },
             { label: "Aspiration", field: "aspiration" },

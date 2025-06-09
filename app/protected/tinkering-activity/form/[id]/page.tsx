@@ -8,9 +8,13 @@ import SelectField from "@/components/SelectField";
 import MultiForm from "@/components/Multiform";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/Input";
-import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type"
+import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type";
 
-export default function EditTinkeringActivityForm({ params }: { params: Promise<{ id: string }>} ) {
+export default function EditTinkeringActivityForm({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -346,7 +350,6 @@ export default function EditTinkeringActivityForm({ params }: { params: Promise<
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
-              required
             />
 
             <MultiForm
@@ -357,7 +360,6 @@ export default function EditTinkeringActivityForm({ params }: { params: Promise<
               legend="Materials"
               fieldLabel="Material"
               name="materials"
-              required
             />
 
             <MultiForm
@@ -368,7 +370,6 @@ export default function EditTinkeringActivityForm({ params }: { params: Promise<
               legend="Instructions"
               fieldLabel="Instruction"
               name="instructions"
-              required
             />
 
             <MultiForm

@@ -5,6 +5,7 @@ import {
   deleteCourse,
 } from "@/lib/db/course/crud";
 import { CourseUpdateInput } from "@/lib/db/course/type";
+import { courseSchema } from "../route";
 
 export async function GET(req: NextRequest, { params }: any) {
   try {
@@ -31,6 +32,10 @@ export async function GET(req: NextRequest, { params }: any) {
 export async function PUT(req: NextRequest, { params }: any) {
   try {
     const courseId = parseInt(params.id);
+    if (isNaN(courseId)) {
+      return NextResponse.json({ error: "Invalid course ID" }, { status: 400 });
+    }
+
     const body = await req.json();
 
     const updateData: CourseUpdateInput = {
@@ -52,17 +57,21 @@ export async function PUT(req: NextRequest, { params }: any) {
         : body.course_tags.split(",").map((t: string) => t.trim()),
     };
 
-    const updated = await updateCourse(courseId, updateData);
+    const result = courseSchema.safeParse(updateData);
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const updated = await updateCourse(courseId, result.data);
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    console.error("Error creating competition:", error);
-
+    console.error("Error updating course:", error);
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create competition",
+          error instanceof Error ? error.message : "Failed to update course",
       },
       { status: 400 }
     );

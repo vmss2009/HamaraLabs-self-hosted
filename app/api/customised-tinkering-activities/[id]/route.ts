@@ -1,5 +1,27 @@
 import { NextResponse } from "next/server";
-import { getCustomisedTinkeringActivityById, updateCustomisedTinkeringActivity, deleteCustomisedTinkeringActivity, getCustomisedTinkeringActivities } from "@/lib/db/customised-tinkering-activity/crud";
+import {
+  getCustomisedTinkeringActivityById,
+  updateCustomisedTinkeringActivity,
+  deleteCustomisedTinkeringActivity,
+  getCustomisedTinkeringActivities,
+} from "@/lib/db/customised-tinkering-activity/crud";
+import { z } from "zod";
+
+export const customisedTinkeringActivitySchema = z.object({
+  name: z.string().min(1, "Activity name is required"),
+  subtopic_id: z
+    .number()
+    .int()
+    .positive("Subtopic ID must be a positive number"),
+  introduction: z.string().min(1, "Introduction is required"),
+  goals: z.array(z.string()).optional().default([]),
+  materials: z.array(z.string()).optional().default([]),
+  instructions: z.array(z.string()).optional().default([]),
+  tips: z.array(z.string()).optional().default([]),
+  observations: z.array(z.string()).optional().default([]),
+  extensions: z.array(z.string()).optional().default([]),
+  resources: z.array(z.string()).optional().default([]),
+});
 
 export async function GET(request: Request, { params }: any) {
   try {
@@ -46,18 +68,20 @@ export async function PUT(request: Request, { params }: any) {
     const id = parseInt(params.id, 10);
     const body = await request.json();
 
-    const updatedActivity = await updateCustomisedTinkeringActivity(id, {
-      name: body.name,
-      subtopic_id: body.subtopic_id,
-      introduction: body.introduction,
-      goals: body.goals,
-      materials: body.materials,
-      instructions: body.instructions,
-      tips: body.tips,
-      observations: body.observations,
-      extensions: body.extensions,
-      resources: body.resources,
-    });
+    const result = customisedTinkeringActivitySchema.safeParse(body);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const validatedData = result.data;
+
+    const updatedActivity = await updateCustomisedTinkeringActivity(
+      id,
+      validatedData
+    );
 
     return NextResponse.json(updatedActivity);
   } catch (error) {

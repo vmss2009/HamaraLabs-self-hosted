@@ -54,7 +54,7 @@ const MultiForm: React.FC<MultiFormProps> = ({
 
   return (
     <div className={`space-y-4 text-black ${className}`}>
-      <h4 className="text-lg font-bold text-gray-700 mb-4">
+      <h4 className="text-sm font-bold text-gray-700 mb-1">
         {displayLabel}
         {required && <span className="text-red-500 ml-1">*</span>}
       </h4>

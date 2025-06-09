@@ -1,6 +1,26 @@
 import { NextResponse } from "next/server";
-import { createStudent, getStudents, getStudentById } from "@/lib/db/student/crud";
+import {
+  createStudent,
+  getStudents,
+  getStudentById,
+} from "@/lib/db/student/crud";
 import { StudentCreateInput } from "@/lib/db/student/type";
+import { z } from "zod";
+
+export const studentSchema = z.object({
+  first_name: z.string().trim().min(1, "First name is required"),
+  last_name: z.string().trim().min(1, "Last name is required"),
+  aspiration: z.string().trim().min(1, "Aspiration is required"),
+  gender: z
+    .string()
+    .transform((val) => val.toLowerCase())
+    .pipe(z.enum(["male", "female", "other"])),
+  email: z.string().email("Invalid email address"),
+  class: z.string().trim().min(1, "Class is required"),
+  section: z.string().trim().min(1, "Section is required"),
+  comments: z.string().trim().optional().nullable(),
+  schoolId: z.number().int().positive("schoolId must be a positive integer"),
+});
 
 export async function GET(request: Request) {
   try {
@@ -44,41 +64,38 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    if (!data.first_name || !data.last_name || !data.schoolId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    const result = studentSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
     }
 
-    const schoolId = Number(data.schoolId);
-    if (isNaN(schoolId)) {
-      return NextResponse.json({ error: "Invalid school ID" }, { status: 400 });
-    }
+    const validatedData = result.data;
 
     const studentInput: StudentCreateInput = {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      aspiration: data.aspiration,
-      gender: data.gender,
-      email: data.email,
-      class: data.class,
-      section: data.section,
-      comments: data.comments,
-      schoolId: schoolId,
+      first_name: validatedData.first_name,
+      last_name: validatedData.last_name,
+      aspiration: validatedData.aspiration,
+      gender: validatedData.gender,
+      email: validatedData.email,
+      class: validatedData.class,
+      section: validatedData.section,
+      comments: validatedData.comments ?? "",
+      schoolId: validatedData.schoolId,
     };
+
     console.log("Student data", studentInput);
 
     const student = await createStudent(studentInput);
-    return NextResponse.json(student);
+    return NextResponse.json(student, { status: 201 });
   } catch (error) {
-    console.error("Error creating competition:", error);
+    console.error("Error creating student:", error);
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create competition",
+          error instanceof Error ? error.message : "Failed to create student",
       },
       { status: 400 }
     );

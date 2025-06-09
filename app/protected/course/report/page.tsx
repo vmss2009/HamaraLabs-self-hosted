@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DataGrid, GridColDef, GridActionsCellItem, GridToolbarQuickFilter, GridToolbarContainer, GridToolbarColumnsButton } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridActionsCellItem,
+  GridToolbarQuickFilter,
+  GridToolbarContainer,
+  GridToolbarColumnsButton,
+} from "@mui/x-data-grid";
 import { Button } from "@/components/Button";
 import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
@@ -253,8 +260,14 @@ export default function CourseReport() {
               field: "course_end_date",
               type: "date",
             },
-            { label: "Eligibility From", field: "eligibility_from" },
-            { label: "Eligibility To", field: "eligibility_to" },
+            {
+              label: "Eligibility",
+              type: "compare",
+              fields: [
+                { label: "Eligibility From", field: "eligibility_from" },
+                { label: "Eligibility To", field: "eligibility_to" },
+              ],
+            },
             { label: "Reference Link", field: "reference_link" },
             { label: "Requirements", field: "requirements" },
             { label: "Course Tags", field: "course_tags" },

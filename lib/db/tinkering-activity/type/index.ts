@@ -46,8 +46,6 @@ export type Subtopic = {
   subtopic_name: string;
 };
 
-
-
 export interface EditActivityDialogProps {
   open: boolean;
   onClose: () => void;
@@ -103,21 +101,3 @@ export interface TinkeringActivity {
 export interface TinkeringActivityWithSubtopic extends PrismaTinkeringActivity {
   subtopic: SubtopicWithTopic;
 }
-
-import { z } from "zod";
-
-export const tinkeringActivitySchema = z.object({
-  name: z.string().min(1, "Activity name is required"),
-  subtopicId: z
-    .number()
-    .int()
-    .positive("Subtopic ID must be a positive number"),
-  introduction: z.string().min(1, "Introduction is required"),
-  goals: z.array(z.string()).optional().default([]),
-  materials: z.array(z.string()).optional().default([]),
-  instructions: z.array(z.string()).optional().default([]),
-  tips: z.array(z.string()).optional().default([]),
-  observations: z.array(z.string()).optional().default([]),
-  extensions: z.array(z.string()).optional().default([]),
-  resources: z.array(z.string()).optional().default([]),
-});

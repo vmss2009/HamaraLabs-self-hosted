@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
-import { SubjectCreateInput, TopicCreateInput, SubtopicCreateInput, TinkeringActivityWithSubtopic } from "../type";
-import { tinkeringActivitySchema } from "../type";
+import {
+  SubjectCreateInput,
+  TopicCreateInput,
+  SubtopicCreateInput,
+  TinkeringActivityWithSubtopic,
+} from "../type";
 
 export async function createSubject(data: SubjectCreateInput) {
   try {
@@ -100,19 +104,9 @@ export async function getSubtopicsByTopic(topicId: number) {
   }
 }
 
-export async function createTinkeringActivity(data: unknown) {
+export async function createTinkeringActivity(data: any) {
   try {
-    const result = tinkeringActivitySchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error(errorMessages[0]);
-    }
-
-    const validatedData = result.data;
+    const validatedData = data;
 
     const tinkeringActivity = await prisma.tinkeringActivity.create({
       data: {
@@ -212,19 +206,9 @@ export async function getTinkeringActivityById(
     throw error;
   }
 }
-export async function updateTinkeringActivity(id: number, data: unknown) {
+export async function updateTinkeringActivity(id: number, data:any) {
   try {
-    const result = tinkeringActivitySchema.safeParse(data);
-
-    if (!result.success) {
-      const errorMessages = result.error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
-      );
-      console.error("Validation failed:", errorMessages);
-      throw new Error("Validation error: " + errorMessages.join(", "));
-    }
-
-    const validatedData = result.data;
+    const validatedData = data;
 
     const tinkeringActivity = (await prisma.tinkeringActivity.update({
       where: { id },

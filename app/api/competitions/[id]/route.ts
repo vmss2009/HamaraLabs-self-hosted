@@ -4,6 +4,7 @@ import {
   updateCompetition,
   deleteCompetition,
 } from "@/lib/db/competition/crud";
+import { competitionSchema } from "../route";
 
 export async function GET(request: Request, { params }: any) {
   try {
@@ -98,31 +99,41 @@ export async function PUT(request: Request, { params }: any) {
       fee,
     } = body;
 
-    const updatedCompetition = await updateCompetition(id, {
+    const competitionData = {
       name,
       description,
       organised_by: organisedBy,
-      application_start_date: applicationStartDate,
-      application_end_date: applicationEndDate,
-      competition_start_date: competitionStartDate,
-      competition_end_date: competitionEndDate,
-      eligibility,
-      reference_links: referenceLinks,
-      requirements,
+      application_start_date: new Date(applicationStartDate),
+      application_end_date: new Date(applicationEndDate),
+      competition_start_date: new Date(competitionStartDate),
+      competition_end_date: new Date(competitionEndDate),
+      eligibility: Array.isArray(eligibility) ? eligibility : [],
+      reference_links: Array.isArray(referenceLinks) ? referenceLinks : [],
+      requirements: Array.isArray(requirements) ? requirements : [],
       payment,
-      fee,
-    });
+      fee: payment === "paid" ? fee : null,
+    };
+
+    const result = competitionSchema.safeParse(competitionData);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.errors[0]?.message ?? "Invalid data" },
+        { status: 400 }
+      );
+    }
+
+    const updatedCompetition = await updateCompetition(id, result.data);
 
     return NextResponse.json(updatedCompetition);
   } catch (error) {
-    console.error("Error creating competition:", error);
+    console.error("Error updating competition:", error);
 
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to create competition",
+            : "Failed to update competition",
       },
       { status: 400 }
     );
