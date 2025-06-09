@@ -71,7 +71,7 @@ export default function EditStudentForm({ params }: { params: Promise<{ id: stri
       const formData = new FormData(event.target as HTMLFormElement);
       
       const studentData = {
-        schoolId: parseInt(selectedSchool),
+        schoolId: selectedSchool,
         first_name: formData.get("firstName"),
         last_name: formData.get("lastName"),
         gender: formData.get("gender"),

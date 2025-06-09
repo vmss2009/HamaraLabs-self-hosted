@@ -18,7 +18,7 @@ export interface MentorCreateInput {
   user_meta_data: {
     phone_number: string;
   };
-  school_ids: number[];
+  school_ids: string[];
 }
 
 export interface MentorUpdateInput {
@@ -28,11 +28,11 @@ export interface MentorUpdateInput {
   user_meta_data?: {
     phone_number: string;
   };
-  school_ids?: number[];
+  school_ids?: string[];
 }
 
 export interface MentorFilter {
   name?: string;
   email?: string;
-  schoolId?: number;
+  schoolId?: string;
 } 

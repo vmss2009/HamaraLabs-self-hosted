@@ -25,12 +25,12 @@ export async function GET(
         );
       }
 
-      const customisedTAs = await getCustomisedTinkeringActivities({ student_id: parseInt(studentId) });
+      const customisedTAs = await getCustomisedTinkeringActivities({ student_id: studentId });
       return NextResponse.json(customisedTAs);
     }
 
     // Otherwise, fetch a single activity by ID
-    const customisedTA = await getCustomisedTinkeringActivityById(parseInt(params.id));
+    const customisedTA = await getCustomisedTinkeringActivityById(params.id);
 
     if (!customisedTA) {
       return NextResponse.json(
@@ -54,7 +54,7 @@ export async function PUT(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const body = await request.json();
     
     // Update the customized tinkering activity
@@ -86,7 +86,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    await deleteCustomisedTinkeringActivity(parseInt(params.id));
+    await deleteCustomisedTinkeringActivity(params.id);
     return NextResponse.json({ message: "Customised tinkering activity deleted successfully" });
   } catch (error) {
     console.error("Error deleting customised tinkering activity:", error);
@@ -102,7 +102,7 @@ export async function PATCH(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const body = await request.json();
     
     // Validate that status is provided

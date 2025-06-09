@@ -68,7 +68,7 @@ export const updateUserMetadata = async (id: string, userMetaData: any) => {
     }
 };
 
-export async function getUsersBySchool(school_id: number): Promise<User[]> {
+export async function getUsersBySchool(school_id: string): Promise<User[]> {
   return prisma.user.findMany({
     where: {
       schools: {
@@ -110,4 +110,46 @@ export async function deleteUser(id: string): Promise<User> {
   return prisma.user.delete({
     where: { id },
   });
+}
+
+export async function getSchoolKeyUsers(schoolId: string) {
+    try {
+        const school = await prisma.school.findUnique({
+            where: { id: schoolId },
+            select: {
+                in_charge_id: true,
+                correspondent_id: true,
+                principal_id: true
+            }
+        });
+
+        if (!school) {
+            throw new Error("School not found");
+        }
+
+        const userIds = [
+            school.in_charge_id,
+            school.correspondent_id,
+            school.principal_id
+        ].filter((id): id is string => id !== null);
+
+        const users = await prisma.user.findMany({
+            where: {
+                id: {
+                    in: userIds
+                }
+            }
+        });
+
+        // Add role information to each user
+        return users.map(user => ({
+            ...user,
+            role: user.id === school.in_charge_id ? 'Incharge' :
+                  user.id === school.correspondent_id ? 'Correspondent' :
+                  user.id === school.principal_id ? 'Principal' : ''
+        }));
+    } catch (error) {
+        console.error("Error fetching school key users:", error);
+        throw error;
+    }
 }

@@ -15,13 +15,17 @@ interface DetailItem {
   isFixed?: boolean;
 }
 
+interface UserWithRole extends User {
+  role: string;
+}
+
 export default function SchoolVisitForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schools, setSchools] = useState<SchoolWithAddress[]>([]);
-  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
-  const [schoolUsers, setSchoolUsers] = useState<User[]>([]);
+  const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
+  const [schoolUsers, setSchoolUsers] = useState<UserWithRole[]>([]);
   const [details, setDetails] = useState<DetailItem[]>([{ key: "", value: "" }]);
   const [isOtherPOC, setIsOtherPOC] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,7 +74,7 @@ export default function SchoolVisitForm() {
 
   const handleSchoolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setSelectedSchool(parseInt(value));
+    setSelectedSchool(value);
     setFormData(prev => ({ ...prev, school_id: value, poc_id: "" }));
     setSchoolUsers([]);
   };
@@ -219,7 +223,7 @@ export default function SchoolVisitForm() {
                   options={[
                     ...schoolUsers.map(user => ({
                       value: user.id,
-                      label: `${user.first_name} ${user.last_name}`
+                      label: `${user.first_name} ${user.last_name} - ${user.role}`
                     })),
                     { value: "other", label: "Other" }
                   ]}

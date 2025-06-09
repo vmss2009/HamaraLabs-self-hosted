@@ -98,7 +98,7 @@ export async function getCustomisedTinkeringActivities(
 }
 
 export async function getCustomisedTinkeringActivityById(
-  id: number
+  id: string
 ): Promise<CustomisedTinkeringActivityWithRelations | null> {
   return prisma.customisedTinkeringActivity.findUnique({
     where: { id },
@@ -126,7 +126,7 @@ export async function getCustomisedTinkeringActivityById(
 }
 
 export async function updateCustomisedTinkeringActivity(
-  id: number,
+  id: string,
   data: Partial<CustomisedTinkeringActivityCreateInput>
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.update({
@@ -170,7 +170,7 @@ export async function updateCustomisedTinkeringActivity(
 }
 
 export async function deleteCustomisedTinkeringActivity(
-  id: number
+  id: string
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.delete({
     where: { id },

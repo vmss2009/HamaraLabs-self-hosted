@@ -54,7 +54,7 @@ export async function getCompetitions(filter?: CompetitionFilter) {
   }
 }
 
-export async function getCompetitionById(id: number) {
+export async function getCompetitionById(id: string) {
   try {
     const competition = await prisma.competition.findUnique({
       where: { id },
@@ -71,7 +71,7 @@ export async function getCompetitionById(id: number) {
   }
 }
 
-export async function updateCompetition(id: number, data: CompetitionUpdateInput) {
+export async function updateCompetition(id: string, data: CompetitionUpdateInput) {
   try {
     // Format dates if they exist in the update data
     const formattedData = { ...data };
@@ -104,7 +104,7 @@ export async function updateCompetition(id: number, data: CompetitionUpdateInput
   }
 }
 
-export async function deleteCompetition(id: number) {
+export async function deleteCompetition(id: string) {
   try {
     const competition = await prisma.competition.delete({
       where: { id },

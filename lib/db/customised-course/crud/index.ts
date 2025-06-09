@@ -88,7 +88,7 @@ export async function getCustomisedCourses(
 }
 
 export async function getCustomisedCourseById(
-  id: number
+  id: string
 ): Promise<CustomisedCourseWithRelations | null> {
   return prisma.customisedCourse.findUnique({
     where: { id },
@@ -122,7 +122,7 @@ export async function getCustomisedCourseById(
 }
 
 export async function updateCustomisedCourse(
-  id: number,
+  id: string,
   data: Partial<CustomisedCourseCreateInput>
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.update({
@@ -162,7 +162,7 @@ export async function updateCustomisedCourse(
 }
 
 export async function deleteCustomisedCourse(
-  id: number
+  id: string
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.delete({
     where: { id },

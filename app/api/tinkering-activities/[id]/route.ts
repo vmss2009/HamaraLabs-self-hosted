@@ -7,16 +7,8 @@ export async function GET(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
-
-    // Validate that id is a number
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
-    }
-    
+    const id = params.id;
+  
     const activity = await getTinkeringActivityById(id);
     
     if (!activity) {
@@ -42,16 +34,8 @@ export async function PUT(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = params.id;
     const data = await request.json();
-    
-    // Validate that id is a number
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
-    }
     
     const activity = await updateTinkeringActivity(id, data);
     return NextResponse.json(activity);
@@ -70,15 +54,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
-
-    // Validate that id is a number
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
-    }
+    const id = params.id;
     
     await deleteTinkeringActivity(id);
     return NextResponse.json({ message: "Tinkering activity deleted successfully" });

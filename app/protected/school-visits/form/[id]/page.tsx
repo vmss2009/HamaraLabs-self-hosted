@@ -22,7 +22,7 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schools, setSchools] = useState<SchoolWithAddress[]>([]);
-  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
   const [schoolUsers, setSchoolUsers] = useState<User[]>([]);
   const [details, setDetails] = useState<DetailItem[]>([{ key: "", value: "" }]);
   const [isOtherPOC, setIsOtherPOC] = useState(false);
@@ -63,7 +63,7 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
         
         setSelectedSchool(data.school_id);
         setFormData({
-          school_id: data.school_id.toString(),
+          school_id: data.school_id,
           visit_date: new Date(data.visit_date).toISOString().split('T')[0],
           poc_id: data.poc_id || "",
           other_poc: data.other_poc || "",
@@ -107,7 +107,7 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
 
   const handleSchoolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setSelectedSchool(parseInt(value));
+    setSelectedSchool(value);
     setFormData(prev => ({ ...prev, school_id: value, poc_id: "" }));
     setSchoolUsers([]);
   };
@@ -228,7 +228,7 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
                   value={formData.school_id}
                   onChange={handleSchoolChange}
                   options={schools.map(school => ({
-                    value: school.id.toString(),
+                    value: school.id,
                     label: school.name
                   }))}
                   placeholder="Select a school"

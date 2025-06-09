@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { ClusterCreateInput, ClusterUpdateInput } from "../type/type";
+import { ClusterCreateInput, ClusterUpdateInput } from "../type";
 
 export async function createCluster(data: ClusterCreateInput) {
   try {
@@ -54,7 +54,7 @@ export async function getClusters() {
   }
 }
 
-export async function getClusterById(id: number) {
+export async function getClusterById(id: string) {
   try {
     const cluster = await prisma.cluster.findUnique({
       where: { id },
@@ -79,7 +79,7 @@ export async function getClusterById(id: number) {
   }
 }
 
-export async function updateCluster(id: number, data: ClusterUpdateInput) {
+export async function updateCluster(id: string, data: ClusterUpdateInput) {
   try {
     // First, delete all existing hubs and their relations
     await prisma.hub.deleteMany({
@@ -118,7 +118,7 @@ export async function updateCluster(id: number, data: ClusterUpdateInput) {
   }
 }
 
-export async function deleteCluster(id: number) {
+export async function deleteCluster(id: string) {
   try {
     // First, delete all hubs associated with this cluster
     await prisma.hub.deleteMany({

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createCluster, getClusters } from "@/lib/db/cluster/crud";
-import { ClusterCreateInput } from "@/lib/db/cluster/type/type";
 
 export async function GET() {
   try {

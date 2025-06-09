@@ -55,7 +55,7 @@ export async function getCourses(filter?: CourseFilter) {
     }
 }
 
-export async function getCourseById(id: number) {
+export async function getCourseById(id: string) {
     try {
         const course = await prisma.course.findUnique({
             where: { id },
@@ -72,7 +72,7 @@ export async function getCourseById(id: number) {
     }
 }
 
-export async function updateCourse(id: number, data: CourseUpdateInput) {
+export async function updateCourse(id: string, data: CourseUpdateInput) {
     try {
         const formattedData: Prisma.CourseUpdateInput = {
             ...data,
@@ -103,7 +103,7 @@ export async function updateCourse(id: number, data: CourseUpdateInput) {
     }
 }
 
-export async function deleteCourse(id: number) {
+export async function deleteCourse(id: string) {
     try {
         const course = await prisma.course.delete({
             where: { id },

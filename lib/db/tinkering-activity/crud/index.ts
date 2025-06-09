@@ -182,8 +182,7 @@ export async function getAllTinkeringActivities(): Promise<TinkeringActivityWith
   }
 }
 
-
-export async function getTinkeringActivityById(id: number): Promise<TinkeringActivityWithSubtopic | null> {
+export async function getTinkeringActivityById(id: string): Promise<TinkeringActivityWithSubtopic | null> {
   try {
     const tinkeringActivity = await prisma.tinkeringActivity.findUnique({
       where: { id },
@@ -198,16 +197,16 @@ export async function getTinkeringActivityById(id: number): Promise<TinkeringAct
           }
         }
       }
-    }) as TinkeringActivityWithSubtopic | null;
+    });
     
-    return tinkeringActivity;
+    return tinkeringActivity as TinkeringActivityWithSubtopic | null;
   } catch (error) {
-    console.error(`Error fetching tinkering activity with id ${id}:`, error);
+    console.error(`Error fetching tinkering activity with ID ${id}:`, error);
     throw error;
   }
 }
 
-export async function updateTinkeringActivity(id: number, data: TinkeringActivityCreateInput) {
+export async function updateTinkeringActivity(id: string, data: TinkeringActivityCreateInput) {
   try {
     const tinkeringActivity = await prisma.tinkeringActivity.update({
       where: { id },
@@ -221,7 +220,7 @@ export async function updateTinkeringActivity(id: number, data: TinkeringActivit
         tips: data.tips,
         observations: data.observations,
         extensions: data.extensions,
-        resources: data.resources
+        resources: data.resources,
       },
       include: {
         subtopic: {
@@ -234,22 +233,22 @@ export async function updateTinkeringActivity(id: number, data: TinkeringActivit
           }
         }
       }
-    }) as TinkeringActivityWithSubtopic;
+    });
     
-    return tinkeringActivity;
+    return tinkeringActivity as TinkeringActivityWithSubtopic;
   } catch (error) {
-    console.error(`Error updating tinkering activity with id ${id}:`, error);
+    console.error(`Error updating tinkering activity with ID ${id}:`, error);
     throw error;
   }
 }
 
-export async function deleteTinkeringActivity(id: number) {
+export async function deleteTinkeringActivity(id: string) {
   try {
     await prisma.tinkeringActivity.delete({
       where: { id }
     });
   } catch (error) {
-    console.error(`Error deleting tinkering activity with id ${id}:`, error);
+    console.error(`Error deleting tinkering activity with ID ${id}:`, error);
     throw error;
   }
 }

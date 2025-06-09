@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     
     // If ID is provided, return a single student
     if (id) {
-      const student = await getStudentById(parseInt(id));
+      const student = await getStudentById(id);
       if (!student) {
         return NextResponse.json(
           { error: "Student not found" },
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       gender: searchParams.get('gender') || undefined,
       class: searchParams.get('class') || undefined,
       section: searchParams.get('section') || undefined,
-      school_id: searchParams.get('school_id') ? parseInt(searchParams.get('school_id') as string) : undefined
+      school_id: searchParams.get('school_id') || undefined
     };
     
     const students = await getStudents(filter);
@@ -52,15 +52,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Ensure schoolId is a valid number
-    const schoolId = Number(data.schoolId);
-    if (isNaN(schoolId)) {
-      return NextResponse.json(
-        { error: "Invalid school ID" },
-        { status: 400 }
-      );
-    }
-
     const studentInput: StudentCreateInput = {
       first_name: data.first_name,
       last_name: data.last_name,
@@ -70,7 +61,7 @@ export async function POST(request: Request) {
       class: data.class,
       section: data.section,
       comments: data.comments,
-      schoolId: schoolId
+      schoolId: data.schoolId
     };
     
     const student = await createStudent(studentInput);

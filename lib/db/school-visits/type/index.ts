@@ -1,7 +1,7 @@
 import { SchoolVisit as PrismaSchoolVisit } from "@prisma/client";
 
 export interface SchoolVisitCreateInput {
-  school_id: number;
+  school_id: string;
   visit_date: Date;
   poc_id?: string;
   other_poc?: string;
@@ -10,7 +10,7 @@ export interface SchoolVisitCreateInput {
 }
 
 export interface SchoolVisitUpdateInput {
-  school_id: number;
+  school_id: string;
   visit_date: Date;
   poc_id?: string;
   other_poc?: string;
@@ -19,15 +19,16 @@ export interface SchoolVisitUpdateInput {
 }
 
 export interface SchoolVisitFilter {
-  school_id?: number;
+  school_id?: string;
   visit_date?: Date;
   poc_id?: string;
   school_performance?: string;
 }
 
 export interface SchoolVisitWithRelations extends PrismaSchoolVisit {
+  id: string;
   school: {
-    id: number;
+    id: string;
     name: string;
   };
   point_of_contact: {

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
         const poc_id = searchParams.get("poc_id");
 
         const filter = {
-            school_id: school_id ? parseInt(school_id) : undefined,
+            school_id: school_id || undefined,
             visit_date: visit_date ? new Date(visit_date) : undefined,
             poc_id: poc_id || undefined,
         };
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         const body = await request.json();
 
         const visit = await createSchoolVisit({
-            school_id: parseInt(body.school_id),
+            school_id: body.school_id,
             visit_date: new Date(body.visit_date),
             poc_id: body.poc_id === "other" ? null : body.poc_id,
             other_poc: body.other_poc,

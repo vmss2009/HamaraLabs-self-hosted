@@ -9,12 +9,24 @@ export interface StudentCreateInput {
   class: string;
   section: string;
   comments?: string;
-  schoolId: number;
+  schoolId: string;
 }
 
-export interface StudentWithSchool extends PrismaStudent {
+export interface StudentWithSchool {
+  id: string;
+  created_at: Date;
+  first_name: string;
+  last_name: string;
+  aspiration: string;
+  gender: string;
+  email: string | null;
+  class: string;
+  section: string;
+  comments: string | null;
+  school_id: string;
+  user_id: string | null;
   school: {
-    id: number;
+    id: string;
     name: string;
     is_ATL: boolean;
   };
@@ -26,5 +38,5 @@ export interface StudentFilter {
   gender?: string;
   class?: string;
   section?: string;
-  school_id?: number;
+  school_id?: string;
 } 

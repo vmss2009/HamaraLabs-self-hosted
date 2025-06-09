@@ -6,8 +6,7 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const id = parseInt(params.id);
-        const visit = await getSchoolVisitById(id);
+        const visit = await getSchoolVisitById(params.id);
         
         if (!visit) {
             return NextResponse.json(
@@ -31,8 +30,7 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
-        const id = parseInt(params.id);
-        const visit = await getSchoolVisitById(id);
+        const visit = await getSchoolVisitById(params.id);
         
         if (!visit) {
             return NextResponse.json(
@@ -43,8 +41,8 @@ export async function PUT(
         
         const body = await request.json();
         
-        const updatedVisit = await updateSchoolVisit(id, {
-            school_id: parseInt(body.school_id),
+        const updatedVisit = await updateSchoolVisit(params.id, {
+            school_id: body.school_id,
             visit_date: new Date(body.visit_date),
             poc_id: body.poc_id === "other" ? null : body.poc_id,
             other_poc: body.other_poc,
@@ -67,8 +65,7 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const id = parseInt(params.id);
-        const visit = await getSchoolVisitById(id);
+        const visit = await getSchoolVisitById(params.id);
         
         if (!visit) {
             return NextResponse.json(
@@ -77,7 +74,7 @@ export async function DELETE(
             );
         }
         
-        await deleteSchoolVisit(id);
+        await deleteSchoolVisit(params.id);
         return NextResponse.json({ message: "School visit deleted successfully" });
     } catch (error) {
         console.error("Error deleting school visit:", error);

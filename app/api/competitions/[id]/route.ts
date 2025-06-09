@@ -7,13 +7,7 @@ export async function GET(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid competition ID" },
-        { status: 400 }
-      );
-    }
+    const id = params.id;
 
     const competition = await getCompetitionById(id);
 
@@ -39,13 +33,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid competition ID" },
-        { status: 400 }
-      );
-    }
+    const id = params.id;
 
     // Check if competition exists
     const competition = await getCompetitionById(id);
@@ -73,15 +61,8 @@ export async function PUT(
     { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid competition ID" },
-        { status: 400 }
-      );
-    }
+    const id = params.id;
 
-    // Check if competition exists
     const competition = await getCompetitionById(id);
     if (!competition) {
       return NextResponse.json(

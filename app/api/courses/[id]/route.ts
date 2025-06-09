@@ -9,7 +9,7 @@ export async function GET(
   { params }: any
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const courseId = params.id;
     const course = await getCourseById(courseId);
 
     if (!course) {
@@ -29,7 +29,7 @@ export async function PUT(
   { params }: any
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const courseId = params.id;
     const body = await req.json();
 
     const updateData: CourseUpdateInput = {
@@ -65,7 +65,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const courseId = params.id;
     await deleteCourse(courseId);
     return NextResponse.json({ message: "Course deleted successfully" }, { status: 200 });
   } catch (error: any) {

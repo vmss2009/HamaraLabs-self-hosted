@@ -44,6 +44,23 @@ export interface TinkeringActivityCreateInput {
   type: "customised" | "default";
 }
 
-export interface TinkeringActivityWithSubtopic extends PrismaTinkeringActivity {
+export interface TinkeringActivityWithSubtopic {
+  id: string;
+  created_at: Date;
+  name: string;
+  subtopic_id: number;
+  introduction: string;
+  goals: string[];
+  materials: string[];
+  instructions: string[];
+  tips: string[];
+  observations: string[];
+  extensions: string[];
+  resources: string[];
   subtopic: SubtopicWithTopic;
+  CustomisedTinkeringActivity?: {
+    id: string;
+    student_id: string;
+    status: string[];
+  }[];
 } 

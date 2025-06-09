@@ -72,7 +72,7 @@ export async function getStudents(filter?: StudentFilter) {
   }
 }
 
-export async function getStudentById(id: number) {
+export async function getStudentById(id: string) {
   try {
     const student = await prisma.student.findUnique({
       where: { id },
@@ -88,7 +88,7 @@ export async function getStudentById(id: number) {
   }
 }
 
-export async function updateStudent(id: number, data: StudentCreateInput) {
+export async function updateStudent(id: string, data: StudentCreateInput) {
   try {
     const student = await prisma.student.update({
       where: { id },
@@ -115,7 +115,7 @@ export async function updateStudent(id: number, data: StudentCreateInput) {
   }
 }
 
-export async function deleteStudent(id: number) {
+export async function deleteStudent(id: string) {
   try {
     await prisma.student.delete({
       where: { id }

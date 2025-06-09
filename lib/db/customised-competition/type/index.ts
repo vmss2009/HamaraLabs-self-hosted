@@ -1,14 +1,14 @@
 import { CustomisedCompetition as PrismaCustomisedCompetition } from "@prisma/client";
 
 export interface CustomisedCompetitionCreateInput {
-  competition_id: number;
-  student_id: number;
+  competition_id: string;
+  student_id: string;
   status: string[];
 }
 
 export interface CustomisedCompetitionWithRelations extends PrismaCustomisedCompetition {
   competition: {
-    id: number;
+    id: string;
     name: string;
     description: string;
     eligibility: string[];
@@ -23,14 +23,14 @@ export interface CustomisedCompetitionWithRelations extends PrismaCustomisedComp
     reference_links: string[];
   };
   student: {
-    id: number;
+    id: string;
     first_name: string;
     last_name: string;
   };
 }
 
 export interface CustomisedCompetitionFilter {
-  competition_id?: number;
-  student_id?: number;
+  competition_id?: string;
+  student_id?: string;
   status?: string[];
 } 

@@ -142,7 +142,10 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
       }
     });
 
-    return school;
+    return {
+      ...school,
+      id: school.id.toString()
+    };
   } catch (error) {
     console.error("Error creating school:", error);
     throw error;
@@ -196,14 +199,17 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
       }
     });
     
-    return schools as SchoolWithAddress[];
+    return schools.map(school => ({
+      ...school,
+      id: school.id.toString()
+    }));
   } catch (error) {
     console.error("Error fetching schools:", error);
     throw error;
   }
 }
 
-export async function getSchoolById(id: number): Promise<SchoolWithAddress | null> {
+export async function getSchoolById(id: string): Promise<SchoolWithAddress | null> {
   try {
     const school = await prisma.school.findUnique({
       where: { id },
@@ -225,14 +231,17 @@ export async function getSchoolById(id: number): Promise<SchoolWithAddress | nul
       }
     });
     
-    return school as SchoolWithAddress | null;
+    return school ? {
+      ...school,
+      id: school.id.toString()
+    } : null;
   } catch (error) {
     console.error(`Error fetching school with id ${id}:`, error);
     throw error;
   }
 }
 
-export async function updateSchool(id: number, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
+export async function updateSchool(id: string, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
   try {
     const currentSchool = await prisma.school.findUnique({
       where: { id },
@@ -456,14 +465,17 @@ export async function updateSchool(id: number, data: SchoolUpdateInput): Promise
       }
     });
     
-    return school as SchoolWithAddress;
+    return {
+      ...school,
+      id: school.id.toString()
+    };
   } catch (error) {
     console.error(`Error updating school with id ${id}:`, error);
     throw error;
   }
 }
 
-export async function deleteSchool(id: number) {
+export async function deleteSchool(id: string) {
   return prisma.school.delete({
     where: { id }
   });

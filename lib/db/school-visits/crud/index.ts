@@ -52,7 +52,7 @@ export async function getSchoolVisits(filter?: SchoolVisitFilter): Promise<Schoo
   });
 }
 
-export async function getSchoolVisitById(id: number): Promise<SchoolVisitWithRelations | null> {
+export async function getSchoolVisitById(id: string): Promise<SchoolVisitWithRelations | null> {
   return prisma.schoolVisit.findUnique({
     where: { id },
     include: {
@@ -74,7 +74,7 @@ export async function getSchoolVisitById(id: number): Promise<SchoolVisitWithRel
   });
 }
 
-export async function updateSchoolVisit(id: number, data: SchoolVisitUpdateInput): Promise<SchoolVisitWithRelations> {
+export async function updateSchoolVisit(id: string, data: SchoolVisitUpdateInput): Promise<SchoolVisitWithRelations> {
   return prisma.schoolVisit.update({
     where: { id },
     data: {
@@ -104,7 +104,7 @@ export async function updateSchoolVisit(id: number, data: SchoolVisitUpdateInput
   });
 }
 
-export async function deleteSchoolVisit(id: number): Promise<SchoolVisitWithRelations> {
+export async function deleteSchoolVisit(id: string): Promise<SchoolVisitWithRelations> {
   return prisma.schoolVisit.delete({
     where: { id },
     include: {

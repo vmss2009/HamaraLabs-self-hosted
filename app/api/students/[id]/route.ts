@@ -7,7 +7,7 @@ export async function GET(
     { params }: any
 ) {
   try {
-    const student = await getStudentById(parseInt(params.id));
+    const student = await getStudentById(params.id);
 
     if (!student) {
       return NextResponse.json(
@@ -41,15 +41,6 @@ export async function PUT(
       );
     }
 
-    // Ensure schoolId is a valid number
-    const schoolId = Number(data.schoolId);
-    if (isNaN(schoolId)) {
-      return NextResponse.json(
-        { error: "Invalid school ID" },
-        { status: 400 }
-      );
-    }
-
     const studentInput: StudentCreateInput = {
       first_name: data.first_name,
       last_name: data.last_name,
@@ -59,10 +50,10 @@ export async function PUT(
       class: data.class,
       section: data.section,
       comments: data.comments,
-      schoolId: schoolId
+      schoolId: data.schoolId
     };
 
-    const student = await updateStudent(parseInt(params.id), studentInput);
+    const student = await updateStudent(params.id, studentInput);
     return NextResponse.json(student);
   } catch (error) {
     console.error("Error updating student:", error);
@@ -78,7 +69,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    await deleteStudent(parseInt(params.id));
+    await deleteStudent(params.id);
     return NextResponse.json({ message: "Student deleted successfully" });
   } catch (error) {
     console.error("Error deleting student:", error);

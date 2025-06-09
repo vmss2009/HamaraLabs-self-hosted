@@ -23,11 +23,11 @@ export async function GET(
         );
       }
 
-      const customisedCourses = await getCustomisedCourses({ student_id: parseInt(student_id) });
+      const customisedCourses = await getCustomisedCourses({ student_id: student_id });
       return NextResponse.json(customisedCourses);
     }
 
-    const customisedCourse = await getCustomisedCourseById(parseInt(params.id));
+    const customisedCourse = await getCustomisedCourseById(params.id);
 
     if (!customisedCourse) {
       return NextResponse.json(
@@ -51,7 +51,7 @@ export async function PUT(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = params.id;
     const data = await request.json();
 
     if (!data.course_id || !data.student_id) {
@@ -81,7 +81,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = params.id;
     await deleteCustomisedCourse(id);
 
     return NextResponse.json({ message: "Customised course deleted successfully" });
@@ -99,7 +99,7 @@ export async function PATCH(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const body = await request.json();
 
     if (!body.status || !Array.isArray(body.status)) {

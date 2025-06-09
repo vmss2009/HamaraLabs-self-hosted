@@ -35,7 +35,20 @@ export interface SchoolCreateInput {
   social_links: string[];
 }
 
-export interface SchoolWithAddress extends Omit<PrismaSchool, 'in_charge' | 'correspondent' | 'principal'> {
+export interface SchoolWithAddress {
+  id: string;
+  created_at: Date;
+  name: string;
+  is_ATL: boolean;
+  ATL_establishment_year: number | null;
+  address_id: number;
+  in_charge_id: string | null;
+  correspondent_id: string | null;
+  principal_id: string | null;
+  syllabus: string[];
+  website_url: string | null;
+  paid_subscription: boolean;
+  social_links: string[];
   address: {
     id: number;
     address_line1?: string | null;

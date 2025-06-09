@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUsersBySchool } from "@/lib/db/auth/user";
+import { getSchoolKeyUsers } from "@/lib/db/auth/user";
 
 export async function GET(request: Request) {
     try {
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
             );
         }
 
-        const users = await getUsersBySchool(parseInt(school_id));
+        const users = await getSchoolKeyUsers(school_id);
         return NextResponse.json(users);
     } catch (error) {
         console.error("Error fetching users:", error);

@@ -82,7 +82,7 @@ export async function getCustomisedCompetitions(
 }
 
 export async function getCustomisedCompetitionById(
-  id: number
+  id: string
 ): Promise<CustomisedCompetitionWithRelations | null> {
   return prisma.customisedCompetition.findUnique({
     where: { id },
@@ -116,7 +116,7 @@ export async function getCustomisedCompetitionById(
 }
 
 export async function updateCustomisedCompetition(
-  id: number,
+  id: string,
   data: Partial<CustomisedCompetitionCreateInput>
 ): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.update({
@@ -156,7 +156,7 @@ export async function updateCustomisedCompetition(
 }
 
 export async function deleteCustomisedCompetition(
-  id: number
+  id: string
 ): Promise<CustomisedCompetitionWithRelations> {
   return prisma.customisedCompetition.delete({
     where: { id },

@@ -4,7 +4,7 @@ import { getClusterById, updateCluster, deleteCluster } from "@/lib/db/cluster/c
 // Handle GET request to fetch a single cluster by ID
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const cluster = await getClusterById(id);
     if (!cluster) {
       return NextResponse.json({ message: "Cluster not found" }, { status: 404 });
@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 // Handle PUT request to update a cluster by ID
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const data = await request.json();
     // You might want to add validation for the incoming data here
     const updatedCluster = await updateCluster(id, data);
@@ -39,7 +39,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 // Handle DELETE request to delete a cluster by ID
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     await deleteCluster(id);
     return NextResponse.json({ message: "Cluster deleted successfully" });
   } catch (error) {

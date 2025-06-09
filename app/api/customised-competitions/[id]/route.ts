@@ -25,12 +25,12 @@ export async function GET(
         );
       }
 
-      const customisedCompetitions = await getCustomisedCompetitions({ student_id: parseInt(student_id) });
+      const customisedCompetitions = await getCustomisedCompetitions({ student_id: student_id });
       return NextResponse.json(customisedCompetitions);
     }
 
     // Otherwise, fetch a single competition by ID
-    const customisedCompetition = await getCustomisedCompetitionById(parseInt(params.id));
+    const customisedCompetition = await getCustomisedCompetitionById(params.id);
     
     if (!customisedCompetition) {
       return NextResponse.json(
@@ -54,7 +54,7 @@ export async function PUT(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = params.id;
     const data = await request.json();
     
     // Validate required fields
@@ -85,7 +85,7 @@ export async function DELETE(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = params.id;
     await deleteCustomisedCompetition(id);
     
     return NextResponse.json({ message: "Customised competition deleted successfully" });
@@ -103,7 +103,7 @@ export async function PATCH(
   { params }: any
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const body = await request.json();
     
     // Validate that status is provided

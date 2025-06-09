@@ -233,11 +233,6 @@ export default function StudentSnapshot() {
     fetchSubtopics();
   }, [selectedTopic]);
 
-  const fetchSchools = async () => {
-    // Schools are fetched on mount, so this function is less critical now for the initial load
-    // It could be used for refreshing, but the effect hook handles initial load
-  };
-
   const fetchStudents = async (schoolId: string) => {
     try {
       const response = await fetch(`/api/students?school_id=${schoolId}`);
@@ -255,6 +250,7 @@ export default function StudentSnapshot() {
   const fetchTinkeringActivities = async () => {
     try {
       setLoading(true);
+      console.log(selectedStudent);
       const response = await fetch(`/api/customised-tinkering-activities/list?student_id=${selectedStudent}`);
       if (!response.ok) {
         throw new Error("Failed to fetch tinkering activities");
@@ -822,7 +818,7 @@ export default function StudentSnapshot() {
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();
-              handleDeleteCourse(params.row);
+              handleDeleteCompetition(params.row);
             }}
             showInMenu={false}
           />

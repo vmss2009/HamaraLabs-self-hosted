@@ -7,7 +7,7 @@ export async function GET(
     { params }: any
 ) {
     try {
-        const id = parseInt(params.id);
+        const id = params.id;
         const school = await getSchoolById(id);
         
         if (!school) {
@@ -32,7 +32,7 @@ export async function PUT(
     { params }: any
 ) {
     try {
-        const id = parseInt(params.id);
+        const id = params.id;
         const school = await getSchoolById(id);
         
         if (!school) {
@@ -73,7 +73,7 @@ export async function DELETE(
     { params }: any
 ) {
     try {
-        const id = parseInt(params.id);
+        const id = params.id;
         const school = await getSchoolById(id);
         
         if (!school) {
