@@ -613,41 +613,6 @@ export default function StudentSnapshot() {
     setSelectedRow(null);
   };
 
-  const formatValue = (value: any) => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) return value.join(", ");
-    return value.toString();
-  };
-
-  const formatDate = (dateString: string | Date | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  const getRowClassName = (params: any) => {
-    const statusArray = params.row.status;
-    const latestStatus =
-      Array.isArray(statusArray) && statusArray.length > 0
-        ? statusArray[statusArray.length - 1]
-        : "";
-
-    if (activeTab === "tinkering" && latestStatus.includes("TA completed")) {
-      return "bg-green-100";
-    }
-    if (
-      activeTab === "competition" &&
-      latestStatus.includes("Competition completed")
-    ) {
-      return "bg-green-100";
-    }
-    if (activeTab === "courses" && latestStatus.includes("Course completed")) {
-      return "bg-green-100";
-    }
-
-    return "";
-  };
-
   const getLatestStatusDate = (statusArray: string[]) => {
     if (!Array.isArray(statusArray) || statusArray.length === 0) {
       return new Date(0);
@@ -762,35 +727,28 @@ export default function StudentSnapshot() {
               columns={tinkeringActivityColumns}
               loading={loading}
               initialState={{
-                pagination: { paginationModel: { pageSize: 10 } },
+                pagination: { paginationModel: { pageSize: 8 } },
               }}
-              pageSizeOptions={[5, 10, 25, 50]}
+              pageSizeOptions={[5, 10, 25, 50, 100]}
               disableRowSelectionOnClick
               columnVisibilityModel={columnVisibilityModel}
               onColumnVisibilityModelChange={(newModel) =>
                 setColumnVisibilityModel(newModel)
               }
-              getRowId={(row) => row.id}
+              getRowHeight={() => "auto"}
               autoHeight
               onRowClick={handleRowClick}
-              getRowClassName={getRowClassName}
               sx={{
-                borderRadius: "20px",
-                backgroundColor: "#f3f4f6",
+                borderRadius: "12px",
                 "& .MuiDataGrid-cell": {
+                  whiteSpace: "normal !important",
+                  wordWrap: "break-word",
+                  alignItems: "center",
                   color: "#1f2937",
-                  paddingTop: "10px",
-                  paddingBottom: "10px",
                 },
                 "& .MuiDataGrid-columnHeaders": {
                   backgroundColor: "#f3f4f6",
                   color: "#1f2937",
-                },
-                "& .bg-green-100": {
-                  backgroundColor: "#abebc6 !important",
-                  "&:hover": {
-                    backgroundColor: "#abebc6 !important",
-                  },
                 },
               }}
               slots={{
@@ -819,7 +777,6 @@ export default function StudentSnapshot() {
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}
-              getRowClassName={getRowClassName}
               sx={{
                 borderRadius: "12px",
                 "& .MuiDataGrid-cell": {
@@ -860,7 +817,6 @@ export default function StudentSnapshot() {
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}
-              getRowClassName={getRowClassName}
               sx={{
                 borderRadius: "20px",
                 backgroundColor: "#f3f4f6",

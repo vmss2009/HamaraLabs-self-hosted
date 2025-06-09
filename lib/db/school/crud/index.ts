@@ -14,9 +14,7 @@ export interface SchoolUpdateInput {
   social_links?: string[];
 }
 
-export async function createSchool(
-  data: SchoolCreateInput
-): Promise<SchoolWithAddress> {
+export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
     const school = (await prisma.school.create({
       data: {
@@ -89,9 +87,7 @@ export async function createSchool(
   }
 }
 
-export async function getSchools(
-  filter?: SchoolFilter
-): Promise<SchoolWithAddress[]> {
+export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddress[]> {
   try {
     const where: any = {};
 
@@ -141,9 +137,7 @@ export async function getSchools(
   }
 }
 
-export async function getSchoolById(
-  id: number
-): Promise<SchoolWithAddress | null> {
+export async function getSchoolById(id: number): Promise<SchoolWithAddress | null> {
   try {
     const school = (await prisma.school.findUnique({
       where: { id },
@@ -165,9 +159,15 @@ export async function getSchoolById(
     })) as unknown as SchoolWithAddress | null;
 
     if (school) {
-      school.in_charge = safeParseJson(school.in_charge);
-      school.correspondent = safeParseJson(school.correspondent);
-      school.principal = safeParseJson(school.principal);
+      school.in_charge = school.in_charge
+        ? JSON.parse(school.in_charge as string)
+        : null;
+      school.correspondent = school.correspondent
+        ? JSON.parse(school.correspondent as string)
+        : null;
+      school.principal = school.principal
+        ? JSON.parse(school.principal as string)
+        : null;
     }
 
     return school;
@@ -177,22 +177,7 @@ export async function getSchoolById(
   }
 }
 
-function safeParseJson(json: unknown) {
-  if (!json) return null;
-  if (typeof json === "string") {
-    try {
-      return JSON.parse(json);
-    } catch {
-      return null;
-    }
-  }
-  return json;
-}
-
-export async function updateSchool(
-  id: number,
-  data: SchoolUpdateInput
-): Promise<SchoolWithAddress> {
+export async function updateSchool(id: number, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
   try {
     const validatedData = data;
 
