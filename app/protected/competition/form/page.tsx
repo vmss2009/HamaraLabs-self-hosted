@@ -4,16 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/Multiform";
 import { Input } from "@/components/ui/Input";
+import DateFieldGroup from "@/components/forms/DateField";
 
 export default function CompetitionForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
-  // State for form fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [organisedBy, setOrganisedBy] = useState("");
@@ -24,31 +23,21 @@ export default function CompetitionForm() {
   const [payment, setPayment] = useState("free");
   const [fee, setFee] = useState("");
 
-  // State for dynamic field arrays
   const [eligibility, setEligibility] = useState<string[]>([]);
   const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
   const [requirements, setRequirements] = useState<string[]>([]);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      // Format dates to ISO string format
       const formatDate = (dateString: string) => {
         if (!dateString) return null;
-        // Create a date object and convert to ISO string
         const date = new Date(dateString);
         return date.toISOString();
       };
-
-      // Log the dates before sending
-      console.log("Application Start Date:", applicationStartDate, "Formatted:", formatDate(applicationStartDate));
-      console.log("Application End Date:", applicationEndDate, "Formatted:", formatDate(applicationEndDate));
-      console.log("Competition Start Date:", competitionStartDate, "Formatted:", formatDate(competitionStartDate));
-      console.log("Competition End Date:", competitionEndDate, "Formatted:", formatDate(competitionEndDate));
 
       const competitionData = {
         name,
@@ -62,7 +51,7 @@ export default function CompetitionForm() {
         reference_links: referenceLinks,
         requirements,
         payment,
-        fee: payment === "paid" ? fee : null
+        fee: payment === "paid" ? fee : null,
       };
 
       const response = await fetch("/api/competitions", {
@@ -75,10 +64,9 @@ export default function CompetitionForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
+        throw new Error(errorData.error || "Failed to submit the form");
       }
 
-      setSuccess(true);
       setTimeout(() => {
         router.push("/protected/competition/report");
       }, 2000);
@@ -98,9 +86,10 @@ export default function CompetitionForm() {
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Competition</h1>
-          <p className="text-gray-600 mt-2">Fill out the form below to add a new competition.</p>
+          <p className="text-gray-600 mt-2">
+            Fill out the form below to add a new competition.
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -122,12 +111,6 @@ export default function CompetitionForm() {
             <div className="text-sm">
               <p className="text-red-500">{error}</p>
             </div>
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 text-green-500 p-4 rounded-md mb-6">
-            Competition created successfully! Redirecting...
           </div>
         )}
 
@@ -159,7 +142,7 @@ export default function CompetitionForm() {
               </div>
 
               <div className="w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Description <span className="text-red-600">*</span>
                 </label>
                 <textarea
@@ -176,67 +159,43 @@ export default function CompetitionForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Application Start Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="application-start-date"
+                <DateFieldGroup
                   name="applicationStartDate"
                   value={applicationStartDate}
                   onChange={(e) => setApplicationStartDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Application End Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="application-end-date"
+                <DateFieldGroup
                   name="applicationEndDate"
                   value={applicationEndDate}
                   onChange={(e) => setApplicationEndDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Competition Start Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="competition-start-date"
+                <DateFieldGroup
                   name="competitionStartDate"
                   value={competitionStartDate}
                   onChange={(e) => setCompetitionStartDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Competition End Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="competition-end-date"
+                <DateFieldGroup
                   name="competitionEndDate"
                   value={competitionEndDate}
                   onChange={(e) => setCompetitionEndDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Payment Type <span className="text-red-600">*</span>
                 </label>
                 <select
@@ -270,65 +229,36 @@ export default function CompetitionForm() {
           </FormSection>
 
           <FormSection title="Competition Details">
-            <DynamicFieldArray
-            className="mb-5"
-            placeholder="Eligibility"
+            <MultiForm
+              className="mb-5"
+              placeholder="Eligibility"
               values={eligibility}
-              onChange={(index, value) => {
-                const newEligibility = [...eligibility];
-                newEligibility[index] = value;
-                setEligibility(newEligibility);
-              }}
-              onAdd={() => setEligibility([...eligibility, ""])}
-              onRemove={(index) => {
-                const newEligibility = [...eligibility];
-                newEligibility.splice(index, 1);
-                setEligibility(newEligibility);
-              }}
+              setArray={setEligibility}
               legend="Eligibility Criteria"
               fieldLabel="Eligibility"
               name="eligibility"
               required
             />
 
-            <DynamicFieldArray
-            className="mb-5"
-            placeholder="ReferenceLink"
+            <MultiForm
+              className="mb-5"
+              placeholder="ReferenceLink"
               values={referenceLinks}
-              onChange={(index, value) => {
-                const newReferenceLinks = [...referenceLinks];
-                newReferenceLinks[index] = value;
-                setReferenceLinks(newReferenceLinks);
-              }}
-              onAdd={() => setReferenceLinks([...referenceLinks, ""])}
-              onRemove={(index) => {
-                const newReferenceLinks = [...referenceLinks];
-                newReferenceLinks.splice(index, 1);
-                setReferenceLinks(newReferenceLinks);
-              }}
+              setArray={setReferenceLinks}
               legend="Reference Links"
               fieldLabel="Link"
               name="referenceLinks"
             />
 
-            <DynamicFieldArray
-            className="mb-5"
-            placeholder="Requirement"
+            <MultiForm
+              className="mb-5"
+              placeholder="Requirement"
               values={requirements}
-              onChange={(index, value) => {
-                const newRequirements = [...requirements];
-                newRequirements[index] = value;
-                setRequirements(newRequirements);
-              }}
-              onAdd={() => setRequirements([...requirements, ""])}
-              onRemove={(index) => {
-                const newRequirements = [...requirements];
-                newRequirements.splice(index, 1);
-                setRequirements(newRequirements);
-              }}
+              setArray={setRequirements}
               legend="Requirements"
               fieldLabel="Requirement"
               name="requirements"
+              required
             />
           </FormSection>
 
@@ -337,6 +267,7 @@ export default function CompetitionForm() {
               type="submit"
               isLoading={isLoading}
               size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
             >
               Submit
             </Button>
@@ -344,6 +275,5 @@ export default function CompetitionForm() {
         </form>
       </div>
     </div>
-
   );
-} 
+}

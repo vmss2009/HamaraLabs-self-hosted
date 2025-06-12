@@ -1,13 +1,24 @@
 import { NextResponse } from "next/server";
-import { getClusterById, updateCluster, deleteCluster } from "@/lib/db/cluster/crud";
+import {
+  getClusterById,
+  updateCluster,
+  deleteCluster,
+} from "@/lib/db/cluster/crud";
+import { clusterSchema } from "../route";
 
 // Handle GET request to fetch a single cluster by ID
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const id = params.id;
     const cluster = await getClusterById(id);
     if (!cluster) {
-      return NextResponse.json({ message: "Cluster not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Cluster not found" },
+        { status: 404 }
+      );
     }
     return NextResponse.json(cluster);
   } catch (error) {
@@ -20,24 +31,43 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // Handle PUT request to update a cluster by ID
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const id = params.id;
     const data = await request.json();
-    // You might want to add validation for the incoming data here
-    const updatedCluster = await updateCluster(id, data);
+
+    const result = clusterSchema.safeParse(data);
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const validatedData = result.data;
+    const updatedCluster = await updateCluster(id, validatedData);
     return NextResponse.json(updatedCluster);
   } catch (error) {
-    console.error("Error updating cluster:", error);
+    console.error("Error Updating cluster:", error);
+
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+
     return NextResponse.json(
-      { message: "Failed to update cluster" },
+      { message: "Failed to create cluster" },
       { status: 500 }
     );
   }
 }
 
 // Handle DELETE request to delete a cluster by ID
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const id = params.id;
     await deleteCluster(id);
@@ -49,4 +79,4 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       { status: 500 }
     );
   }
-} 
+}

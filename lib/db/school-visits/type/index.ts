@@ -3,7 +3,7 @@ import { SchoolVisit as PrismaSchoolVisit } from "@prisma/client";
 export interface SchoolVisitCreateInput {
   school_id: string;
   visit_date: Date;
-  poc_id?: string;
+  poc_id?: string | null;
   other_poc?: string;
   school_performance?: string;
   details: Record<string, string>;
@@ -12,7 +12,7 @@ export interface SchoolVisitCreateInput {
 export interface SchoolVisitUpdateInput {
   school_id: string;
   visit_date: Date;
-  poc_id?: string;
+  poc_id?: string | null;
   other_poc?: string;
   school_performance?: string;
   details: Record<string, string>;
@@ -37,4 +37,4 @@ export interface SchoolVisitWithRelations extends PrismaSchoolVisit {
     first_name: string | null;
     last_name: string | null;
   } | null;
-} 
+}

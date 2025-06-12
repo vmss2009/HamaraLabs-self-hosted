@@ -1,23 +1,18 @@
-
 import { NextResponse } from "next/server";
-import { 
-  getCustomisedCompetitionById, 
-  updateCustomisedCompetition, 
+import {
+  getCustomisedCompetitionById,
+  updateCustomisedCompetition,
   deleteCustomisedCompetition,
-  getCustomisedCompetitions
+  getCustomisedCompetitions,
 } from "@/lib/db/customised-competition/crud";
 import { CustomisedCompetitionCreateInput } from "@/lib/db/customised-competition/type";
 
-export async function GET(
-  request: Request,
-  { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
-    // If id is 'list', fetch all competitions for the student
-    if (params.id === 'list') {
+    if (params.id === "list") {
       const { searchParams } = new URL(request.url);
-      const student_id = searchParams.get('student_id');
-      
+      const student_id = searchParams.get("student_id");
+
       if (!student_id) {
         return NextResponse.json(
           { error: "Student ID is required" },
@@ -25,20 +20,21 @@ export async function GET(
         );
       }
 
-      const customisedCompetitions = await getCustomisedCompetitions({ student_id: student_id });
+      const customisedCompetitions = await getCustomisedCompetitions({
+        student_id: student_id,
+      });
       return NextResponse.json(customisedCompetitions);
     }
 
-    // Otherwise, fetch a single competition by ID
     const customisedCompetition = await getCustomisedCompetitionById(params.id);
-    
+
     if (!customisedCompetition) {
       return NextResponse.json(
         { error: "Customised competition not found" },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(customisedCompetition);
   } catch (error) {
     console.error("Error fetching customised competition:", error);
@@ -49,27 +45,23 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const id = params.id;
     const data = await request.json();
-    
-    // Validate required fields
+
     if (!data.competition_id || !data.student_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
-    
+
     const customisedCompetition = await updateCustomisedCompetition(
       id,
       data as Partial<CustomisedCompetitionCreateInput>
     );
-    
+
     return NextResponse.json(customisedCompetition);
   } catch (error) {
     console.error("Error updating customised competition:", error);
@@ -80,15 +72,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const id = params.id;
     await deleteCustomisedCompetition(id);
-    
-    return NextResponse.json({ message: "Customised competition deleted successfully" });
+
+    return NextResponse.json({
+      message: "Customised competition deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting customised competition:", error);
     return NextResponse.json(
@@ -98,15 +89,11 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: any
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     const id = params.id;
     const body = await request.json();
-    
-    // Validate that status is provided
+
     if (!body.status || !Array.isArray(body.status)) {
       return NextResponse.json(
         { error: "Status must be an array" },
@@ -114,7 +101,6 @@ export async function PATCH(
       );
     }
 
-    // Update the customized competition
     const updatedCompetition = await updateCustomisedCompetition(id, {
       status: body.status,
     });
@@ -127,4 +113,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-} 
+}

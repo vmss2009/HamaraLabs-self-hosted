@@ -21,7 +21,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
       {fields.map((field) => {
         const wrapperClasses = [
           "flex flex-col",
-          field.name === "comments" ? "md:col-span-2" : ""
+          field.name === "comments" ? "md:col-span-2" : "",
         ].join(" ");
 
         return (
@@ -31,9 +31,7 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
               className="mb-2 font-semibold text-gray-700"
             >
               {field.label}
-              {field.required && (
-                <span className="text-red-500 ml-1">*</span>
-              )}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
 
             {field.multiline ? (
@@ -42,8 +40,10 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 name={field.name}
                 rows={field.rows || 4}
                 required={field.required}
-                placeholder={field.placeholder}
-                className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                disabled={field.disabled}
+                className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                  field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
               />
             ) : (
               <input
@@ -53,7 +53,9 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 required={field.required}
                 placeholder={field.placeholder}
                 disabled={field.disabled}
-                className="p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none ${
+                  field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
               />
             )}
           </div>

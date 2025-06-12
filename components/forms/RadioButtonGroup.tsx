@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/Button';
+import React from "react";
+import { Button } from "@/components/ui/Button";
 
 interface RadioOption {
   value: string;
@@ -25,11 +25,11 @@ const RadioButtonGroup: React.FC<RadioButtonGroupProps> = ({
   value,
   onChange,
   required = false,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className={`space-y-3 ${className}`}>
-      <div className="text-sm font-medium text-gray-800 mb-2">
+      <div className="text-sm font-bold text-gray-800 mb-2">
         {legend} {required && <span className="text-red-600">*</span>}
       </div>
       <div className="flex flex-wrap gap-3">
@@ -37,23 +37,22 @@ const RadioButtonGroup: React.FC<RadioButtonGroupProps> = ({
           <Button
             key={option.value}
             type="button"
-            variant={value === option.value ? 'default' : 'outline'}
+            variant={value === option.value ? "default" : "outline"}
             size="sm"
             onClick={() => onChange(option.value)}
-            className={value === option.value ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-300 text-gray-800'}
+            className={
+              value === option.value
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "border-gray-300 text-gray-800"
+            }
           >
             {option.label}
           </Button>
         ))}
-        <input
-          type="hidden"
-          name={name}
-          value={value}
-          required={required}
-        />
+        <input type="hidden" name={name} value={value} required={required} />
       </div>
     </div>
   );
 };
 
-export default RadioButtonGroup; 
+export default RadioButtonGroup;

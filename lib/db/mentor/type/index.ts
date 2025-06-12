@@ -10,16 +10,15 @@ export interface Mentor {
   };
   schools: SchoolWithAddress[];
 }
-
-export interface MentorCreateInput {
+export type MentorCreateInput = {
   first_name: string;
   last_name: string;
   email: string;
-  user_meta_data: {
-    phone_number: string;
+  user_meta_data?: {
+    phone_number?: string;
   };
   school_ids: string[];
-}
+};
 
 export interface MentorUpdateInput {
   first_name?: string;
@@ -35,4 +34,4 @@ export interface MentorFilter {
   name?: string;
   email?: string;
   schoolId?: string;
-} 
+}

@@ -2,13 +2,30 @@ import { NextResponse } from "next/server";
 import { createMentor, getMentors } from "@/lib/db/mentor/crud";
 import { MentorCreateInput } from "@/lib/db/mentor/type";
 
+// lib/validation/mentorSchema.ts
+import { z } from "zod";
+
+export const mentorSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email"),
+  user_meta_data: z
+    .object({
+      phone_number: z.string().optional(),
+    })
+    .optional(),
+  school_ids: z
+    .array(z.string().uuid("Invalid school ID"))
+    .min(1, "At least one school ID is required"),
+});
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const filter = {
       name: searchParams.get("name") || undefined,
       email: searchParams.get("email") || undefined,
-      schoolId: searchParams.get("schoolId") ? parseInt(searchParams.get("schoolId")!) : undefined,
+      schoolId: searchParams.get("schoolId") || undefined, // ✅ keep as string
     };
 
     const mentors = await getMentors(filter);
@@ -25,39 +42,28 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Validate required fields
-    const requiredFields = ["first_name", "last_name", "email", "school_ids"];
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
-      }
+    console.log("Mentor data", body);
+
+    const result = mentorSchema.safeParse(body);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
     }
 
-    const mentorData: MentorCreateInput = {
-      first_name: body.first_name,
-      last_name: body.last_name,
-      email: body.email,
-      user_meta_data: body.user_meta_data || {},
-      school_ids: body.school_ids
-    };
+    const validatedData = result.data;
 
-    const mentor = await createMentor(mentorData);
+    const mentor = await createMentor(validatedData);
     return NextResponse.json(mentor, { status: 201 });
   } catch (error) {
     console.error("Error creating mentor:", error);
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: error.message }, { status: 400 });
     }
     return NextResponse.json(
       { error: "Failed to create mentor" },
       { status: 500 }
     );
   }
-} 
+}

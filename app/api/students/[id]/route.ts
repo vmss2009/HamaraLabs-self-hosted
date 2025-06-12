@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
-import { getStudentById, updateStudent, deleteStudent } from "@/lib/db/student/crud";
+import {
+  getStudentById,
+  updateStudent,
+  deleteStudent,
+} from "@/lib/db/student/crud";
 import { StudentCreateInput } from "@/lib/db/student/type";
+import { studentSchema } from "../route";
 
-export async function GET(
-  request: Request,
-    { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
     const student = await getStudentById(params.id);
 
     if (!student) {
-      return NextResponse.json(
-        { error: "Student not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
     return NextResponse.json(student);
@@ -26,31 +25,35 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const data = await request.json();
-    
-    // Validate required fields
-    if (!data.first_name || !data.last_name || !data.schoolId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    console.log("Updatedata", data);
+
+    const result = studentSchema.safeParse(data);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const validatedData = result.data;
+    const schoolId = validatedData.schoolId;
+    if (!schoolId) {
+      return NextResponse.json({ error: "Invalid school ID" }, { status: 400 });
     }
 
     const studentInput: StudentCreateInput = {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      aspiration: data.aspiration,
-      gender: data.gender,
-      email: data.email,
-      class: data.class,
-      section: data.section,
-      comments: data.comments,
-      schoolId: data.schoolId
+      first_name: validatedData.first_name,
+      last_name: validatedData.last_name,
+      aspiration: validatedData.aspiration,
+      gender: validatedData.gender,
+      email: validatedData.email,
+      class: validatedData.class,
+      section: validatedData.section,
+      comments: validatedData.comments ?? "",
+      schoolId: schoolId,
     };
 
     const student = await updateStudent(params.id, studentInput);
@@ -64,10 +67,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     await deleteStudent(params.id);
     return NextResponse.json({ message: "Student deleted successfully" });
@@ -78,4 +78,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

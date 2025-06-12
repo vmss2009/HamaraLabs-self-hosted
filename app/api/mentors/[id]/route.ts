@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { getMentorById, updateMentor, deleteMentor } from "@/lib/db/mentor/crud";
+import {
+  getMentorById,
+  updateMentor,
+  deleteMentor,
+} from "@/lib/db/mentor/crud";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
 
 export async function GET(
@@ -9,10 +13,7 @@ export async function GET(
   try {
     const mentor = await getMentorById(params.id);
     if (!mentor) {
-      return NextResponse.json(
-        { error: "Mentor not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Mentor not found" }, { status: 404 });
     }
     return NextResponse.json(mentor);
   } catch (error) {
@@ -35,7 +36,7 @@ export async function PATCH(
       last_name: body.last_name,
       email: body.email,
       user_meta_data: body.user_meta_data,
-      school_ids: body.school_ids
+      school_ids: body.school_ids,
     };
 
     const mentor = await updateMentor(params.id, updateData);
@@ -43,10 +44,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating mentor:", error);
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: error.message }, { status: 400 });
     }
     return NextResponse.json(
       { error: "Failed to update mentor" },
@@ -69,4 +67,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

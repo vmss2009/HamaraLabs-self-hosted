@@ -5,10 +5,11 @@ import React, { ChangeEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 import { useRouter } from "next/navigation";
+import MultiForm from "@/components/forms/Multiform";
+import DateFieldGroup from "@/components/forms/DateField";
+import { Input } from "@/components/ui/Input";
 
-
-export default function CourseRegistrationForm() {
-
+export default function CourseForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +17,9 @@ export default function CourseRegistrationForm() {
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
- const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const [isExternal, setIsExternal] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -25,7 +28,7 @@ export default function CourseRegistrationForm() {
       const formData = new FormData(e.currentTarget);
       const courseData = {
         name: formData.get("name"),
-        description:formData.get("description"),
+        description: formData.get("description"),
         organized_by: organizedBy,
         application_start_date: formData.get("applicationStartDate"),
         application_end_date: formData.get("applicationEndDate"),
@@ -38,25 +41,21 @@ export default function CourseRegistrationForm() {
         course_tags: courseTags,
       };
 
-      // API submission can be added here
-
-      const response = await fetch('/api/courses', {
-        method: 'POST',
+      const response = await fetch("/api/courses", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(courseData),
       });
-       console.log("Submitted Course Data:", courseData);
+      console.log("Submitted Course Data:", courseData);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
+        throw new Error(errorData.error || "Failed to submit the form");
       }
       router.push("/protected/course/report");
-
-    }
-    catch (error) {
+    } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
@@ -67,61 +66,28 @@ export default function CourseRegistrationForm() {
     }
   };
 
-
-  const handleRequirementChange = (index: number, value: string) => {
-    const updated = [...requirements];
-    updated[index] = value;
-    setRequirements(updated);
+  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === "External") {
+      setIsExternal(true);
+      setOrganizedBy("");
+    } else {
+      setIsExternal(false);
+      setOrganizedBy(val);
+    }
   };
-
-  const addRequirement = () => {
-    setRequirements([...requirements, ""]);
-  };
-
-  const removeRequirement = (index: number) => {
-    const updated = requirements.filter((_, i) => i !== index);
-    setRequirements(updated);
-  };
-
-  const handleTagChange = (index: number, value: string) => {
-    const updated = [...courseTags];
-    updated[index] = value;
-    setCourseTags(updated);
-  };
-
-  const addTag = () => {
-    setCourseTags([...courseTags, ""]);
-  };
-
-  const removeTag = (index: number) => {
-    const updated = courseTags.filter((_, i) => i !== index);
-    setCourseTags(updated);
-  };
-
-    const [isExternal, setIsExternal] = useState(false);
-
-
-
-const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-  const val = e.target.value;
-  if (val === "External") {
-    setIsExternal(true);
-    setOrganizedBy(""); // reset to let user type
-  } else {
-    setIsExternal(false);
-    setOrganizedBy(val);
-  }
-};
 
   return (
-
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">Course Registration</h1>
-          <p className="text-gray-600">Fill out the form below to register your course</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            Course Registration
+          </h1>
+          <p className="text-gray-600">
+            Fill out the form below to register your course
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -146,33 +112,28 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
           </div>
         )}
 
-        <form
-          onSubmit={onSubmit}
-          className="space-y-8 text-black"
-        >
-
-          {/* Basic Info */}
+        <form onSubmit={onSubmit} className="space-y-8 text-black">
           <FormSection title="Basic Information">
-            <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">Basic Information</h3>
-
+            <div className=" space-y-6">
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Course Name</label>
-                <input
-                  type="text"
+                <Input
+                  id="course-name"
                   name="name"
+                  label="Course Name"
+                  setvalue={setOrganizedBy}
                   required
                   placeholder="Enter course name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
+                <label className="block mb-2 text-sm font-bold text-gray-700">
+                  Description <span className="text-red-600">*</span>
+                </label>
                 <textarea
-                
-                  name="description"  
                   required
+                  name="description"
                   rows={4}
                   placeholder="Enter description"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none"
@@ -180,25 +141,26 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Organized By</label>
+                <label className="block mb-2 text-sm font-bold text-gray-700">
+                  Organized By <span className="text-red-600">*</span>
+                </label>
 
                 <select
+                  required
                   value={isExternal ? "External" : organizedBy}
                   onChange={handleSelectChange}
-                  required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                 >
                   <option value="">Select</option>
                   <option value="AIM">AIM</option>
-                  <option value="External">
-                    External
-                  </option>
+                  <option value="External">External</option>
                 </select>
 
                 {isExternal && (
-                  <input
+                  <Input
                     type="text"
-                   
+                    name="organizedby"
+                    id="organizedby"
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -207,63 +169,37 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   />
                 )}
               </div>
-           
-
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Application Start Date</label>
-                  <input
-                    type="date"
-                     name="applicationStartDate"
-                  
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                  />
+                  <DateFieldGroup name="applicationStartDate" required />
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Application End Date</label>
-                  <input
-                    type="date"
-                     name="applicationEndDate"
-                   
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                  />
+                  <DateFieldGroup name="applicationEndDate" required />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Course Start Date</label>
-                  <input
-                    type="date"
-                    name="courseStartDate"
-                  
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                  />
+                  <DateFieldGroup name="courseStartDate" required />
                 </div>
+
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Course End Date</label>
-                  <input
-                    type="date"
-                    name="courseEndDate"
-                  
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                  />
+                  <DateFieldGroup name="courseEndDate" required />
                 </div>
               </div>
             </div>
           </FormSection>
 
-          {/* Eligibility */}
           <FormSection title="Eligibility">
-            <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Eligibility</h3>
+            <div className="">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">From</label>
+                  <label className="block mb-2 text-sm font-bold text-gray-700">
+                    From
+                  </label>
                   <select
-                  name="eligibilityFrom"
-                   
+                    name="eligibilityFrom"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -277,10 +213,11 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">To</label>
+                  <label className="block mb-2 text-sm font-bold text-gray-700">
+                    To
+                  </label>
                   <select
-                  name="eligibilityTo"
-                    
+                    name="eligibilityTo"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -297,112 +234,50 @@ const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
             </div>
           </FormSection>
 
-          {/* Requirements Section */}
-          {/* Requirements and Course Tags Section */}
           <FormSection title="Requirements & Tags">
-            <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Additional Details</h3>
-
+            <div className="">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                {/* Requirements */}
                 <div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Requirements</h4>
-                  <div className="space-y-4">
-                    {requirements.map((requirement, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={requirement}
-                          onChange={(e) => handleRequirementChange(index, e.target.value)}
-                          placeholder={`Requirement ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === requirements.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addRequirement}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Requirement"
-                          >
-                            +
-                          </button>
-                        )}
-                        {requirements.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeRequirement(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Requirement"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <MultiForm
+                    placeholder="Requirement"
+                    className="space-y-4"
+                    values={requirements}
+                    setArray={setRequirements}
+                    legend="Requirements"
+                    fieldLabel="Requirement"
+                    name="requirements"
+                  />
                 </div>
 
-                {/* Course Tags */}
                 <div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Course Tags</h4>
-                  <div className="space-y-4">
-                    {courseTags.map((tag, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={tag}
-                          onChange={(e) => handleTagChange(index, e.target.value)}
-                          placeholder={`Tag ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === courseTags.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addTag}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Tag"
-                          >
-                            +
-                          </button>
-                        )}
-                        {courseTags.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTag(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Tag"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <MultiForm
+                    placeholder="Tag"
+                    className="space-y-4"
+                    values={courseTags}
+                    setArray={setCourseTags}
+                    legend="Course Tags"
+                    fieldLabel="Tag"
+                    name="courseTags"
+                  />
                 </div>
               </div>
             </div>
           </FormSection>
 
-
-
-
-          {/* Reference Link */}
           <FormSection title="Reference">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Reference Link</label>
+              <label className="block mb-2 text-sm font-bold text-gray-700">
+                Reference Link
+              </label>
               <input
                 type="url"
                 name="referenceLink"
-              
-                required
                 placeholder="Enter reference link"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"
               />
             </div>
           </FormSection>
 
-          {/* Submit */}
           <div className="flex justify-end w-full">
             <Button
               type="submit"

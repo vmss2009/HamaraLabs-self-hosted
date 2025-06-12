@@ -78,6 +78,7 @@ model School {
   visits            SchoolVisit[]
 }
 
+
 model Student {
   id                    String                          @id @default(uuid())
   created_at            DateTime                        @default(now())

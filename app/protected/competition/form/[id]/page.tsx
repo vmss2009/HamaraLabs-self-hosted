@@ -4,19 +4,21 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
+import DateFieldGroup from "@/components/forms/DateField";
+import MultiForm from "@/components/forms/Multiform";
 
-export default function EditCompetitionForm({ params }: { params: Promise<{ id: string }> }) {
+export default function EditCompetitionForm({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // State for form fields
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [organisedBy, setOrganisedBy] = useState("");
@@ -26,13 +28,11 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
   const [competitionEndDate, setCompetitionEndDate] = useState("");
   const [payment, setPayment] = useState("free");
   const [fee, setFee] = useState("");
-  
-  // State for dynamic field arrays
+
   const [eligibility, setEligibility] = useState<string[]>([]);
   const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
   const [requirements, setRequirements] = useState<string[]>([]);
-  
-  // Fetch competition data on component mount
+
   useEffect(() => {
     const fetchCompetition = async () => {
       try {
@@ -41,29 +41,29 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
           throw new Error("Failed to fetch competition");
         }
         const data = await response.json();
-        
-        // Set form fields using state
-        setName(data.name || '');
-        setDescription(data.description || '');
-        setOrganisedBy(data.organised_by || '');
-        
-        // Format dates for input fields (YYYY-MM-DD)
+
+        setName(data.name || "");
+        setDescription(data.description || "");
+        setOrganisedBy(data.organised_by || "");
+
         const formatDateForInput = (dateString: string | null) => {
-          if (!dateString) return '';
+          if (!dateString) return "";
           const date = new Date(dateString);
-          return date.toISOString().split('T')[0];
+          return date.toISOString().split("T")[0];
         };
-        
-        setApplicationStartDate(formatDateForInput(data.application_start_date));
+
+        setApplicationStartDate(
+          formatDateForInput(data.application_start_date)
+        );
         setApplicationEndDate(formatDateForInput(data.application_end_date));
-        setCompetitionStartDate(formatDateForInput(data.competition_start_date));
+        setCompetitionStartDate(
+          formatDateForInput(data.competition_start_date)
+        );
         setCompetitionEndDate(formatDateForInput(data.competition_end_date));
-        
-        // Set payment and fee
-        setPayment(data.payment || 'free');
-        setFee(data.fee || '');
-        
-        // Set dynamic fields
+
+        setPayment(data.payment || "free");
+        setFee(data.fee || "");
+
         setEligibility(data.eligibility || []);
         setReferenceLinks(data.reference_links || []);
         setRequirements(data.requirements || []);
@@ -72,21 +72,18 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
         console.error(error);
       }
     };
-    
+
     fetchCompetition();
   }, [resolvedParams.id]);
-  
-  // Form submission handler
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      // Format dates to ISO string format
       const formatDate = (dateString: string) => {
         if (!dateString) return null;
-        // Create a date object and convert to ISO string
         const date = new Date(dateString);
         return date.toISOString();
       };
@@ -103,9 +100,9 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
         reference_links: referenceLinks,
         requirements,
         payment,
-        fee: payment === "paid" ? fee : null
+        fee: payment === "paid" ? fee : null,
       };
-      
+
       const response = await fetch(`/api/competitions/${resolvedParams.id}`, {
         method: "PUT",
         headers: {
@@ -113,12 +110,12 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
         },
         body: JSON.stringify(competitionData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update the competition");
+        throw new Error(errorData.error || "Failed to update the competition");
       }
-      
+
       router.push("/protected/competition/report");
     } catch (error) {
       if (error instanceof Error) {
@@ -130,15 +127,18 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit competition</h1>
-          <p className="text-gray-600 mt-2">Update the details of competition below</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            Edit competition
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Update the details of competition below
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -163,8 +163,6 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
           </div>
         )}
 
-
-        
         <form onSubmit={onSubmit} className="space-y-8">
           <FormSection title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
@@ -179,7 +177,7 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="w-full md:col-span-2">
                 <Input
                   id="competition-organised-by"
@@ -191,9 +189,9 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Description <span className="text-red-600">*</span>
                 </label>
                 <textarea
@@ -207,70 +205,46 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Application Start Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="application-start-date"
+                <DateFieldGroup
                   name="applicationStartDate"
                   value={applicationStartDate}
                   onChange={(e) => setApplicationStartDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Application End Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="application-end-date"
+                <DateFieldGroup
                   name="applicationEndDate"
                   value={applicationEndDate}
                   onChange={(e) => setApplicationEndDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Competition Start Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="competition-start-date"
+                <DateFieldGroup
                   name="competitionStartDate"
                   value={competitionStartDate}
                   onChange={(e) => setCompetitionStartDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
-                  Competition End Date <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="competition-end-date"
+                <DateFieldGroup
                   name="competitionEndDate"
                   value={competitionEndDate}
                   onChange={(e) => setCompetitionEndDate(e.target.value)}
                   required
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Payment Type <span className="text-red-600">*</span>
                 </label>
                 <select
@@ -285,7 +259,7 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
                   <option value="paid">Paid</option>
                 </select>
               </div>
-              
+
               {payment === "paid" && (
                 <div>
                   <Input
@@ -302,70 +276,41 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
               )}
             </div>
           </FormSection>
-          
+
           <FormSection title="Competition Details">
-            <DynamicFieldArray
-            className="mb-5"
-            placeholder="Eligibility"
+            <MultiForm
+              className="mb-5"
+              placeholder="Eligibility"
               values={eligibility}
-              onChange={(index, value) => {
-                const newEligibility = [...eligibility];
-                newEligibility[index] = value;
-                setEligibility(newEligibility);
-              }}
-              onAdd={() => setEligibility([...eligibility, ""])}
-              onRemove={(index) => {
-                const newEligibility = [...eligibility];
-                newEligibility.splice(index, 1);
-                setEligibility(newEligibility);
-              }}
+              setArray={setEligibility}
               legend="Eligibility Criteria"
               fieldLabel="Eligibility"
               name="eligibility"
               required
             />
-            
-            <DynamicFieldArray
-            className="mb-5"
-            placeholder="Reference Link"
+
+            <MultiForm
+              className="mb-5"
+              placeholder="Reference Link"
               values={referenceLinks}
-              onChange={(index, value) => {
-                const newReferenceLinks = [...referenceLinks];
-                newReferenceLinks[index] = value;
-                setReferenceLinks(newReferenceLinks);
-              }}
-              onAdd={() => setReferenceLinks([...referenceLinks, ""])}
-              onRemove={(index) => {
-                const newReferenceLinks = [...referenceLinks];
-                newReferenceLinks.splice(index, 1);
-                setReferenceLinks(newReferenceLinks);
-              }}
+              setArray={setReferenceLinks}
               legend="Reference Links"
               fieldLabel="Link"
               name="referenceLinks"
             />
-            
-            <DynamicFieldArray
-            className="mb-5"
-            placeholder="Requirement"
+
+            <MultiForm
+              className="mb-5"
+              placeholder="Requirement"
               values={requirements}
-              onChange={(index, value) => {
-                const newRequirements = [...requirements];
-                newRequirements[index] = value;
-                setRequirements(newRequirements);
-              }}
-              onAdd={() => setRequirements([...requirements, ""])}
-              onRemove={(index) => {
-                const newRequirements = [...requirements];
-                newRequirements.splice(index, 1);
-                setRequirements(newRequirements);
-              }}
+              setArray={setRequirements}
               legend="Requirements"
               fieldLabel="Requirement"
               name="requirements"
+              required
             />
           </FormSection>
-          
+
           <div className="flex justify-end space-x-4">
             <Button
               type="button"
@@ -375,17 +320,12 @@ export default function EditCompetitionForm({ params }: { params: Promise<{ id: 
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-            >
+            <Button type="submit" isLoading={isLoading} size="lg">
               Update
             </Button>
           </div>
         </form>
       </div>
-      </div>
-   
+    </div>
   );
-} 
+}

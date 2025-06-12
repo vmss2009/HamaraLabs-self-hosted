@@ -3,20 +3,30 @@
 import { useState, useEffect } from "react";
 import {
   DataGrid,
-  GridColDef,
+  GridColumnVisibilityModel,
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
-  GridActionsCellItem
 } from "@mui/x-data-grid";
+import {
+  FormControl,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { Button } from "@/components/ui/Button";
-import Drawer from "@mui/material/Drawer";
-import Box from "@mui/material/Box";
-import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Radio, RadioGroup, FormControlLabel, FormLabel, TextField, Grid } from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DetailViewer from "@/components/forms/DetailViewer";
+import EditActivityDialog from "./tinkering-activity/tinkering-activity-edit-form/page";
+import { getCourseColumns } from "./course/page";
+import { getCompetitionColumns } from "./competition/page";
+import { getTinkeringActivityColumns } from "./tinkering-activity/page";
 
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
@@ -26,7 +36,7 @@ const TINKERING_STATUS_OPTIONS = [
   "Nearly completed",
   "In review",
   "Review completed",
-  "TA completed"
+  "TA completed",
 ];
 
 const COMPETITION_STATUS_OPTIONS = [
@@ -37,7 +47,7 @@ const COMPETITION_STATUS_OPTIONS = [
   "Nearly completed",
   "In review",
   "Review completed",
-  "Competition completed"
+  "Competition completed",
 ];
 
 const COURSE_STATUS_OPTIONS = [
@@ -48,47 +58,79 @@ const COURSE_STATUS_OPTIONS = [
   "Nearly completed",
   "In review",
   "Review completed",
-  "Course completed"
+  "Course completed",
 ];
 
 export default function StudentSnapshot() {
   const [schools, setSchools] = useState<any[]>([]);
+  const [currentView, setCurrentView] = useState<"cluster" | "school">(
+    "cluster"
+  );
+
+  const [clusters, setClusters] = useState<any[]>([]);
+  const [selectedCluster, setSelectedCluster] = useState("");
+  const [hubs, setHubs] = useState<any[]>([]);
+  const [selectedHub, setSelectedHub] = useState("");
+
   const [students, setStudents] = useState<any[]>([]);
   const [selectedSchool, setSelectedSchool] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
-  const [activeTab, setActiveTab] = useState<'tinkering' | 'competition' | 'courses'>('tinkering');
+  const [activeTab, setActiveTab] = useState<
+    "tinkering" | "competition" | "courses"
+  >("tinkering");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tinkeringActivities, setTinkeringActivities] = useState<any[]>([]);
   const [competitions, setCompetitions] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
 
-  // New state variables for Cluster and Hub
-  const [clusters, setClusters] = useState<any[]>([]);
-  const [selectedCluster, setSelectedCluster] = useState("");
-  const [hubs, setHubs] = useState<any[]>([]);
-  const [selectedHub, setSelectedHub] = useState("");
-
-  // State for controlling the view
-  const [currentView, setCurrentView] = useState<'cluster' | 'school'>('cluster');
-
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [statusType, setStatusType] = useState<'tinkering' | 'competition' | 'courses'>('tinkering');
+  const [statusType, setStatusType] = useState<
+    "tinkering" | "competition" | "courses"
+  >("tinkering");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
-  const [subjects, setSubjects] = useState<Array<{ id: number; subject_name: string }>>([]);
-  const [topics, setTopics] = useState<Array<{ id: number; topic_name: string }>>([]);
-  const [subtopics, setSubtopics] = useState<Array<{ id: number; subtopic_name: string }>>([]);
+  const [subjects, setSubjects] = useState<
+    Array<{ id: number; subject_name: string }>
+  >([]);
+  const [topics, setTopics] = useState<
+    Array<{ id: number; topic_name: string }>
+  >([]);
+  const [subtopics, setSubtopics] = useState<
+    Array<{ id: number; subtopic_name: string }>
+  >([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
+  const [columnVisibilityModel, setColumnVisibilityModel] =
+    useState<GridColumnVisibilityModel>({
+      goals: false,
+      materials: false,
+      instructions: false,
+      tips: false,
+      observations: false,
+      extensions: false,
+      resources: false,
+    });
 
-  const latestStatus = selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(" - ")[0] || "";
+  const [
+    columnVisibilityCompetitionModel,
+    setColumnVisibilitycompetitionModel,
+  ] = useState<GridColumnVisibilityModel>({
+    reference_links: false,
+    requirements: false,
+    description: false,
+  });
+
+  const latestStatus =
+    selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(
+      " - "
+    )[0] || "";
 
   // Fetch clusters and schools on component mount
   useEffect(() => {
@@ -109,40 +151,42 @@ export default function StudentSnapshot() {
         }
         const schoolsData = await schoolsResponse.json();
         setSchools(schoolsData);
-
       } catch (error) {
         console.error("Error fetching initial data:", error);
         setError("Failed to load initial data. Please try again later.");
       }
     };
-    
+
     fetchData();
   }, []);
 
   // Filter hubs when cluster is selected
   useEffect(() => {
-      if (currentView === 'cluster' && selectedCluster) {
-          const cluster = clusters.find(c => c.id.toString() === selectedCluster);
-          if (cluster) {
-              setHubs(cluster.hubs);
-              setSelectedHub(""); // Reset selected hub
-              setSelectedSchool(""); // Reset selected school
-              setStudents([]); // Clear students
-          } else {
-              setHubs([]);
-              setSelectedHub("");
-              setSelectedSchool("");
-              setStudents([]);
-          }
-      } else if (currentView === 'cluster' && !selectedCluster) {
-          setHubs([]);
-          setSelectedHub("");
-          setSelectedSchool("");
-          setStudents([]);
+    if (currentView === "cluster" && selectedCluster) {
+      const cluster = clusters.find((c) => c.id.toString() === selectedCluster);
+      if (cluster) {
+        setHubs(cluster.hubs);
+        setSelectedHub(""); // Reset selected hub
+        setSelectedSchool(""); // Reset selected school
+        setStudents([]); // Clear students
+      } else {
+        setHubs([]);
+        setSelectedHub("");
+        setSelectedSchool("");
+        setStudents([]);
       }
+    } else if (currentView === "cluster" && !selectedCluster) {
+      setHubs([]);
+      setSelectedHub("");
+      setSelectedSchool("");
+      setStudents([]);
+    }
   }, [selectedCluster, clusters, currentView]);
 
-  // Fetch students when school is selected
+  useEffect(() => {
+    fetchSchools();
+  }, []);
+
   useEffect(() => {
     if (selectedSchool) {
       fetchStudents(selectedSchool);
@@ -152,7 +196,6 @@ export default function StudentSnapshot() {
     }
   }, [selectedSchool]);
 
-  // Fetch data when student is selected
   useEffect(() => {
     if (selectedStudent) {
       const fetchActions: Record<string, () => void> = {
@@ -165,7 +208,6 @@ export default function StudentSnapshot() {
     }
   }, [selectedStudent, activeTab]);
 
-  // Fetch subjects on component mount
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -183,7 +225,6 @@ export default function StudentSnapshot() {
     fetchSubjects();
   }, []);
 
-  // Fetch topics when subject changes
   useEffect(() => {
     const fetchTopics = async () => {
       if (!selectedSubject) {
@@ -195,7 +236,9 @@ export default function StudentSnapshot() {
       }
 
       try {
-        const response = await fetch(`/api/topics?subjectId=${selectedSubject}`);
+        const response = await fetch(
+          `/api/topics?subjectId=${selectedSubject}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch topics");
         }
@@ -209,7 +252,6 @@ export default function StudentSnapshot() {
     fetchTopics();
   }, [selectedSubject]);
 
-  // Fetch subtopics when topic changes
   useEffect(() => {
     const fetchSubtopics = async () => {
       if (!selectedTopic) {
@@ -233,6 +275,20 @@ export default function StudentSnapshot() {
     fetchSubtopics();
   }, [selectedTopic]);
 
+  const fetchSchools = async () => {
+    try {
+      const response = await fetch("/api/schools");
+      if (!response.ok) {
+        throw new Error("Failed to fetch schools");
+      }
+      const data = await response.json();
+      setSchools(data);
+    } catch (error) {
+      console.error("Error fetching schools:", error);
+      setError("Failed to load schools");
+    }
+  };
+
   const fetchStudents = async (schoolId: string) => {
     try {
       const response = await fetch(`/api/students?school_id=${schoolId}`);
@@ -250,8 +306,9 @@ export default function StudentSnapshot() {
   const fetchTinkeringActivities = async () => {
     try {
       setLoading(true);
-      console.log(selectedStudent);
-      const response = await fetch(`/api/customised-tinkering-activities/list?student_id=${selectedStudent}`);
+      const response = await fetch(
+        `/api/customised-tinkering-activities/list?student_id=${selectedStudent}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch tinkering activities");
       }
@@ -268,12 +325,14 @@ export default function StudentSnapshot() {
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/customised-competitions/list?student_id=${selectedStudent}`);
+      const response = await fetch(
+        `/api/customised-competitions/list?student_id=${selectedStudent}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch competitions");
       }
       const customisedCompetitions = await response.json();
-      console.log(customisedCompetitions);
+      console.log("Compettt", customisedCompetitions);
       setCompetitions(customisedCompetitions);
     } catch (error) {
       console.error("Error fetching competitions:", error);
@@ -286,7 +345,9 @@ export default function StudentSnapshot() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/customised-courses/list?student_id=${selectedStudent}`);
+      const response = await fetch(
+        `/api/customised-courses/list?student_id=${selectedStudent}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch courses");
       }
@@ -301,7 +362,10 @@ export default function StudentSnapshot() {
     }
   };
 
-  const handleModifyStatus = (item: any, type: 'tinkering' | 'competition' | 'courses') => {
+  const handleModifyStatus = (
+    item: any,
+    type: "tinkering" | "competition" | "courses"
+  ) => {
     setSelectedActivity(item);
     setStatusType(type);
     setStatusDialogOpen(true);
@@ -312,7 +376,6 @@ export default function StudentSnapshot() {
     competition: COMPETITION_STATUS_OPTIONS,
     courses: COURSE_STATUS_OPTIONS,
   };
-
   const statusOptions = STATUS_OPTIONS_MAP[statusType] || [];
 
   const getLatestStatus = (item: any) => {
@@ -325,27 +388,28 @@ export default function StudentSnapshot() {
 
   useEffect(() => {
     if (selectedActivity?.status?.length > 0) {
-      const latest = selectedActivity.status[selectedActivity.status.length - 1];
+      const latest =
+        selectedActivity.status[selectedActivity.status.length - 1];
       const statusOnly = latest.split(" - ")[0];
       setSelectedStatus(statusOnly);
-      setIsSubmitEnabled(false); // disable initially
+      setIsSubmitEnabled(false);
     }
   }, [selectedActivity]);
 
   const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newStatus = event.target.value;
     setSelectedStatus(newStatus);
-    setIsSubmitEnabled(newStatus !== latestStatus); // enable only if different from latest
+    setIsSubmitEnabled(newStatus !== latestStatus);
   };
 
   const formatStatusDate = (date: Date) => {
-    return date.toLocaleString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -356,15 +420,15 @@ export default function StudentSnapshot() {
     }
 
     try {
-      // Get current status array or initialize empty array
       const currentStatus = selectedActivity.status || [];
 
-      // Format date and build updated status list
       const currentDate = new Date();
       const formattedDate = formatStatusDate(currentDate);
-      const updatedStatus = [...currentStatus, `${selectedStatus} - ${formattedDate}`];
+      const updatedStatus = [
+        ...currentStatus,
+        `${selectedStatus} - ${formattedDate}`,
+      ];
 
-      // Determine endpoint based on statusType
       let endpoint = "";
       if (statusType === "tinkering") {
         endpoint = `/api/customised-tinkering-activities/${selectedActivity.id}`;
@@ -379,7 +443,6 @@ export default function StudentSnapshot() {
       console.log("PATCH Endpoint:", endpoint);
       console.log("Request Body:", JSON.stringify({ status: updatedStatus }));
 
-      // Send PATCH request
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -393,10 +456,11 @@ export default function StudentSnapshot() {
       console.log("Response Body:", responseText);
 
       if (!response.ok) {
-        throw new Error(`Failed to update status: ${response.status} - ${responseText}`);
+        throw new Error(
+          `Failed to update status: ${response.status} - ${responseText}`
+        );
       }
 
-      // Trigger appropriate fetch to reload data
       const fetchActions: Record<string, () => void> = {
         tinkering: fetchTinkeringActivities,
         competition: fetchCompetitions,
@@ -405,7 +469,6 @@ export default function StudentSnapshot() {
 
       fetchActions[statusType]?.();
 
-      // Cleanup state
       setStatusDialogOpen(false);
       setSelectedActivity(null);
       setSelectedStatus("");
@@ -416,34 +479,32 @@ export default function StudentSnapshot() {
   };
 
   const parseStatusDate = (status: string) => {
-    // Extract the date part after the hyphen
-    const dateMatch = status.split(' - ')[1];
+    const dateMatch = status.split(" - ")[1];
     if (dateMatch) {
-      // Parse the date in the format "April 17, 2025 at 06:16 PM"
-      const [datePart, timePart] = dateMatch.split(' at ');
-      const [month, day, year] = datePart.split(' ');
-      const [time, period] = timePart.split(' ');
-      const [hours, minutes] = time.split(':');
+      const [datePart, timePart] = dateMatch.split(" at ");
+      const [month, day, year] = datePart.split(" ");
+      const [time, period] = timePart.split(" ");
+      const [hours, minutes] = time.split(":");
 
       const monthIndex = new Date(`${month} 1, 2000`).getMonth();
       const date = new Date(
         parseInt(year),
         monthIndex,
-        parseInt(day.replace(',', '')),
-        period === 'PM' ? parseInt(hours) + 12 : parseInt(hours),
+        parseInt(day.replace(",", "")),
+        period === "PM" ? parseInt(hours) + 12 : parseInt(hours),
         parseInt(minutes)
       );
 
       return date;
     }
-    return new Date(0); // Return a very old date if no date is found
+    return new Date(0);
   };
 
   const handleEditTinkeringActivity = (activity: any) => {
     setSelectedActivity(activity);
     setEditFormData({
-      name: activity.name || '',
-      introduction: activity.introduction || '',
+      name: activity.name || "",
+      introduction: activity.introduction || "",
       goals: activity.goals || [],
       materials: activity.materials || [],
       instructions: activity.instructions || [],
@@ -453,7 +514,6 @@ export default function StudentSnapshot() {
       resources: activity.resources || [],
     });
 
-    // Set the selected subject, topic, and subtopic
     if (activity.subtopic?.topic?.subject) {
       setSelectedSubject(activity.subtopic.topic.subject.id.toString());
     }
@@ -474,7 +534,11 @@ export default function StudentSnapshot() {
     });
   };
 
-  const handleArrayFieldChange = (field: string, index: number, value: string) => {
+  const handleArrayFieldChange = (
+    field: string,
+    index: number,
+    value: string
+  ) => {
     const newArray = [...editFormData[field]];
     newArray[index] = value;
     setEditFormData({
@@ -486,7 +550,7 @@ export default function StudentSnapshot() {
   const handleAddArrayItem = (field: string) => {
     setEditFormData({
       ...editFormData,
-      [field]: [...editFormData[field], ''],
+      [field]: [...editFormData[field], ""],
     });
   };
 
@@ -503,483 +567,142 @@ export default function StudentSnapshot() {
     if (!selectedActivity) return;
 
     try {
-      const response = await fetch(`/api/customised-tinkering-activities/${selectedActivity.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...editFormData,
-          subtopic_id: parseInt(selectedSubtopic),
-        }),
-      });
+      const response = await fetch(
+        `/api/customised-tinkering-activities/${selectedActivity.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...editFormData,
+            subtopic_id: parseInt(selectedSubtopic),
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to update tinkering activity');
+        throw new Error("Failed to update tinkering activity");
       }
 
-      // Refresh the data
       fetchTinkeringActivities();
 
-      // Close the dialog
       setEditDialogOpen(false);
       setSelectedActivity(null);
     } catch (error) {
-      console.error('Error updating tinkering activity:', error);
-      alert('Failed to update tinkering activity. Please try again.');
+      console.error("Error updating tinkering activity:", error);
+      alert("Failed to update tinkering activity. Please try again.");
     }
   };
 
   const handleDeleteTinkeringActivity = async (activity: any) => {
-    if (!confirm('Are you sure you want to delete this tinkering activity?')) {
+    if (!confirm("Are you sure you want to delete this tinkering activity?")) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/customised-tinkering-activities/${activity.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/customised-tinkering-activities/${activity.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete tinkering activity');
+        throw new Error("Failed to delete tinkering activity");
       }
 
-      // Refresh the data
       fetchTinkeringActivities();
     } catch (error) {
-      console.error('Error deleting tinkering activity:', error);
-      alert('Failed to delete tinkering activity. Please try again.');
+      console.error("Error deleting tinkering activity:", error);
+      alert("Failed to delete tinkering activity. Please try again.");
     }
   };
 
   const handleDeleteCompetition = async (competition: any) => {
-    if (!confirm('Are you sure you want to delete this competition?')) {
+    if (!confirm("Are you sure you want to delete this competition?")) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/customised-competitions/${competition.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/customised-competitions/${competition.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete competition');
+        throw new Error("Failed to delete competition");
       }
 
-      // Refresh the data
       fetchCompetitions();
     } catch (error) {
-      console.error('Error deleting competition:', error);
-      alert('Failed to delete competition. Please try again.');
+      console.error("Error deleting competition:", error);
+      alert("Failed to delete competition. Please try again.");
     }
   };
+
+  const handleModifyCourse = (item: any) => {
+    setSelectedActivity(item);
+    setStatusType("courses");
+    setStatusDialogOpen(true);
+  };
+  const handleModifyCompetition = (item: any) => {
+    setSelectedActivity(item);
+    setStatusType("competition");
+    setStatusDialogOpen(true);
+  };
+  const handleModifyactivity = (item: any) => {
+    setSelectedActivity(item);
+    setStatusType("tinkering");
+    setStatusDialogOpen(true);
+  };
   const handleDeleteCourse = async (course: any) => {
-    if (!confirm('Are you sure you want to delete this course?')) {
+    if (!confirm("Are you sure you want to delete this course?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/customised-courses/${course.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete course');
+        throw new Error("Failed to delete course");
       }
 
-      // Refresh the data
       fetchCourses();
     } catch (error) {
-      console.error('Error deleting course:', error);
-      alert('Failed to delete course. Please try again.');
+      console.error("Error deleting course:", error);
+      alert("Failed to delete course. Please try again.");
     }
   };
 
-  const tinkeringActivityColumns: GridColDef[] = [
-    {
-      field: "id",
-      headerName: "S.No",
-      width: 100,
-      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
-    },
-    {
-      field: 'name',
-      headerName: 'Activity Name',
-      width: 200,
-      renderCell: (params) =>
-        params.value ?? "N/A",
-    },
-    {
-      field: 'introduction',
-      headerName: 'Introduction',
-      width: 200,
-      renderCell: (params) =>
-        params.value ?? "N/A",
-    },
-    {
-      field: 'subject',
-      headerName: 'Subject',
-      width: 150,
-      renderCell: (params) =>
-        params.row?.subtopic?.topic?.subject?.subject_name ?? 'N/A'
-    },
-    {
-      field: 'topic',
-      headerName: 'Topic',
-      width: 150,
-      renderCell: (params) =>
-        params.row?.subtopic?.topic?.topic_name ?? 'N/A'
-    },
-    {
-      field: 'subtopic',
-      headerName: 'Subtopic',
-      width: 150,
-      renderCell: (params) =>
-        params.row?.subtopic?.subtopic_name ?? 'N/A'
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 300,
-      renderCell: (params) =>
-        Array.isArray(params.row?.status) && params.row.status.length > 0
-          ? params.row.status[params.row.status.length - 1]
-          : 'N/A',
-    },
-    {
-      field: 'tinkering_actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 200,
-      renderCell: (params) => (
-        <div className="flex items-center justify-center space-x-2 w-full h-full">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleModifyStatus(params.row, 'tinkering');
-            }}
-          >
-            Modify status
-          </Button>
-          <GridActionsCellItem
-            icon={
-              <EditIcon
-                sx={{
-                  fontSize: 22,
-                  color: '#4b5563', // Tailwind gray-600
-                  transition: 'color 0.2s ease-in-out',
-                  '&:hover': {
-                    color: '#111827', // Tailwind gray-900
-                  },
-                }}
-              />
-            }
-            label="Edit"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditTinkeringActivity(params.row);
-            }}
-            showInMenu={false}
-          />
-          <GridActionsCellItem
-            icon={
-              <DeleteOutlineIcon
-                sx={{
-                  fontSize: 22,
-                  color: '#ef4444', // Tailwind red-500
-                  transition: 'color 0.2s ease-in-out',
-                  '&:hover': {
-                    color: '#b91c1c', // Tailwind red-700
-                  },
-                }}
-              />
-            }
-            label="Delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteTinkeringActivity(params.row);
-            }}
-            showInMenu={false}
-          />
-        </div>
-      ),
-    },
-  ];
-
-  const competitionColumns: GridColDef[] = [
-    {
-      field: "id",
-      headerName: "S.No",
-      width: 100,
-      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
-    },
-    {
-      field: 'competition_actions',
-      headerName: "Competition",
-      width: 200,
-      renderCell: (params) =>
-        params.row?.competition?.name ?? "N/A",
-    },
-    {
-      field: "organised_by",
-      headerName: "Organised By",
-      width: 180,
-      renderCell: (params) =>
-        params.row?.competition?.organised_by ?? "N/A",
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 300,
-      renderCell: (params) => {
-        const statusArray = params.row?.status;
-        return Array.isArray(statusArray) && statusArray.length > 0
-          ? statusArray[statusArray.length - 1]
-          : 'N/A';
-      },
-    },
-    {
-      field: "application_start_date",
-      headerName: "Application Start",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.competition?.application_start_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "application_end_date",
-      headerName: "Application End",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.competition?.application_end_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "competition_start_date",
-      headerName: "Competition Start",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.competition?.competition_start_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "competition_end_date",
-      headerName: "Competition End",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.competition?.competition_end_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "payment",
-      headerName: "Payment",
-      width: 150,
-      renderCell: (params) =>
-        params.row?.competition?.payment ?? "N/A",
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 200,
-      getActions: (params) => [
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleModifyStatus(params.row, 'competition');
-            }}
-          >
-            Modify status
-          </Button>
-          <GridActionsCellItem
-            key="delete"
-            icon={
-              <DeleteOutlineIcon
-                sx={{
-                  color: '#ef4444', // red-500
-                  transition: 'color 0.2s ease-in-out',
-                  '&:hover': {
-                    color: '#dc2626', // red-600
-                  },
-                }}
-              />
-            }
-            label="Delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteCompetition(params.row);
-            }}
-            showInMenu={false}
-          />
-        </div>
-      ],
-    },
-  ];
-  const courseColumns: GridColDef[] = [
-    {
-      field: "id",
-      headerName: "S.No",
-      width: 100,
-      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
-    },
-    {
-      field: 'course_actions',
-      headerName: "Course",
-      width: 200,
-      renderCell: (params) => params.row?.course?.name ?? "N/A",
-    },
-    {
-      field: "organized_by",
-      headerName: "Organized By",
-      width: 180,
-      renderCell: (params) => params.row?.course?.organized_by ?? "N/A",
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 300,
-      renderCell: (params) => {
-        const statusArray = params.row?.status;
-        return Array.isArray(statusArray) && statusArray.length > 0
-          ? statusArray[statusArray.length - 1]
-          : 'N/A';
-      },
-    },
-    {
-      field: "application_start_date",
-      headerName: "Application Start",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.course?.application_start_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "application_end_date",
-      headerName: "Application End",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.course?.application_end_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "course_start_date",
-      headerName: "Course Start",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.course?.course_start_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "course_end_date",
-      headerName: "Course End",
-      width: 200,
-      renderCell: (params) => {
-        const date = params.row?.course?.course_end_date;
-        return date ? new Date(date).toLocaleDateString() : "N/A";
-      },
-    },
-    {
-      field: "eligibility",
-      headerName: "Eligibility",
-      width: 250,
-      renderCell: (params) => {
-        const from = params.row?.course?.eligibility_from ?? "";
-        const to = params.row?.course?.eligibility_to ?? "";
-        return from && to ? `${from} - ${to}` : "N/A";
-      },
-    },
-    {
-      field: "reference_link",
-      headerName: "Reference",
-      width: 220,
-      renderCell: (params) => {
-        const link = params.row?.course?.reference_link;
-        return link ? (
-          <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-            {link}
-          </a>
-        ) : "N/A";
-      }
-    },
-    {
-      field: "requirements",
-      headerName: "Requirements",
-      width: 250,
-      renderCell: (params) => {
-        const reqs = params.row?.course?.requirements ?? [];
-        return reqs.length > 0 ? reqs.join(", ") : "N/A";
-      },
-    },
-    {
-      field: "course_tags",
-      headerName: "Tags",
-      width: 250,
-      renderCell: (params) => {
-        const tags = params.row?.course?.course_tags ?? [];
-        return tags.length > 0 ? tags.join(", ") : "N/A";
-      },
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 200,
-      getActions: (params) => [
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleModifyStatus(params.row, 'courses');
-            }}
-          >
-            Modify status
-          </Button>
-          <GridActionsCellItem
-            key="delete"
-            icon={
-              <DeleteOutlineIcon
-                sx={{
-                  color: '#ef4444', // red-500
-                  transition: 'color 0.2s ease-in-out',
-                  '&:hover': {
-                    color: '#dc2626', // red-600
-                  },
-                }}
-              />
-            }
-            label="Delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteCourse(params.row);
-            }}
-            showInMenu={false}
-          />
-        </div>
-      ],
-    },
-  ];
+  const tinkeringActivityColumns = getTinkeringActivityColumns(
+    handleModifyactivity,
+    handleEditTinkeringActivity,
+    handleDeleteTinkeringActivity
+  );
+  const competitionColumns = getCompetitionColumns(
+    handleModifyCompetition,
+    handleDeleteCompetition
+  );
+  const courseColumns = getCourseColumns(
+    handleModifyCourse,
+    handleDeleteCourse
+  );
 
   const handleRowClick = (params: any) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
+
+  useEffect(() => {
+    if (selectedRow) {
+      console.log("Updated selectedRow", selectedRow);
+    }
+  }, [selectedRow]);
 
   const closeDrawer = () => {
     setDrawerOpen(false);
@@ -987,47 +710,38 @@ export default function StudentSnapshot() {
   };
 
   const formatValue = (value: any) => {
-    if (value === null || value === undefined) return 'N/A';
-    if (Array.isArray(value)) return value.join(', ');
+    if (value === null || value === undefined) return "N/A";
+    if (Array.isArray(value)) return value.join(", ");
     return value.toString();
   };
 
-  const formatArrayAsBullets = (value: any) => {
-    if (!value || !Array.isArray(value) || value.length === 0) return 'N/A';
-    return (
-      <div className="text-gray-800">
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
   const formatDate = (dateString: string | Date | null) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
 
   const getRowClassName = (params: any) => {
     const statusArray = params.row.status;
-    const latestStatus = Array.isArray(statusArray) && statusArray.length > 0
-      ? statusArray[statusArray.length - 1]
-      : '';
+    const latestStatus =
+      Array.isArray(statusArray) && statusArray.length > 0
+        ? statusArray[statusArray.length - 1]
+        : "";
 
-    if (activeTab === 'tinkering' && latestStatus.includes('TA completed')) {
-      return 'bg-green-100';
+    if (activeTab === "tinkering" && latestStatus.includes("TA completed")) {
+      return "bg-green-100";
     }
-    if (activeTab === 'competition' && latestStatus.includes('Competition completed')) {
-      return 'bg-green-100';
+    if (
+      activeTab === "competition" &&
+      latestStatus.includes("Competition completed")
+    ) {
+      return "bg-green-100";
     }
-    if (activeTab === 'courses' && latestStatus.includes('Course completed')) {
-      return 'bg-green-100';
+    if (activeTab === "courses" && latestStatus.includes("Course completed")) {
+      return "bg-green-100";
     }
 
-    return '';
+    return "";
   };
 
   const getLatestStatusDate = (statusArray: string[]) => {
@@ -1056,43 +770,50 @@ export default function StudentSnapshot() {
     return dateB.getTime() - dateA.getTime();
   });
 
-  // Filter schools for the dropdown based on selected hub (only in cluster view)
-  const filteredSchools = (currentView === 'cluster' && selectedHub) 
-    ? schools.filter(school => {
-        const hub = hubs.find(h => h.id.toString() === selectedHub);
-        if (hub) {
-           // Include the hub school and its spokes
-           return school.id === hub.hub_school.id || hub.spokes.some((spoke: any) => spoke.id === school.id);
-        }
-        return false;
-      })
-    : (currentView === 'school' ? schools : []); // Show all schools in school view, empty if no view selected (shouldn't happen)
+  const filteredSchools =
+    currentView === "cluster" && selectedHub
+      ? schools.filter((school) => {
+          const hub = hubs.find((h) => h.id.toString() === selectedHub);
+          if (hub) {
+            // Include the hub school and its spokes
+            return (
+              school.id === hub.hub_school.id ||
+              hub.spokes.some((spoke: any) => spoke.id === school.id)
+            );
+          }
+          return false;
+        })
+      : currentView === "school"
+      ? schools
+      : []; // Show all schools in school view, empty if no view selected (shouldn't happen)
 
   // Reorder filteredSchools to put the hub school first when in cluster view and a hub is selected
-  const orderedFilteredSchools = (currentView === 'cluster' && selectedHub) 
-    ? (() => {
-        const hub = hubs.find(h => h.id.toString() === selectedHub);
-        if (hub) {
-          const hubSchool = schools.find(s => s.id === hub.hub_school.id);
-          const spokeSchools = schools.filter(s => hub.spokes.some((spoke: any) => spoke.id === s.id));
-          // Ensure hubSchool is found before adding
-          if (hubSchool) {
-            return [hubSchool, ...spokeSchools];
+  const orderedFilteredSchools =
+    currentView === "cluster" && selectedHub
+      ? (() => {
+          const hub = hubs.find((h) => h.id.toString() === selectedHub);
+          if (hub) {
+            const hubSchool = schools.find((s) => s.id === hub.hub_school.id);
+            const spokeSchools = schools.filter((s) =>
+              hub.spokes.some((spoke: any) => spoke.id === s.id)
+            );
+            // Ensure hubSchool is found before adding
+            if (hubSchool) {
+              return [hubSchool, ...spokeSchools];
+            }
           }
-        }
-        return filteredSchools; // Fallback to original filtered list if hub or hubSchool not found
-      })()
-    : filteredSchools; // Use original filtered list or all schools in other views
+          return filteredSchools; // Fallback to original filtered list if hub or hubSchool not found
+        })()
+      : filteredSchools; // Use original filtered list or all schools in other views
 
-  // Function to switch views and reset selections
-  const handleViewChange = (view: 'cluster' | 'school') => {
-      setCurrentView(view);
-      // Reset all relevant selections when switching views
-      setSelectedCluster("");
-      setSelectedHub("");
-      setSelectedSchool("");
-      setSelectedStudent("");
-      setStudents([]);
+  const handleViewChange = (view: "cluster" | "school") => {
+    setCurrentView(view);
+    // Reset all relevant selections when switching views
+    setSelectedCluster("");
+    setSelectedHub("");
+    setSelectedSchool("");
+    setSelectedStudent("");
+    setStudents([]);
   };
 
   return (
@@ -1108,25 +829,24 @@ export default function StudentSnapshot() {
           </Alert>
         )}
 
-        {/* View Toggle Buttons */}
         <div className="flex justify-center items-center space-x-4 mb-6">
-            <Button
-                variant={currentView === 'cluster' ? 'default' : 'outline'}
-                onClick={() => handleViewChange('cluster')}
-            >
-                Cluster View
-            </Button>
-            <Button
-                variant={currentView === 'school' ? 'default' : 'outline'}
-                onClick={() => handleViewChange('school')}
-            >
-                School View
-            </Button>
+          <Button
+            variant={currentView === "cluster" ? "default" : "outline"}
+            onClick={() => handleViewChange("cluster")}
+          >
+            Cluster View
+          </Button>
+          <Button
+            variant={currentView === "school" ? "default" : "outline"}
+            onClick={() => handleViewChange("school")}
+          >
+            School View
+          </Button>
         </div>
 
         <div className="mt-4 flex items-start space-x-4 mb-6">
           {/* Cluster and Hub Dropdowns (Visible in Cluster View) */}
-          {currentView === 'cluster' && (
+          {currentView === "cluster" && (
             <>
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
@@ -1176,11 +896,11 @@ export default function StudentSnapshot() {
               className="w-64 p-2 border rounded-md text-black"
               value={selectedSchool}
               onChange={(e) => setSelectedSchool(e.target.value)}
-              disabled={currentView === 'cluster' && !selectedHub} // Disable in cluster view if no hub selected
+              disabled={currentView === "cluster" && !selectedHub} // Disable in cluster view if no hub selected
             >
               <option value="">SELECT</option>
               {/* Use filteredSchools in cluster view, all schools in school view */}
-              {orderedFilteredSchools.map((school) => (
+              {schools.map((school) => (
                 <option key={school.id} value={school.id.toString()}>
                   {school.name}
                 </option>
@@ -1213,23 +933,23 @@ export default function StudentSnapshot() {
           <div>
             <div className="flex space-x-4">
               <Button
-                variant={activeTab === 'tinkering' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('tinkering')}
+                variant={activeTab === "tinkering" ? "default" : "outline"}
+                onClick={() => setActiveTab("tinkering")}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Tinkering Activities
               </Button>
               <Button
-                variant={activeTab === 'competition' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('competition')}
+                variant={activeTab === "competition" ? "default" : "outline"}
+                onClick={() => setActiveTab("competition")}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Competitions
               </Button>
 
               <Button
-                variant={activeTab === 'courses' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('courses')}
+                variant={activeTab === "courses" ? "default" : "outline"}
+                onClick={() => setActiveTab("courses")}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Courses
@@ -1239,7 +959,7 @@ export default function StudentSnapshot() {
         </div>
 
         <div className="bg-gray-50 h-auto rounded-xl shadow-sm ">
-          {activeTab === 'tinkering' ? (
+          {activeTab === "tinkering" ? (
             <DataGrid
               rows={sortedTinkeringActivities}
               columns={tinkeringActivityColumns}
@@ -1249,26 +969,30 @@ export default function StudentSnapshot() {
               }}
               pageSizeOptions={[5, 10, 25, 50]}
               disableRowSelectionOnClick
+              columnVisibilityModel={columnVisibilityModel}
+              onColumnVisibilityModelChange={(newModel) =>
+                setColumnVisibilityModel(newModel)
+              }
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
               sx={{
                 borderRadius: "20px",
-                backgroundColor: '#f3f4f6',
-                '& .MuiDataGrid-cell': {
-                  color: '#1f2937',
-                  paddingTop: '10px', // 👈 Add horizontal padding
-                  paddingBottom: '10px',
+                backgroundColor: "#f3f4f6",
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937',
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
                 },
-                '& .bg-green-100': {
-                  backgroundColor: '#abebc6 !important',
-                  '&:hover': {
-                    backgroundColor: '#abebc6 !important',
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
                   },
                 },
               }}
@@ -1281,7 +1005,7 @@ export default function StudentSnapshot() {
                 ),
               }}
             />
-          ) : activeTab === 'competition' ? (
+          ) : activeTab === "competition" ? (
             <DataGrid
               rows={sortedCompetitions}
               columns={competitionColumns}
@@ -1291,26 +1015,29 @@ export default function StudentSnapshot() {
               }}
               pageSizeOptions={[5, 10, 25, 50]}
               disableRowSelectionOnClick
+              columnVisibilityModel={columnVisibilityCompetitionModel}
+              onColumnVisibilityModelChange={(newModel) =>
+                setColumnVisibilitycompetitionModel(newModel)
+              }
               getRowId={(row) => row.id}
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
-
               sx={{
                 borderRadius: "12px",
-                '& .MuiDataGrid-cell': {
-                  color: '#1f2937',
-                  paddingTop: '10px', // 👈 Add horizontal padding
-                  paddingBottom: '10px',
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937',
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
                 },
-                '& .bg-green-100': {
-                  backgroundColor: '#abebc6 !important',
-                  '&:hover': {
-                    backgroundColor: '#abebc6 !important',
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
                   },
                 },
               }}
@@ -1339,20 +1066,20 @@ export default function StudentSnapshot() {
               getRowClassName={getRowClassName}
               sx={{
                 borderRadius: "20px",
-                backgroundColor: '#f3f4f6',
-                '& .MuiDataGrid-cell': {
-                  color: '#1f2937',
-                  paddingTop: '10px',
-                  paddingBottom: '10px',
+                backgroundColor: "#f3f4f6",
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937',
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
                 },
-                '& .bg-green-100': {
-                  backgroundColor: '#abebc6 !important',
-                  '&:hover': {
-                    backgroundColor: '#abebc6 !important',
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
                   },
                 },
               }}
@@ -1368,418 +1095,168 @@ export default function StudentSnapshot() {
           )}
         </div>
 
-        <Drawer
-          anchor="right"
-          open={drawerOpen}
-          onClose={closeDrawer}
-          PaperProps={{
-            sx: {
-              width: "40%",
-              padding: 3,
-              backgroundColor: "#ffffff",
-            },
-          }}
+        {activeTab === "tinkering" ? (
+          <DetailViewer
+            drawerOpen={drawerOpen}
+            closeDrawer={closeDrawer}
+            selectedRow={selectedRow}
+            formtype="Tinkering-Activity"
+            columns={[
+              { label: "ID", field: "id" },
+              { label: "Activity Name", field: "name" },
+              {
+                label: "Subject",
+                field: "subtopic.topic.subject.subject_name",
+              },
+              {
+                label: "Topic",
+                field: "subtopic.topic.topic_name",
+              },
+              {
+                label: "Subtopic",
+                field: "subtopic.subtopic_name",
+              },
+              { label: "Introduction", field: "introduction" },
+              {
+                label: "Goals",
+                field: "goals",
+              },
+              {
+                label: "Materials",
+                field: "materials",
+              },
+              {
+                label: "Instructions",
+                field: "instructions",
+              },
+              {
+                label: "Tips",
+                field: "tips",
+              },
+              { label: "Observations", field: "observations" },
+              {
+                label: "Extensions",
+                field: "extensions",
+              },
+              {
+                label: "Resources",
+                field: "resources",
+              },
+              {
+                label: "Status",
+                field: "status",
+              },
+            ]}
+          />
+        ) : activeTab === "competition" ? (
+          <DetailViewer
+            drawerOpen={drawerOpen}
+            closeDrawer={closeDrawer}
+            selectedRow={selectedRow}
+            formtype="Competition"
+            columns={[
+              { label: "ID", field: "id" },
+              { label: "Competition Name", field: "competition.name" },
+              { label: "Description", field: "competition.description" },
+              { label: "Organised By", field: "competition.organised_by" },
+              {
+                label: "Eligibility Criteria",
+                field: "competition.eligibility",
+              },
+              {
+                label: "Requirements",
+                field: "competition.requirements",
+              },
+              { label: "Payment", field: "competition.payment" },
+              {
+                label: "Fee",
+                field: "competition.fee",
+              },
+              {
+                label: "Application Start Date",
+                field: "competition.application_start_date",
+                type: "date",
+              },
+              {
+                label: "Application End Date",
+                field: "competition.application_end_date",
+                type: "date",
+              },
+              {
+                label: "Competition Start Date",
+                field: "competition.competition_start_date",
+                type: "date",
+              },
+              {
+                label: "Competition End Date",
+                field: "competition.competition_end_date",
+                type: "date",
+              },
+              {
+                label: "Reference Links",
+                field: "competition.reference_links",
+              },
+              {
+                label: "Status",
+                field: "status",
+              },
+            ]}
+          />
+        ) : activeTab === "courses" ? (
+          <DetailViewer
+            drawerOpen={drawerOpen}
+            closeDrawer={closeDrawer}
+            selectedRow={selectedRow}
+            formtype="Course"
+            columns={[
+              { label: "ID", field: "id" },
+              { label: "Course Name", field: "course.name" },
+              { label: "Organized By", field: "course.organized_by" },
+              { label: "Description", field: "course.description" },
+              {
+                label: "Application Start Date",
+                field: "course.application_start_date",
+                type: "date",
+              },
+              {
+                label: "Application End Date",
+                field: "course.application_end_date",
+                type: "date",
+              },
+              {
+                label: "Start Date",
+                field: "course.course_start_date",
+                type: "date",
+              },
+              {
+                label: "End Date",
+                field: "course.course_end_date",
+                type: "date",
+              },
+              {
+                label: "Eligibility_from",
+                field: "course.eligibility_from",
+              },
+              {
+                label: "Eligibility_to",
+                field: "course.eligibility_to",
+              },
+              {
+                label: "Reference Link",
+                field: "course.reference_link",
+              },
+              {
+                label: "Status",
+                field: "status",
+              },
+            ]}
+          />
+        ) : null}
+
+        <Dialog
+          open={statusDialogOpen}
+          onClose={() => setStatusDialogOpen(false)}
         >
-          {selectedRow ? (
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  marginBottom: 3,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  color: "#1f2937",
-                }}
-              >
-                {activeTab === 'tinkering'
-                  ? 'Tinkering Activity Details'
-                  : activeTab === 'competition'
-                    ? 'Competition Details'
-                    : 'Course Details'}
-              </Typography>
-
-              {activeTab === 'tinkering' ? (
-                <>
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      ID:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.id)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Activity Name:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.name)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Subject:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.subtopic?.topic?.subject?.subject_name)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Topic:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.subtopic?.topic?.topic_name)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Subtopic:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.subtopic?.subtopic_name)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Introduction:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.introduction)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Goals:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.goals)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Materials:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.materials)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Instructions:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.instructions)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Tips:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.tips)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Observations:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.observations)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Extensions:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.extensions)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Resources:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.resources)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Status:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.status)}
-                    </div>
-                  </Box>
-                </>
-              ) : activeTab === 'competition' ? (
-                <div className="">
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      ID:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.id)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Competition Name:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.competition?.name)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Description:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.competition?.description)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Organised By:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.competition?.organised_by)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Eligibility Criteria:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.competition?.eligibility)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Requirements:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.competition?.requirements)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Payment:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.competition?.payment)}
-                    </Typography>
-                  </Box>
-
-                  {selectedRow.competition?.payment === "paid" && (
-                    <Box sx={{ marginBottom: 3 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                        Fee:
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                        {formatValue(selectedRow.competition?.fee)}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Application Start Date:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.competition?.application_start_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Application End Date:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.competition?.application_end_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Competition Start Date:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.competition?.competition_start_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Competition End Date:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.competition?.competition_end_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Reference Links:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.competition?.reference_links)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Status:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.status)}
-                    </div>
-                  </Box>
-                </div>
-              ) : activeTab === 'courses' ? (
-                <>
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      ID:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.id)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Course Name:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.course?.name)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      organized_by
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.course?.organized_by)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Description:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatValue(selectedRow.course?.description)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Application Start Date
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatDate(selectedRow.course?.application_start_date)}
-                    </div>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Application End Date
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.course?.application_end_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Start Date:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.course?.course_start_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      End Date:
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {formatDate(selectedRow.course?.course_end_date)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Eligibility
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                      {selectedRow.course?.eligibility_from && selectedRow.course?.eligibility_to
-                        ? `${formatValue(selectedRow.course.eligibility_from)} - ${formatValue(selectedRow.course.eligibility_to)}`
-                        : "N/A"}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Reference link
-                    </Typography>
-                    {selectedRow.course?.reference_link ? (
-                      <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                        <a
-                          href={selectedRow.course.reference_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#2563eb", textDecoration: "underline" }} // Tailwind blue-600
-                        >
-                          {selectedRow.course.reference_link}
-                        </a>
-                      </Typography>
-                    ) : (
-                      <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                        N/A
-                      </Typography>
-                    )}
-                  </Box>
-
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                      Status:
-                    </Typography>
-                    <div className="text-gray-800">
-                      {formatArrayAsBullets(selectedRow.status)}
-                    </div>
-                  </Box>
-                </>
-              ) : null}
-            </Box>
-          ) : (
-            <Typography variant="body1" sx={{ color: "#1f2937" }}>No data available</Typography>
-          )}
-        </Drawer>
-
-        <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)}>
           <DialogTitle>Modify Status</DialogTitle>
           <DialogContent>
             <FormControl component="fieldset" sx={{ mt: 2 }}>
@@ -1791,14 +1268,19 @@ export default function StudentSnapshot() {
                     value={status}
                     control={<Radio />}
                     label={status}
-                    disabled={status === latestStatus} // disable current status radio button
+                    disabled={status === latestStatus}
                   />
                 ))}
               </RadioGroup>
 
               {getLatestStatus(selectedActivity) && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Current status: <strong>{getLatestStatus(selectedActivity)}</strong>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 2 }}
+                >
+                  Current status:{" "}
+                  <strong>{getLatestStatus(selectedActivity)}</strong>
                 </Typography>
               )}
             </FormControl>
@@ -1816,297 +1298,26 @@ export default function StudentSnapshot() {
           </DialogActions>
         </Dialog>
 
-        <Dialog
+        <EditActivityDialog
           open={editDialogOpen}
           onClose={() => setEditDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>Edit Tinkering Activity</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <TextField
-                  label="Activity Name"
-                  fullWidth
-                  value={editFormData.name || ''}
-                  onChange={(e) => handleEditFormChange('name', e.target.value)}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Subject</InputLabel>
-                  <Select
-                    value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    label="Subject"
-                  >
-                    {subjects.map((subject) => (
-                      <MenuItem key={subject.id} value={subject.id.toString()}>
-                        {subject.subject_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Topic</InputLabel>
-                  <Select
-                    value={selectedTopic}
-                    onChange={(e) => setSelectedTopic(e.target.value)}
-                    label="Topic"
-                    disabled={!selectedSubject}
-                  >
-                    {topics.map((topic) => (
-                      <MenuItem key={topic.id} value={topic.id.toString()}>
-                        {topic.topic_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Subtopic</InputLabel>
-                  <Select
-                    value={selectedSubtopic}
-                    onChange={(e) => setSelectedSubtopic(e.target.value)}
-                    label="Subtopic"
-                    disabled={!selectedTopic}
-                  >
-                    {subtopics.map((subtopic) => (
-                      <MenuItem key={subtopic.id} value={subtopic.id.toString()}>
-                        {subtopic.subtopic_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  label="Introduction"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  value={editFormData.introduction || ''}
-                  onChange={(e) => handleEditFormChange('introduction', e.target.value)}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Goals</Typography>
-                {editFormData.goals?.map((goal: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={goal}
-                      onChange={(e) => handleArrayFieldChange('goals', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('goals', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('goals')}
-                  className="mt-2"
-                >
-                  Add Goal
-                </Button>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Materials</Typography>
-                {editFormData.materials?.map((material: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={material}
-                      onChange={(e) => handleArrayFieldChange('materials', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('materials', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('materials')}
-                  className="mt-2"
-                >
-                  Add Material
-                </Button>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Instructions</Typography>
-                {editFormData.instructions?.map((instruction: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={instruction}
-                      onChange={(e) => handleArrayFieldChange('instructions', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('instructions', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('instructions')}
-                  className="mt-2"
-                >
-                  Add Instruction
-                </Button>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Tips</Typography>
-                {editFormData.tips?.map((tip: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={tip}
-                      onChange={(e) => handleArrayFieldChange('tips', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('tips', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('tips')}
-                  className="mt-2"
-                >
-                  Add Tip
-                </Button>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Observations</Typography>
-                {editFormData.observations?.map((observation: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={observation}
-                      onChange={(e) => handleArrayFieldChange('observations', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('observations', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('observations')}
-                  className="mt-2"
-                >
-                  Add Observation
-                </Button>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Extensions</Typography>
-                {editFormData.extensions?.map((extension: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={extension}
-                      onChange={(e) => handleArrayFieldChange('extensions', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('extensions', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('extensions')}
-                  className="mt-2"
-                >
-                  Add Extension
-                </Button>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">Resources</Typography>
-                {editFormData.resources?.map((resource: string, index: number) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 1 }}>
-                    <TextField
-                      fullWidth
-                      value={resource}
-                      onChange={(e) => handleArrayFieldChange('resources', index, e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      color="error"
-                      onClick={() => handleRemoveArrayItem('resources', index)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => handleAddArrayItem('resources')}
-                  className="mt-2"
-                >
-                  Add Resource
-                </Button>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleEditSubmit}
-              variant="default"
-              color="primary"
-            >
-              Save Changes
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onSubmit={handleEditSubmit}
+          editFormData={editFormData}
+          handleEditFormChange={handleEditFormChange}
+          handleArrayFieldChange={handleArrayFieldChange}
+          handleAddArrayItem={handleAddArrayItem}
+          handleRemoveArrayItem={handleRemoveArrayItem}
+          selectedSubject={selectedSubject}
+          setSelectedSubject={setSelectedSubject}
+          selectedTopic={selectedTopic}
+          setSelectedTopic={setSelectedTopic}
+          selectedSubtopic={selectedSubtopic}
+          setSelectedSubtopic={setSelectedSubtopic}
+          subjects={subjects}
+          topics={topics}
+          subtopics={subtopics}
+        />
       </div>
     </div>
   );
-} 
+}
