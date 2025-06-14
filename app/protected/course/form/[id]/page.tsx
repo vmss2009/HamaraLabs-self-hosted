@@ -288,9 +288,10 @@ export default function EditCourseForm({
                     htmlFor="eligibilityFrom"
                     className="block mb-2 text-sm font-bold text-gray-700"
                   >
-                    Eligibility From
+                    Eligibility From <span className="text-red-600">*</span>
                   </label>
                   <select
+                    required
                     id="eligibilityFrom"
                     name="eligibilityFrom"
                     value={eligibilityFrom}
@@ -313,9 +314,10 @@ export default function EditCourseForm({
                     htmlFor="eligibilityTo"
                     className="block mb-2 text-sm font-bold text-gray-700"
                   >
-                    Eligibility To
+                    Eligibility To <span className="text-red-600">*</span>
                   </label>
                   <select
+                    required
                     id="eligibilityTo"
                     name="eligibilityTo"
                     value={eligibilityTo}
@@ -390,12 +392,18 @@ export default function EditCourseForm({
             <Button
               type="button"
               variant="outline"
+              className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
               onClick={() => router.back()}
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isLoading}>
-              Update Course
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
+              Update
             </Button>
           </div>
         </form>

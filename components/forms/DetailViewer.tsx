@@ -109,123 +109,106 @@ const DetailsDrawer: React.FC<DetailsDrawerProps> = ({
         </Typography>
 
         {selectedRow ? (
-          columns
-            .filter((col) => col.field !== "id")
-            .map((col) => (
-              <Box key={col.field || col.label} sx={{ marginBottom: 3 }}>
-                <Typography
-                  variant="subtitle1"
+          columns.map((col) => (
+            <Box key={col.field || col.label} sx={{ marginBottom: 3 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: "#4b5563" }}
+              >
+                {col.label}:
+              </Typography>
+              {col.type === "Details" && col.fields ? (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                    {`${formatValue(
+                      getNestedValue(selectedRow, col.fields[0].field)
+                    )} ${formatValue(
+                      getNestedValue(selectedRow, col.fields[1].field)
+                    )}`}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#4b5563" }}>
+                    <strong>Email:</strong>{" "}
+                    {formatValue(
+                      getNestedValue(selectedRow, col.fields[2].field)
+                    )}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#4b5563" }}>
+                    <strong>Phone:</strong>{" "}
+                    {formatValue(
+                      getNestedValue(selectedRow, col.fields[3].field)
+                    )}
+                  </Typography>
+                </Box>
+              ) : col.type === "date" && col.field ? (
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {formatDate(getNestedValue(selectedRow, col.field))}
+                </Typography>
+              ) : col.type === "compare" && Array.isArray(col.fields) ? (
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {`${
+                    getNestedValue(selectedRow, col.fields[0]?.field) || "N/A"
+                  } - ${
+                    getNestedValue(selectedRow, col.fields[1]?.field) || "N/A"
+                  }`}
+                </Typography>
+              ) : col.type === "address" && selectedRow?.address ? (
+                <Box
                   sx={{
-                    fontWeight: "bold",
-                    color: "#4b5563",
-                    fontSize: "15px",
+                    display: "flex",
+                    color: "#1f2937",
+                    alignItems: "center",
                   }}
                 >
-                  {col.label}:
+                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                    {[
+                      selectedRow.address.address_line1,
+                      selectedRow.address.address_line2,
+                      selectedRow.address.city?.city_name,
+                      selectedRow.address.city?.state?.state_name,
+                      selectedRow.address.city?.state?.country?.country_name,
+                    ]
+                      .filter((val) => val && val.trim() !== "")
+                      .join(", ")}
+                    {" - "}
+                    <span style={{ fontWeight: 500 }}>
+                      {selectedRow.address.pincode || ""}
+                    </span>
+                  </Typography>
+                </Box>
+              ) : col.field &&
+                Array.isArray(getNestedValue(selectedRow, col.field)) ? (
+                <Box
+                  component="ul"
+                  sx={{
+                    color: "#1f2937",
+                    pl: 3,
+                    mb: 0,
+                    listStyleType: "disc",
+                  }}
+                >
+                  {getNestedValue(selectedRow, col.field).map(
+                    (item: any, index: number) => (
+                      <li key={index}>
+                        <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                          {typeof item === "object"
+                            ? item?.name || JSON.stringify(item)
+                            : String(item)}
+                        </Typography>
+                      </li>
+                    )
+                  )}
+                </Box>
+              ) : (
+                <Typography variant="body1" sx={{ color: "#1f2937" }}>
+                  {col.field
+                    ? formatValue(getNestedValue(selectedRow, col.field))
+                    : "N/A"}
                 </Typography>
-
-                {col.type === "date" && col.field ? (
-                  <Typography
-                    variant="body1"
-                    sx={{ color: "#1f2937", fontSize: "14px", fontWeight: 500 }}
-                  >
-                    {formatDate(getNestedValue(selectedRow, col.field))}
-                  </Typography>
-                ) : col.type === "compare" && Array.isArray(col.fields) ? (
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "#1f2937",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {`${
-                      getNestedValue(selectedRow, col.fields[0]?.field) || "N/A"
-                    } - ${
-                      getNestedValue(selectedRow, col.fields[1]?.field) || "N/A"
-                    }`}
-                  </Typography>
-                ) : col.type === "address" && selectedRow?.address ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      color: "#1f2937",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{ fontSize: "14px", fontWeight: "" }}
-                    >
-                      {[
-                        selectedRow.address.address_line1,
-                        selectedRow.address.address_line2,
-                        selectedRow.address.city?.city_name,
-                        selectedRow.address.city?.state?.state_name,
-                        selectedRow.address.city?.state?.country?.country_name,
-                      ]
-                        .filter((val) => val && val.trim() !== "")
-                        .join(", ")}
-                      {" - "}
-                      <span style={{ fontWeight: 500 }}>
-                        {selectedRow.address.pincode || ""}
-                      </span>
-                    </Typography>
-                  </Box>
-                ) : col.field &&
-                  Array.isArray(getNestedValue(selectedRow, col.field)) ? (
-                  <Box
-                    component="ul"
-                    sx={{
-                      color: "#1f2937",
-                      pl: 3,
-                      mb: 0,
-                      listStyleType: "disc",
-                    }}
-                  >
-                    {getNestedValue(selectedRow, col.field).map(
-                      (item: string, index: number) => (
-                        <li key={index}>
-                          <Typography
-                            variant="body2"
-                            component="span"
-                            sx={{
-                              fontSize: "14px",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {item}
-                          </Typography>
-                        </li>
-                      )
-                    )}
-                  </Box>
-                ) : (
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "#1f2937",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {col.field
-                      ? formatValue(getNestedValue(selectedRow, col.field))
-                      : "N/A"}
-                  </Typography>
-                )}
-              </Box>
-            ))
+              )}
+            </Box>
+          ))
         ) : (
-          <Typography
-            variant="body1"
-            sx={{
-              color: "#1f2937",
-              fontSize: "14px",
-              fontWeight: 500,
-            }}
-          >
+          <Typography variant="body1" sx={{ color: "#1f2937" }}>
             No data available
           </Typography>
         )}

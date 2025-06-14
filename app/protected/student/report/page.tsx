@@ -89,7 +89,12 @@ export default function StudentReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+    },
     { field: "first_name", headerName: "First Name", width: 150 },
     { field: "last_name", headerName: "Last Name", width: 150 },
     { field: "email", headerName: "Email", width: 200 },

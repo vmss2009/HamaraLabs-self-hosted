@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating mentor:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json(
       { error: "Failed to create mentor" },

@@ -207,7 +207,12 @@ export default function TinkeringActivityReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+    },
 
     {
       field: "name",
@@ -337,15 +342,14 @@ export default function TinkeringActivityReport() {
             columns={columns}
             loading={loading}
             initialState={{
-              pagination: { paginationModel: { pageSize: 8 } },
+              pagination: { paginationModel: { pageSize: 10 } },
             }}
-            pageSizeOptions={[5, 10, 25, 50, 100]}
+            pageSizeOptions={[5, 10, 25, 50]}
             disableRowSelectionOnClick
             columnVisibilityModel={columnVisibilityModel}
             onColumnVisibilityModelChange={(newModel) =>
               setColumnVisibilityModel(newModel)
             }
-            getRowHeight={() => "auto"}
             autoHeight
             onRowClick={handleRowClick}
             sx={{

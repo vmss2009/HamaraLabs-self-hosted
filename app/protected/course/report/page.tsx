@@ -93,7 +93,12 @@ export default function CourseReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+    },
     { field: "name", headerName: "Course Name", width: 200 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "organized_by", headerName: "Organized By", width: 200 },

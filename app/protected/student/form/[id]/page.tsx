@@ -199,14 +199,20 @@ export default function EditStudentForm({
           <div className="flex justify-end space-x-4">
             <Button
               type="button"
+              className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
               onClick={() => router.push("/protected/student/report")}
               variant="outline"
               size="lg"
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isLoading} size="lg">
-              Update Student
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
+              Update
             </Button>
           </div>
         </form>

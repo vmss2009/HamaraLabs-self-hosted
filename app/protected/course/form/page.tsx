@@ -196,11 +196,12 @@ export default function CourseForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
                   <label className="block mb-2 text-sm font-bold text-gray-700">
-                    From
+                    From <span className="text-red-600">*</span>
                   </label>
                   <select
                     name="eligibilityFrom"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
                   >
                     <option value="">Select</option>
                     <option value="6th">6th</option>
@@ -214,11 +215,12 @@ export default function CourseForm() {
                 </div>
                 <div>
                   <label className="block mb-2 text-sm font-bold text-gray-700">
-                    To
+                    To <span className="text-red-600">*</span>
                   </label>
                   <select
                     name="eligibilityTo"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
                   >
                     <option value="">Select</option>
                     <option value="6th">6th</option>

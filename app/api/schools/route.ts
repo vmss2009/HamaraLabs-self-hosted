@@ -30,8 +30,8 @@ export const schoolSchema = z.object({
   in_charge: userSchema,
   correspondent: userSchema,
   principal: userSchema,
-  syllabus: z.array(z.string()).min(1),
-  website_url: z.string().url(),
+  syllabus: z.array(z.string()),
+  website_url: z.string().url().optional().or(z.literal("")),
   paid_subscription: z.boolean(),
   social_links: z.array(z.string().url()).optional(),
 });
@@ -104,6 +104,9 @@ export async function POST(request: Request) {
     return NextResponse.json(school, { status: 201 });
   } catch (error) {
     console.error("Error creating school:", error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json(
       { error: "Failed to create school" },
       { status: 500 }

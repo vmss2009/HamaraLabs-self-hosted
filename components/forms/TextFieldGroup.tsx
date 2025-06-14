@@ -9,6 +9,10 @@ type Field = {
   rows?: number;
   placeholder?: string;
   disabled?: boolean;
+  value?: string | number;
+  onChange?: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 };
 
 interface TextFieldGroupProps {
@@ -41,6 +45,8 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 rows={field.rows || 4}
                 required={field.required}
                 disabled={field.disabled}
+                value={field.value}
+                onChange={field.onChange}
                 className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                   field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}
@@ -53,6 +59,8 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
                 required={field.required}
                 placeholder={field.placeholder}
                 disabled={field.disabled}
+                value={field.value}
+                onChange={field.onChange}
                 className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none ${
                   field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}

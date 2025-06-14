@@ -105,7 +105,12 @@ export default function CompetitionReport() {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+    },
     { field: "name", headerName: "Name", width: 200 },
     { field: "organised_by", headerName: "Organised By", width: 200 },
     {
@@ -190,7 +195,7 @@ export default function CompetitionReport() {
         {success && (
           <Alert
             severity="success"
-            className="mb-2 ml-7 mr-7"
+            className="mb-2 ml-5 mr-5"
             sx={{
               borderRadius: "8px",
               backgroundColor: "#E3F2E8",
@@ -280,7 +285,6 @@ export default function CompetitionReport() {
           selectedActivity={selectedActivity}
           setSuccess={setSuccess}
         />
-        ;
       </div>
     </div>
   );
