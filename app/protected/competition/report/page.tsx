@@ -244,10 +244,16 @@ export default function CompetitionReport() {
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={selectedRow}
+          selectedRow={{
+            ...selectedRow,
+            index:
+              competitions.findIndex(
+                (competition) => competition.id === selectedRow?.id
+              ) + 1,
+          }}
           formtype="Competition"
           columns={[
-            { label: "ID", field: "id" },
+            { label: "S.No", field: "index" },
             { label: "Name", field: "name" },
             { label: "Description", field: "description" },
             { label: "Organised By", field: "organised_by" },

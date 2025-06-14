@@ -87,6 +87,7 @@ export default function MentorReport() {
 
   const handleRowClick = (params: any) => {
     if (!params || !params.row) return;
+    console.log("data", params.row);
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -224,8 +225,13 @@ export default function MentorReport() {
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
           formtype="Mentor"
-          selectedRow={selectedRow}
+          selectedRow={{
+            ...selectedRow,
+            index:
+              mentors.findIndex((mentor) => mentor.id === selectedRow?.id) + 1,
+          }}
           columns={[
+            { label: "S.No", field: "index" },
             { label: "Name", field: "full_name" },
             { label: "Email", field: "email" },
             { label: "Phone Number", field: "user_meta_data.phone_number" },

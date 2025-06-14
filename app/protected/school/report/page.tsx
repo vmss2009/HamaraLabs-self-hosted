@@ -346,10 +346,14 @@ export default function Page() {
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={selectedRow}
+          selectedRow={{
+            ...selectedRow,
+            index:
+              schools.findIndex((school) => school.id === selectedRow?.id) + 1,
+          }}
           formtype="School"
           columns={[
-            { label: "ID", field: "id" },
+            { label: "S.No", field: "index" },
             { label: "Name", field: "name" },
             { label: "Is ATL", field: "is_ATL" },
             {

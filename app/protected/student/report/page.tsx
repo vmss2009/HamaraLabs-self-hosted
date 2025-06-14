@@ -14,10 +14,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DetailViewer from "@/components/forms/DetailViewer";
 import Alert from "@mui/material/Alert";
+import { Student } from "@/lib/db/student/type";
 
 export default function StudentReport() {
   const router = useRouter();
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] =useState<Student[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -201,10 +203,15 @@ export default function StudentReport() {
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={selectedRow}
+          selectedRow={{
+            ...selectedRow,
+            index:
+              students.findIndex((student) => student.id === selectedRow?.id) +
+              1,
+          }}
           formtype="Student"
           columns={[
-            { label: "ID", field: "id" },
+            { label: "S.No", field: "index" },
             { label: "First Name", field: "first_name" },
             { label: "Last Name", field: "last_name" },
             { label: "Email", field: "email" },

@@ -22,7 +22,7 @@ import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
   const router = useRouter();
-  const [activities, setActivities] = useState([]);
+  const [activities, setActivities] = useState<TinkeringActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -378,10 +378,16 @@ export default function TinkeringActivityReport() {
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={selectedRow}
+          selectedRow={{
+            ...selectedRow,
+            index:
+              activities.findIndex(
+                (activity) => activity.id === selectedRow?.id
+              ) + 1,
+          }}
           formtype="TinkeringActivity"
           columns={[
-            { label: "ID", field: "id" },
+            { label: "S.No", field: "index" },
             { label: "Name", field: "name" },
             { label: "Subject", field: "subject_name" },
             { label: "Topic", field: "topic_name" },

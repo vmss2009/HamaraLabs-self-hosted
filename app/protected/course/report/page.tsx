@@ -20,7 +20,8 @@ import { Course } from "@/lib/db/course/type";
 
 export default function CourseReport() {
   const router = useRouter();
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -239,9 +240,14 @@ export default function CourseReport() {
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={selectedRow}
+          selectedRow={{
+            ...selectedRow,
+            index:
+              courses.findIndex((course) => course.id === selectedRow?.id) + 1,
+          }}
           formtype="Course"
           columns={[
+            { label: "S.No", field: "index" },
             { label: "Name", field: "name" },
             { label: "Description", field: "description" },
             { label: "Organized By", field: "organized_by" },

@@ -18,6 +18,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
+import DetailViewer from "@/components/forms/DetailViewer";
 
 export default function SchoolVisitReport() {
   const router = useRouter();
@@ -70,6 +71,7 @@ export default function SchoolVisitReport() {
   };
 
   const handleRowClick = (params: GridRowParams<SchoolVisitWithRelations>) => {
+    console.log(params.row);
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -196,154 +198,33 @@ export default function SchoolVisitReport() {
         />
       </div>
 
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={closeDrawer}
-        PaperProps={{
-          sx: {
-            width: "40%",
-            padding: 3,
-            backgroundColor: "#ffffff",
-          },
+      <DetailViewer
+        drawerOpen={drawerOpen}
+        closeDrawer={closeDrawer}
+        selectedRow={{
+          ...selectedRow,
+          index: visits.findIndex((visit) => visit.id === selectedRow?.id) + 1,
+          point_of_contact_name: selectedRow?.point_of_contact
+            ? `${selectedRow.point_of_contact.first_name} ${selectedRow.point_of_contact.last_name}`
+            : selectedRow?.other_poc || "N/A",
         }}
-      >
-        {selectedRow ? (
-          <Box>
-            <Typography
-              variant="h5"
-              sx={{
-                marginBottom: 3,
-                fontWeight: "bold",
-                textAlign: "center",
-                color: "#1f2937",
-              }}
-            >
-              School Visit Details
-            </Typography>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                S.No:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {visits.findIndex((visit) => visit.id === selectedRow.id) + 1}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                School:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.school?.name)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                Visit Date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(
-                  new Date(selectedRow.visit_date).toLocaleDateString()
-                )}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                Point of Contact:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {selectedRow.point_of_contact
-                  ? `${selectedRow.point_of_contact.first_name} ${selectedRow.point_of_contact.last_name}`
-                  : formatValue(selectedRow.other_poc)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                School Performance:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.school_performance)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                No of UCs submitted:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(
-                  (selectedRow.details as Record<string, any>)?.[
-                    "No of UCs submitted"
-                  ]
-                )}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#4b5563" }}
-              >
-                Planned showcase date:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(
-                  (selectedRow.details as Record<string, any>)?.[
-                    "Planned showcase date"
-                  ]
-                )}
-              </Typography>
-            </Box>
-
-            {Object.entries(selectedRow.details || {})
-              .filter(
-                ([key]) =>
-                  key !== "No of UCs submitted" &&
-                  key !== "Planned showcase date"
-              )
-              .map(([key, value]) => (
-                <Box key={key} sx={{ marginBottom: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: "bold", color: "#4b5563" }}
-                  >
-                    {key}:
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                    {formatValue(value)}
-                  </Typography>
-                </Box>
-              ))}
-          </Box>
-        ) : (
-          <Typography variant="body1" sx={{ color: "#1f2937" }}>
-            No data available
-          </Typography>
-        )}
-      </Drawer>
+        formtype="School Visit"
+        columns={[
+          { label: "S.No", field: "index" },
+          { label: "School", field: "school.name" },
+          { label: "Visit Date", field: "visit_date", type: "date" },
+          { label: "Point of Contact", field: "point_of_contact_name" },
+          { label: "School Performance", field: "school_performance" },
+          {
+            label: "No of UCs submitted",
+            field: "details.No of UCs submitted",
+          },
+          {
+            label: "Planned showcase date",
+            field: "details.Planned showcase date",
+          },
+        ]}
+      />
     </div>
   );
 }

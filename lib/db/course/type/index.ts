@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export type Course = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   organized_by: string;
