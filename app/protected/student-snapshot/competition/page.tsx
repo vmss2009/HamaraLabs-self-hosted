@@ -14,7 +14,12 @@ export function getCompetitionColumns(
   handleDeleteCompetition: DeleteCompetitionHandler
 ): GridColDef[] {
   return [
-    { field: "id", headerName: "ID", width: 80 },
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+    },
 
     {
       field: "competition_actions",

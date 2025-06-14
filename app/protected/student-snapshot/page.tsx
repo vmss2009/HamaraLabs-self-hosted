@@ -1099,10 +1099,16 @@ export default function StudentSnapshot() {
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
-            selectedRow={selectedRow}
+            selectedRow={{
+              ...selectedRow,
+              index:
+                tinkeringActivities.findIndex(
+                  (activity) => activity.id === selectedRow?.id
+                ) + 1,
+            }}
             formtype="Tinkering-Activity"
             columns={[
-              { label: "ID", field: "id" },
+              { label: "S.No", field: "index" },
               { label: "Activity Name", field: "name" },
               {
                 label: "Subject",
@@ -1152,10 +1158,16 @@ export default function StudentSnapshot() {
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
-            selectedRow={selectedRow}
+            selectedRow={{
+              ...selectedRow,
+              index:
+                competitions.findIndex(
+                  (competition) => competition.id === selectedRow?.id
+                ) + 1,
+            }}
             formtype="Competition"
             columns={[
-              { label: "ID", field: "id" },
+              { label: "S.No", field: "index" },
               { label: "Competition Name", field: "competition.name" },
               { label: "Description", field: "competition.description" },
               { label: "Organised By", field: "competition.organised_by" },
@@ -1206,10 +1218,15 @@ export default function StudentSnapshot() {
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
-            selectedRow={selectedRow}
+            selectedRow={{
+              ...selectedRow,
+              index:
+                courses.findIndex((course) => course.id === selectedRow?.id) +
+                1,
+            }}
             formtype="Course"
             columns={[
-              { label: "ID", field: "id" },
+              { label: "S.No", field: "index" },
               { label: "Course Name", field: "course.name" },
               { label: "Organized By", field: "course.organized_by" },
               { label: "Description", field: "course.description" },

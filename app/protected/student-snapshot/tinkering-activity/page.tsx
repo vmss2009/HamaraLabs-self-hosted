@@ -19,9 +19,9 @@ export function getTinkeringActivityColumns(
   return [
     {
       field: "id",
-      headerName: "ID",
-      width: 80,
-      renderCell: (params) => params.row?.id ?? "N/A",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
     {
       field: "name",
