@@ -32,7 +32,6 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
                     user_meta_data: userMetaData || {},
                 },
             });
-            console.log(`Created new user: ${email}`);
         } else {
             // Update user metadata if provided
             if (userMetaData) {
@@ -42,7 +41,6 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
                         user_meta_data: userMetaData,
                     },
                 });
-                console.log(`Updated user metadata: ${email}`);
             }
         }
 

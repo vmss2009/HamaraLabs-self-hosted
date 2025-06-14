@@ -8,6 +8,7 @@ import FormSection from "@/components/forms/FormSection";
 import SelectField from "@/components/forms/SelectField";
 import { SchoolWithAddress } from "@/lib/db/school/type";
 import { User } from "@prisma/client";
+import DateFieldGroup from "@/components/forms/DateField";
 
 interface DetailItem {
   key: string;
@@ -26,7 +27,9 @@ export default function SchoolVisitForm() {
   const [schools, setSchools] = useState<SchoolWithAddress[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
   const [schoolUsers, setSchoolUsers] = useState<UserWithRole[]>([]);
-  const [details, setDetails] = useState<DetailItem[]>([{ key: "", value: "" }]);
+  const [details, setDetails] = useState<DetailItem[]>([
+    { key: "", value: "" },
+  ]);
   const [isOtherPOC, setIsOtherPOC] = useState(false);
   const [formData, setFormData] = useState({
     school_id: "",
@@ -58,7 +61,9 @@ export default function SchoolVisitForm() {
     const fetchSchoolUsers = async () => {
       if (selectedSchool) {
         try {
-          const response = await fetch(`/api/users?school_id=${selectedSchool}`);
+          const response = await fetch(
+            `/api/users?school_id=${selectedSchool}`
+          );
           if (!response.ok) {
             throw new Error("Failed to fetch school users");
           }
@@ -75,21 +80,25 @@ export default function SchoolVisitForm() {
   const handleSchoolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSelectedSchool(value);
-    setFormData(prev => ({ ...prev, school_id: value, poc_id: "" }));
+    setFormData((prev) => ({ ...prev, school_id: value, poc_id: "" }));
     setSchoolUsers([]);
   };
 
   const handlePOCChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setIsOtherPOC(value === "other");
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData((prev) => ({
+      ...prev,
       poc_id: value, // do not change this line
-      other_poc: value === "other" ? "" : prev.other_poc 
+      other_poc: value === "other" ? "" : prev.other_poc,
     }));
   };
 
-  const handleDetailChange = (index: number, field: "key" | "value", value: string) => {
+  const handleDetailChange = (
+    index: number,
+    field: "key" | "value",
+    value: string
+  ) => {
     const newDetails = [...details];
     newDetails[index][field] = value;
     setDetails(newDetails);
@@ -111,11 +120,11 @@ export default function SchoolVisitForm() {
     try {
       // Create a Map to maintain order
       const detailsMap = new Map();
-      
+
       // Add fixed fields first
       detailsMap.set("No of UCs submitted", formData.uc_submissions);
       detailsMap.set("Planned showcase date", formData.planned_showcase_date);
-      
+
       // Add additional details
       details.forEach(({ key, value }) => {
         if (key && value) {
@@ -158,8 +167,12 @@ export default function SchoolVisitForm() {
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">School Visit</h1>
-          <p className="text-gray-600 mt-2">Fill out the form below to add a new school visit.</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            School Visit
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Fill out the form below to add a new school visit.
+          </p>
         </div>
 
         {error && (
@@ -194,9 +207,9 @@ export default function SchoolVisitForm() {
                   label="School"
                   value={formData.school_id}
                   onChange={handleSchoolChange}
-                  options={schools.map(school => ({
+                  options={schools.map((school) => ({
                     value: school.id.toString(),
-                    label: school.name
+                    label: school.name,
                   }))}
                   placeholder="Select a school"
                   required
@@ -204,13 +217,16 @@ export default function SchoolVisitForm() {
               </div>
 
               <div className="w-full">
-                <Input
-                  type="date"
-                  label="Visit Date"
+                <DateFieldGroup
+                  name="Visit Date"
                   value={formData.visit_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, visit_date: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      visit_date: e.target.value,
+                    }))
+                  }
                   required
-                  className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -221,11 +237,11 @@ export default function SchoolVisitForm() {
                   value={formData.poc_id}
                   onChange={handlePOCChange}
                   options={[
-                    ...schoolUsers.map(user => ({
+                    ...schoolUsers.map((user) => ({
                       value: user.id,
-                      label: `${user.first_name} ${user.last_name} - ${user.role}`
+                      label: `${user.first_name} ${user.last_name} - ${user.role}`,
                     })),
-                    { value: "other", label: "Other" }
+                    { value: "other", label: "Other" },
                   ]}
                   placeholder="Select POC"
                   required
@@ -238,7 +254,12 @@ export default function SchoolVisitForm() {
                     type="text"
                     label="Other POC Name"
                     value={formData.other_poc}
-                    onChange={(e) => setFormData(prev => ({ ...prev, other_poc: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        other_poc: e.target.value,
+                      }))
+                    }
                     required
                     className="focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -250,20 +271,28 @@ export default function SchoolVisitForm() {
                   label="No of UCs submitted"
                   placeholder="Enter a number (eg. 1, 2)"
                   value={formData.uc_submissions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, uc_submissions: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      uc_submissions: e.target.value,
+                    }))
+                  }
                   required
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
               <div className="w-full">
-                <Input
-                  type="date"
-                  label="Planned showcase date"
+                <DateFieldGroup
+                  name="Planned showcase date"
                   value={formData.planned_showcase_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, planned_showcase_date: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      planned_showcase_date: e.target.value,
+                    }))
+                  }
                   required
-                  className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -272,11 +301,16 @@ export default function SchoolVisitForm() {
                   name="school_performance"
                   label="School Performance"
                   value={formData.school_performance}
-                  onChange={(e) => setFormData(prev => ({ ...prev, school_performance: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      school_performance: e.target.value,
+                    }))
+                  }
                   options={[
                     { value: "Good performing", label: "Good performing" },
                     { value: "Medium performing", label: "Medium performing" },
-                    { value: "Bad performing", label: "Bad performing" }
+                    { value: "Bad performing", label: "Bad performing" },
                   ]}
                   placeholder="Select performance"
                   required
@@ -293,7 +327,9 @@ export default function SchoolVisitForm() {
                     <Input
                       label="Key"
                       value={detail.key}
-                      onChange={(e) => handleDetailChange(index, "key", e.target.value)}
+                      onChange={(e) =>
+                        handleDetailChange(index, "key", e.target.value)
+                      }
                       placeholder="Enter key"
                       className="focus:border-blue-500 focus:ring-blue-500"
                     />
@@ -302,7 +338,9 @@ export default function SchoolVisitForm() {
                     <Input
                       label="Value"
                       value={detail.value}
-                      onChange={(e) => handleDetailChange(index, "value", e.target.value)}
+                      onChange={(e) =>
+                        handleDetailChange(index, "value", e.target.value)
+                      }
                       placeholder="Enter value"
                       className="focus:border-blue-500 focus:ring-blue-500"
                     />
@@ -334,17 +372,10 @@ export default function SchoolVisitForm() {
 
           <div className="flex justify-end space-x-4">
             <Button
-              type="button"
-              onClick={() => router.push("/protected/school-visits")}
-              variant="outline"
-              size="lg"
-            >
-              Cancel
-            </Button>
-            <Button
               type="submit"
               isLoading={isLoading}
               size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
             >
               Submit
             </Button>
@@ -353,4 +384,4 @@ export default function SchoolVisitForm() {
       </div>
     </div>
   );
-} 
+}

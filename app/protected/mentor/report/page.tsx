@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  DataGrid, 
-  GridColDef, 
+import {
+  DataGrid,
+  GridColDef,
   GridActionsCellItem,
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
+import DetailViewer from "@/components/forms/DetailViewer";
 import { useRouter } from "next/navigation";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -95,7 +96,6 @@ export default function MentorReport() {
   };
 
   const formatValue = (value: any): React.ReactNode => {
-    console.log(value);
     if (value === null || value === undefined) return "N/A";
     if (Array.isArray(value)) {
       return (
@@ -124,13 +124,14 @@ export default function MentorReport() {
       field: "id",
       headerName: "S.No",
       width: 100,
-      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id)+1
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
     {
       field: "name",
       headerName: "Name",
       width: 200,
-      renderCell: (params) => `${params.row.first_name || ""} ${params.row.last_name || ""}`
+      renderCell: (params) =>
+        `${params.row.first_name || ""} ${params.row.last_name || ""}`,
     },
     {
       field: "email",
@@ -155,17 +156,19 @@ export default function MentorReport() {
       renderCell: (params) => (
         <div className="flex items-center justify-center gap-2 w-full h-full">
           <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label="Edit"
-          onClick={() => router.push(`/protected/mentor/form/${params.row.id}`)}
-        />
-        <GridActionsCellItem
-          icon={<DeleteOutlineIcon />}
-          label="Delete"
-          onClick={() => handleDelete(params.row.id)}
-          color="error"
-        />
+            key="edit"
+            icon={<EditIcon />}
+            label="Edit"
+            onClick={() =>
+              router.push(`/protected/mentor/form/${params.row.id}`)
+            }
+          />
+          <GridActionsCellItem
+            icon={<DeleteOutlineIcon />}
+            label="Delete"
+            onClick={() => handleDelete(params.row.id)}
+            color="error"
+          />
         </div>
       ),
     },
@@ -174,21 +177,20 @@ export default function MentorReport() {
   return (
     <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
       <div className="pt-20 ">
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
 
-      {error && (
-        <Alert severity="error" className="mb-4">
-          {error}
-        </Alert>
-      )}
+        {success && (
+          <Alert severity="success" className="mb-4">
+            {success}
+          </Alert>
+        )}
 
-      {success && (
-        <Alert severity="success" className="mb-4">
-          {success}
-        </Alert>
-      )}
-
-      <div className="bg-white rounded-xl shadow-sm">
-      <DataGrid
+        <div className="bg-white rounded-xl shadow-sm">
+          <DataGrid
             rows={mentors}
             columns={columns}
             loading={loading}
@@ -215,82 +217,27 @@ export default function MentorReport() {
               ),
             }}
           />
-      </div>
+        </div>
 
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={closeDrawer}
-        PaperProps={{
-          sx: {
-            width: "40%",
-            padding: 3,
-            backgroundColor: "#ffffff",
-          },
-        }}
-      >
-        {selectedRow && (
-          <Box>
-            <Typography
-              variant="h5"
-              sx={{
-                marginBottom: 3,
-                fontWeight: "bold",
-                textAlign: "center",
-                color: "#1f2937",
-              }}
-            >
-              Tinkering Activity Details
-            </Typography>
-            
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                S.No:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {mentors.findIndex(mentor => mentor.id === selectedRow.id) + 1}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Name:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(`${selectedRow.first_name} ${selectedRow.last_name}`)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Email:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.email)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Phone number:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.user_meta_data.phone_number)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#4b5563" }}>
-                Schools:
-              </Typography>
-              <Box sx={{ color: "#1f2937" }}>
-                {formatValue(selectedRow.schools.map((school) => school.name))}
-              </Box>
-            </Box>
-          </Box>
-        )}
-      </Drawer>
+        <DetailViewer
+          drawerOpen={drawerOpen}
+          closeDrawer={closeDrawer}
+          formtype="Mentor"
+          selectedRow={{
+            ...selectedRow,
+            index:
+              mentors.findIndex((mentor) => mentor.id === selectedRow?.id) + 1,
+          }}
+          columns={[
+            { label: "S.No", field: "index" },
+            { label: "First name", field: "first_name" },
+            { label: "Last name", field: "last_name" },
+            { label: "Email", field: "email" },
+            { label: "Phone Number", field: "user_meta_data.phone_number" },
+            { label: "Schools", field: "schools" },
+          ]}
+        />
       </div>
     </div>
   );
-} 
+}

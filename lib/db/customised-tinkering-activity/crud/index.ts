@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
-import { 
-  CustomisedTinkeringActivityCreateInput, 
-  CustomisedTinkeringActivityFilter, 
-  CustomisedTinkeringActivityWithRelations 
+import {
+  CustomisedTinkeringActivityCreateInput,
+  CustomisedTinkeringActivityFilter,
+  CustomisedTinkeringActivityWithRelations,
 } from "../type";
 
 export async function createCustomisedTinkeringActivity(
@@ -51,23 +51,23 @@ export async function getCustomisedTinkeringActivities(
   filter?: CustomisedTinkeringActivityFilter
 ): Promise<CustomisedTinkeringActivityWithRelations[]> {
   const where: any = {};
-  
+
   if (filter?.name) {
     where.name = { contains: filter.name, mode: "insensitive" };
   }
-  
+
   if (filter?.subtopic_id) {
     where.subtopic_id = filter.subtopic_id;
   }
-  
+
   if (filter?.base_ta_id) {
     where.base_ta_id = filter.base_ta_id;
   }
-  
+
   if (filter?.student_id) {
     where.student_id = filter.student_id;
   }
-  
+
   if (filter?.status) {
     where.status = { hasSome: filter.status };
   }
@@ -77,7 +77,7 @@ export async function getCustomisedTinkeringActivities(
     include: {
       subtopic: {
         select: {
-          id: true,   
+          id: true,
           subtopic_name: true,
           topic: {
             select: {
@@ -164,7 +164,7 @@ export async function updateCustomisedTinkeringActivity(
             },
           },
         },
-      }
+      },
     },
   });
 }
@@ -177,7 +177,7 @@ export async function deleteCustomisedTinkeringActivity(
     include: {
       subtopic: {
         select: {
-          id: true, 
+          id: true,
           subtopic_name: true,
           topic: {
             select: {
@@ -192,7 +192,7 @@ export async function deleteCustomisedTinkeringActivity(
             },
           },
         },
-      }
+      },
     },
   });
-} 
+}

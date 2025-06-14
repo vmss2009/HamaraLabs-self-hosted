@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Select, SelectOption } from '@/components/ui/Select';
+import React from "react";
+import { Select, SelectOption } from "@/components/ui/Select";
 
 interface SelectFieldProps {
   name: string;
@@ -21,9 +21,9 @@ const SelectField: React.FC<SelectFieldProps> = ({
   options,
   onChange,
   value,
-  placeholder = 'Select an option',
+  placeholder = "Select an option",
   required = false,
-  className = '',
+  className = "",
   error,
 }) => {
   return (
@@ -36,10 +36,10 @@ const SelectField: React.FC<SelectFieldProps> = ({
         value={value?.toString()}
         required={required}
         error={error}
-        className="focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+        className="focus:border-blue-500  focus:ring-blue-500 shadow-sm"
       />
     </div>
   );
 };
 
-export default SelectField; 
+export default SelectField;

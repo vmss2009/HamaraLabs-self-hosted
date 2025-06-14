@@ -16,7 +16,8 @@ export interface CustomisedTinkeringActivityCreateInput {
   status: string[];
 }
 
-export interface CustomisedTinkeringActivityWithRelations extends PrismaCustomisedTinkeringActivity {
+export interface CustomisedTinkeringActivityWithRelations
+  extends PrismaCustomisedTinkeringActivity {
   subtopic: {
     id: number;
     subtopic_name: string;
@@ -37,4 +38,4 @@ export interface CustomisedTinkeringActivityFilter {
   base_ta_id?: string;
   student_id?: string;
   status?: string[];
-} 
+}

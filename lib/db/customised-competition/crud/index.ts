@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
-import { 
-  CustomisedCompetitionCreateInput, 
-  CustomisedCompetitionFilter, 
-  CustomisedCompetitionWithRelations 
+import {
+  CustomisedCompetitionCreateInput,
+  CustomisedCompetitionFilter,
+  CustomisedCompetitionWithRelations,
 } from "../type";
 
 export async function createCustomisedCompetition(
@@ -29,7 +29,7 @@ export async function createCustomisedCompetition(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -101,7 +101,7 @@ export async function getCustomisedCompetitionById(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -141,7 +141,7 @@ export async function updateCustomisedCompetition(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -175,7 +175,7 @@ export async function deleteCustomisedCompetition(
           competition_end_date: true,
           competition_start_date: true,
           organised_by: true,
-          reference_links: true, 
+          reference_links: true,
         },
       },
       student: {
@@ -187,4 +187,4 @@ export async function deleteCustomisedCompetition(
       },
     },
   });
-} 
+}

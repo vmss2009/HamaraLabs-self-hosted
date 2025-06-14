@@ -4,48 +4,27 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
 import SelectField from "@/components/forms/SelectField";
-import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import MultiForm from "@/components/forms/Multiform";
 import { Input } from "@/components/ui/Input";
-
-// Define types for the form data
-type Subject = {
-  id: number;
-  subject_name: string;
-};
-
-type Topic = {
-  id: number;
-  topic_name: string;
-};
-
-type Subtopic = {
-  id: number;
-  subtopic_name: string;
-};
+import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // State for form fields
+
   const [name, setName] = useState("");
   const [introduction, setIntroduction] = useState("");
-  
-  // State for cascading dropdowns
+
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [subtopics, setSubtopics] = useState<Subtopic[]>([]);
-  
-  // Selected values
+
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
-  
-  // State for dynamic field arrays
+
   const [goals, setGoals] = useState<string[]>([]);
   const [materials, setMaterials] = useState<string[]>([]);
   const [instructions, setInstructions] = useState<string[]>([]);
@@ -53,8 +32,7 @@ export default function TinkeringActivityForm() {
   const [observations, setObservations] = useState<string[]>([]);
   const [extensions, setExtensions] = useState<string[]>([]);
   const [resources, setResources] = useState<string[]>([]);
-  
-  // Fetch subjects on component mount
+
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -68,11 +46,10 @@ export default function TinkeringActivityForm() {
         console.error("Error fetching subjects:", error);
       }
     };
-    
+
     fetchSubjects();
   }, []);
-  
-  // Fetch topics when subject changes
+
   useEffect(() => {
     const fetchTopics = async () => {
       if (!selectedSubject) {
@@ -82,9 +59,11 @@ export default function TinkeringActivityForm() {
         setSelectedSubtopic("");
         return;
       }
-      
+
       try {
-        const response = await fetch(`/api/topics?subjectId=${selectedSubject}`);
+        const response = await fetch(
+          `/api/topics?subjectId=${selectedSubject}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch topics");
         }
@@ -94,11 +73,10 @@ export default function TinkeringActivityForm() {
         console.error("Error fetching topics:", error);
       }
     };
-    
+
     fetchTopics();
   }, [selectedSubject]);
-  
-  // Fetch subtopics when topic changes
+
   useEffect(() => {
     const fetchSubtopics = async () => {
       if (!selectedTopic) {
@@ -106,7 +84,7 @@ export default function TinkeringActivityForm() {
         setSelectedSubtopic("");
         return;
       }
-      
+
       try {
         const response = await fetch(`/api/subtopics?topicId=${selectedTopic}`);
         if (!response.ok) {
@@ -118,16 +96,15 @@ export default function TinkeringActivityForm() {
         console.error("Error fetching subtopics:", error);
       }
     };
-    
+
     fetchSubtopics();
   }, [selectedTopic]);
-  
-  // Form submission handler
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const tinkeringActivityData = {
         name,
@@ -139,9 +116,9 @@ export default function TinkeringActivityForm() {
         tips,
         observations,
         extensions,
-        resources
+        resources,
       };
-      
+
       const response = await fetch("/api/tinkering-activities", {
         method: "POST",
         headers: {
@@ -149,12 +126,12 @@ export default function TinkeringActivityForm() {
         },
         body: JSON.stringify(tinkeringActivityData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit the form");
       }
-      
+
       router.push("/protected/tinkering-activity/report");
     } catch (error) {
       if (error instanceof Error) {
@@ -166,16 +143,18 @@ export default function TinkeringActivityForm() {
       setIsLoading(false);
     }
   };
-  
-  return (
 
+  return (
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">Tinkering Activity</h1>
-          <p className="text-gray-600 mt-2">Fill out the form below to add a new tinkering activity.</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            Tinkering Activity
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Fill out the form below to add a new tinkering activity.
+          </p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -200,8 +179,6 @@ export default function TinkeringActivityForm() {
           </div>
         )}
 
-      
-
         <form onSubmit={onSubmit} className="space-y-8">
           <FormSection title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
@@ -212,11 +189,11 @@ export default function TinkeringActivityForm() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="focus:border-blue-500 focus:ring-blue-500"
+                  className="focus:border-blue-500  focus:ring-blue-500"
                 />
               </div>
               <div className="w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Introduction <span className="text-red-600">*</span>
                 </label>
                 <textarea
@@ -229,211 +206,142 @@ export default function TinkeringActivityForm() {
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <SelectField
                 name="subject"
                 label="Subject"
                 options={[
-                  ...subjects.map(subject => ({
+                  ...subjects.map((subject) => ({
                     value: subject.id.toString(),
-                    label: subject.subject_name
-                  }))
+                    label: subject.subject_name,
+                  })),
                 ]}
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 required
               />
-              
+
               <SelectField
                 name="topic"
                 label="Topic"
                 options={[
-                  ...topics.map(topic => ({
+                  ...topics.map((topic) => ({
                     value: topic.id.toString(),
-                    label: topic.topic_name
-                  }))
+                    label: topic.topic_name,
+                  })),
                 ]}
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
                 required
-                className={!selectedSubject ? "opacity-50 pointer-events-none" : ""}
+                className={
+                  !selectedSubject ? "opacity-50 pointer-events-none" : ""
+                }
               />
-              
+
               <SelectField
                 name="subtopic"
                 label="Subtopic"
                 options={[
-                  ...subtopics.map(subtopic => ({
+                  ...subtopics.map((subtopic) => ({
                     value: subtopic.id.toString(),
-                    label: subtopic.subtopic_name
-                  }))
+                    label: subtopic.subtopic_name,
+                  })),
                 ]}
                 value={selectedSubtopic}
                 onChange={(e) => setSelectedSubtopic(e.target.value)}
                 required
-                className={!selectedTopic ? "opacity-50 pointer-events-none" : ""}
+                className={
+                  !selectedTopic ? "opacity-50 pointer-events-none" : ""
+                }
               />
             </div>
           </FormSection>
-          
+
           <FormSection title="Activity Details" className="">
-            <DynamicFieldArray
+            <MultiForm
               className="mb-5"
               placeholder="Goal"
+              setArray={setGoals}
               values={goals}
-              onChange={(index, value) => {
-                const newGoals = [...goals];
-                newGoals[index] = value;
-                setGoals(newGoals);
-              }}
-              onAdd={() => setGoals([...goals, ""])}
-              onRemove={(index) => {
-                const newGoals = [...goals];
-                newGoals.splice(index, 1);
-                setGoals(newGoals);
-              }}
               legend="Goals"
               fieldLabel="Goal"
               name="goals"
-              required
             />
-            
-            <DynamicFieldArray
+
+            <MultiForm
               placeholder="Material"
               className="mb-5"
               values={materials}
-              onChange={(index, value) => {
-                const newMaterials = [...materials];
-                newMaterials[index] = value;
-                setMaterials(newMaterials);
-              }}
-              onAdd={() => setMaterials([...materials, ""])}
-              onRemove={(index) => {
-                const newMaterials = [...materials];
-                newMaterials.splice(index, 1);
-                setMaterials(newMaterials);
-              }}
+              setArray={setMaterials}
               legend="Materials"
               fieldLabel="Material"
               name="materials"
-              required
             />
-            
-            <DynamicFieldArray
-            placeholder="Instruction"
+
+            <MultiForm
+              placeholder="Instruction"
               className="mb-5"
               values={instructions}
-              onChange={(index, value) => {
-                const newInstructions = [...instructions];
-                newInstructions[index] = value;
-                setInstructions(newInstructions);
-              }}
-              onAdd={() => setInstructions([...instructions, ""])}
-              onRemove={(index) => {
-                const newInstructions = [...instructions];
-                newInstructions.splice(index, 1);
-                setInstructions(newInstructions);
-              }}
+              setArray={setInstructions}
               legend="Instructions"
               fieldLabel="Instruction"
               name="instructions"
-              required
             />
-            
-            <DynamicFieldArray
+
+            <MultiForm
               className="mb-5"
               placeholder="Tip"
               values={tips}
-              onChange={(index, value) => {
-                const newTips = [...tips];
-                newTips[index] = value;
-                setTips(newTips);
-              }}
-              onAdd={() => setTips([...tips, ""])}
-              onRemove={(index) => {
-                const newTips = [...tips];
-                newTips.splice(index, 1);
-                setTips(newTips);
-              }}
+              setArray={setTips}
               legend="Tips"
               fieldLabel="Tip"
               name="tips"
             />
-            
-            <DynamicFieldArray
+
+            <MultiForm
               className="mb-5"
               placeholder="Observation"
               values={observations}
-              onChange={(index, value) => {
-                const newObservations = [...observations];
-                newObservations[index] = value;
-                setObservations(newObservations);
-              }}
-              onAdd={() => setObservations([...observations, ""])}
-              onRemove={(index) => {
-                const newObservations = [...observations];
-                newObservations.splice(index, 1);
-                setObservations(newObservations);
-              }}
+              setArray={setObservations}
               legend="Observations"
               fieldLabel="Observation"
               name="observations"
             />
-            
-            <DynamicFieldArray
+
+            <MultiForm
               className="mb-5"
               placeholder="Extension"
               values={extensions}
-              onChange={(index, value) => {
-                const newExtensions = [...extensions];
-                newExtensions[index] = value;
-                setExtensions(newExtensions);
-              }}
-              onAdd={() => setExtensions([...extensions, ""])}
-              onRemove={(index) => {
-                const newExtensions = [...extensions];
-                newExtensions.splice(index, 1);
-                setExtensions(newExtensions);
-              }}
+              setArray={setExtensions}
               legend="Extensions"
               fieldLabel="Extension"
               name="extensions"
             />
-            
-            <DynamicFieldArray
+
+            <MultiForm
               className="mb-5"
               placeholder="Resourse"
               values={resources}
-              onChange={(index, value) => {
-                const newResources = [...resources];
-                newResources[index] = value;
-                setResources(newResources);
-              }}
-              onAdd={() => setResources([...resources, ""])}
-              onRemove={(index) => {
-                const newResources = [...resources];
-                newResources.splice(index, 1);
-                setResources(newResources);
-              }}
+              setArray={setResources}
               legend="Resources"
               fieldLabel="Resource"
               name="resources"
             />
           </FormSection>
-          
+
           <div className="flex justify-end space-x-4">
             <Button
               type="submit"
               isLoading={isLoading}
               size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
             >
               Submit
             </Button>
           </div>
         </form>
       </div>
-    </div>  
-   
+    </div>
   );
-} 
+}

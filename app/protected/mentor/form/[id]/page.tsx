@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/forms/FormSection";
 import { Input } from "@/components/ui/Input";
 import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -18,23 +18,27 @@ type School = {
   name: string;
 };
 
-export default function EditMentorPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditMentorPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State to track if form has been submitted
   const [formSubmitted, setFormSubmitted] = useState(false);
-  
+
   // State for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [schools, setSchools] = useState<School[]>([]);
-  const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
-  
+  const [selectedSchools, setSelectedSchools] = useState<string[]>([]);
+
   // Fetch schools and mentor data on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -53,49 +57,54 @@ export default function EditMentorPage({ params }: { params: Promise<{ id: strin
           throw new Error("Failed to fetch mentor data");
         }
         const mentor = await mentorResponse.json();
-        
+
         setFirstName(mentor.first_name || "");
         setLastName(mentor.last_name || "");
         setEmail(mentor.email || "");
-        setPhoneNumber((mentor.user_meta_data as { phone_number?: string })?.phone_number || "");
-        setSelectedSchools(mentor.schools.map((school: { id: number }) => school.id));
+        setPhoneNumber(
+          (mentor.user_meta_data as { phone_number?: string })?.phone_number ||
+            ""
+        );
+        setSelectedSchools(
+          mentor.schools.map((school: { id: number }) => school.id)
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load data. Please try again later.");
       }
     };
-    
+
     fetchData();
   }, [resolvedParams.id]);
-  
+
   // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
     setFormSubmitted(true);
-    
+
     try {
       const updateData: MentorUpdateInput = {
         first_name: firstName,
         last_name: lastName,
         email,
         user_meta_data: {
-          phone_number: phoneNumber
+          phone_number: phoneNumber,
         },
-        school_ids: selectedSchools
+        school_ids: selectedSchools,
       };
 
       const response = await fetch(`/api/mentors/${resolvedParams.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update mentor');
+        throw new Error("Failed to update mentor");
       }
 
       router.push("/protected/mentor/report");
@@ -109,13 +118,15 @@ export default function EditMentorPage({ params }: { params: Promise<{ id: strin
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit Mentor</h1>
-          <p className="text-gray-600 mt-2">Update the mentor's information below.</p>
+          <p className="text-gray-600 mt-2">
+            Update the mentor's information below.
+          </p>
         </div>
 
         {error && (
@@ -197,14 +208,23 @@ export default function EditMentorPage({ params }: { params: Promise<{ id: strin
                 options={schools}
                 disableCloseOnSelect
                 getOptionLabel={(option) => option.name}
-                value={schools.filter(school => selectedSchools.includes(school.id))}
+                value={schools.filter((school) =>
+                  selectedSchools.includes(school.id.toString())
+                )}
                 onChange={(_, newValue) => {
-                  setSelectedSchools(newValue.map(school => school.id));
+                  setSelectedSchools(
+                    newValue.map((school) => school.id.toString())
+                  );
                 }}
                 renderOption={(props, option, { selected }) => {
                   const { key, ...otherProps } = props;
                   return (
-                    <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} key={key} {...otherProps}>
+                    <Box
+                      component="li"
+                      sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+                      key={key}
+                      {...otherProps}
+                    >
                       <Checkbox
                         icon={icon}
                         checkedIcon={checkedIcon}
@@ -221,23 +241,39 @@ export default function EditMentorPage({ params }: { params: Promise<{ id: strin
                     placeholder="Search schools..."
                     variant="outlined"
                     error={formSubmitted && selectedSchools.length === 0}
-                    helperText={selectedSchools.length === 0 ? "Please select at least one school" : ""}
+                    helperText={
+                      selectedSchools.length === 0
+                        ? "Please select at least one school"
+                        : ""
+                    }
                   />
                 )}
               />
             </div>
           </FormSection>
 
-          <div className="flex justify-end">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-                Cancel
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              onClick={() => router.push("/protected/mentor/report")}
+              variant="outline"
+              size="lg"
+            >
+              Cancel
             </Button>
-            <Button type="submit" isLoading={isLoading}>
-              Update mentor
+
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
+              Update
             </Button>
           </div>
         </form>
       </div>
     </div>
   );
-} 
+}

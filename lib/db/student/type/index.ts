@@ -1,4 +1,12 @@
 import { Student as PrismaStudent } from "@prisma/client";
+import { z } from "zod";
+
+export interface Student {
+  instructions?: string;
+  id: string;
+  first_name: string;
+  last_name: string;
+}
 
 export interface StudentCreateInput {
   first_name: string;
@@ -12,19 +20,7 @@ export interface StudentCreateInput {
   schoolId: string;
 }
 
-export interface StudentWithSchool {
-  id: string;
-  created_at: Date;
-  first_name: string;
-  last_name: string;
-  aspiration: string;
-  gender: string;
-  email: string | null;
-  class: string;
-  section: string;
-  comments: string | null;
-  school_id: string;
-  user_id: string | null;
+export interface StudentWithSchool extends PrismaStudent {
   school: {
     id: string;
     name: string;
@@ -38,5 +34,5 @@ export interface StudentFilter {
   gender?: string;
   class?: string;
   section?: string;
-  school_id?: string;
-} 
+  schoolId?: string;
+}

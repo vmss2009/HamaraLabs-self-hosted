@@ -1,92 +1,108 @@
 import { prisma } from "@/lib/db/prisma";
-import { SchoolCreateInput, SchoolFilter, SchoolUpdateInput, SchoolWithAddress } from "../type";
-import { v4 as uuidv4 } from 'uuid';
+import {
+  SchoolCreateInput,
+  SchoolFilter,
+  SchoolUpdateInput,
+  SchoolWithAddress,
+} from "../type";
+import { v4 as uuidv4 } from "uuid";
 
-export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
+export async function createSchool(
+  data: SchoolCreateInput
+): Promise<SchoolWithAddress> {
   try {
     // Check for existing users by email
-    const existingInCharge = data.in_charge ? await prisma.user.findUnique({
-      where: { email: data.in_charge.email }
-    }) : null;
+    const existingInCharge = data.in_charge
+      ? await prisma.user.findUnique({
+          where: { email: data.in_charge.email },
+        })
+      : null;
 
-    const existingPrincipal = data.principal ? await prisma.user.findUnique({
-      where: { email: data.principal.email }
-    }) : null;
+    const existingPrincipal = data.principal
+      ? await prisma.user.findUnique({
+          where: { email: data.principal.email },
+        })
+      : null;
 
-    const existingCorrespondent = data.correspondent ? await prisma.user.findUnique({
-      where: { email: data.correspondent.email }
-    }) : null;
+    const existingCorrespondent = data.correspondent
+      ? await prisma.user.findUnique({
+          where: { email: data.correspondent.email },
+        })
+      : null;
 
     // Create or update in-charge
-    const in_charge = data.in_charge ? (existingInCharge ? 
-      await prisma.user.update({
-        where: { id: existingInCharge.id },
-        data: {
-          first_name: data.in_charge.first_name,
-          last_name: data.in_charge.last_name,
-          user_meta_data: {
-            phone_number: data.in_charge.phone_number,
-            ...data.in_charge.user_meta_data
-          }
-        }
-      }) : 
-      await prisma.user.create({
-        data: {
-          id: uuidv4(),
-          email: data.in_charge.email,
-          first_name: data.in_charge.first_name,
-          last_name: data.in_charge.last_name,
-          user_meta_data: {
-            phone_number: data.in_charge.phone_number,
-            ...data.in_charge.user_meta_data
-          }
-        }
-      })
-    ) : null;
+    const in_charge = data.in_charge
+      ? existingInCharge
+        ? await prisma.user.update({
+            where: { id: existingInCharge.id },
+            data: {
+              first_name: data.in_charge.first_name,
+              last_name: data.in_charge.last_name,
+              user_meta_data: {
+                phone_number: data.in_charge.phone_number,
+                ...data.in_charge.user_meta_data,
+              },
+            },
+          })
+        : await prisma.user.create({
+            data: {
+              id: uuidv4(),
+              email: data.in_charge.email,
+              first_name: data.in_charge.first_name,
+              last_name: data.in_charge.last_name,
+              user_meta_data: {
+                phone_number: data.in_charge.phone_number,
+                ...data.in_charge.user_meta_data,
+              },
+            },
+          })
+      : null;
 
     // Create or update principal
-    const principal = data.principal ? (existingPrincipal ? 
-      await prisma.user.update({
-        where: { id: existingPrincipal.id },
-        data: {
-          first_name: data.principal.first_name,
-          last_name: data.principal.last_name,
-          user_meta_data: {
-            phone_number: data.principal.phone_number,
-            ...data.principal.user_meta_data
-          }
-        }
-      }) : 
-      await prisma.user.create({
-        data: {
-          id: uuidv4(),
-          email: data.principal.email,
-          first_name: data.principal.first_name,
-          last_name: data.principal.last_name,
-          user_meta_data: {
-            phone_number: data.principal.phone_number,
-            ...data.principal.user_meta_data
-          }
-        }
-      })
-    ) : null;
+    const principal = data.principal
+      ? existingPrincipal
+        ? await prisma.user.update({
+            where: { id: existingPrincipal.id },
+            data: {
+              first_name: data.principal.first_name,
+              last_name: data.principal.last_name,
+              user_meta_data: {
+                phone_number: data.principal.phone_number,
+                ...data.principal.user_meta_data,
+              },
+            },
+          })
+        : await prisma.user.create({
+            data: {
+              id: uuidv4(),
+              email: data.principal.email,
+              first_name: data.principal.first_name,
+              last_name: data.principal.last_name,
+              user_meta_data: {
+                phone_number: data.principal.phone_number,
+                ...data.principal.user_meta_data,
+              },
+            },
+          })
+      : null;
 
     // Handle correspondent based on "same as principal" logic
-    const correspondent = data.correspondent ? 
-      (data.correspondent.email === data.principal?.email ? principal : 
-        (existingCorrespondent ? 
-          await prisma.user.update({
+    const correspondent = data.correspondent
+      ? data.correspondent.email === data.principal?.email
+        ? principal
+        : existingCorrespondent
+        ? await prisma.user.update({
             where: { id: existingCorrespondent.id },
             data: {
               first_name: data.correspondent.first_name,
               last_name: data.correspondent.last_name,
               user_meta_data: {
                 phone_number: data.correspondent.phone_number,
-                ...data.correspondent.user_meta_data
-              }
-            }
-          }) : 
-          await prisma.user.create({
+                ...data.correspondent.user_meta_data,
+              },
+            },
+          })
+        : await prisma.user.create({
             data: {
               id: uuidv4(),
               email: data.correspondent.email,
@@ -94,12 +110,11 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
               last_name: data.correspondent.last_name,
               user_meta_data: {
                 phone_number: data.correspondent.phone_number,
-                ...data.correspondent.user_meta_data
-              }
-            }
+                ...data.correspondent.user_meta_data,
+              },
+            },
           })
-        )
-      ) : null;
+      : null;
 
     const school = await prisma.school.create({
       data: {
@@ -118,11 +133,12 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
           connect: [
             ...(in_charge ? [{ id: in_charge.id }] : []),
             ...(correspondent ? [{ id: correspondent.id }] : []),
-            ...(principal ? [{ id: principal.id }] : [])
-          ].filter((user, index, self) => 
-            index === self.findIndex((u) => u.id === user.id)
-          )
-        }
+            ...(principal ? [{ id: principal.id }] : []),
+          ].filter(
+            (user, index, self) =>
+              index === self.findIndex((u) => u.id === user.id)
+          ),
+        },
       },
       include: {
         address: {
@@ -131,20 +147,20 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
               include: {
                 state: {
                   include: {
-                    country: true
-                  }
-                }
-              }
-            }
-          }
+                    country: true,
+                  },
+                },
+              },
+            },
+          },
         },
-        users: true
-      }
+        users: true,
+      },
     });
 
     return {
       ...school,
-      id: school.id.toString()
+      id: school.id.toString(),
     };
   } catch (error) {
     console.error("Error creating school:", error);
@@ -152,34 +168,36 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
   }
 }
 
-export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddress[]> {
+export async function getSchools(
+  filter?: SchoolFilter
+): Promise<SchoolWithAddress[]> {
   try {
     const where: any = {};
-    
+
     if (filter?.name) {
-      where.name = { contains: filter.name, mode: 'insensitive' };
+      where.name = { contains: filter.name, mode: "insensitive" };
     }
-    
+
     if (filter?.is_ATL !== undefined) {
       where.is_ATL = filter.is_ATL;
     }
-    
+
     if (filter?.paid_subscription !== undefined) {
       where.paid_subscription = filter.paid_subscription;
     }
-    
+
     if (filter?.cityId || filter?.stateId || filter?.countryId) {
       where.address = {
         city: filter?.cityId ? { id: filter.cityId } : undefined,
         state: filter?.stateId ? { id: filter.stateId } : undefined,
-        country: filter?.countryId ? { id: filter.countryId } : undefined
+        country: filter?.countryId ? { id: filter.countryId } : undefined,
       };
     }
-    
+
     const schools = await prisma.school.findMany({
       where,
       orderBy: {
-        name: 'asc'
+        name: "asc",
       },
       include: {
         address: {
@@ -188,20 +206,20 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
               include: {
                 state: {
                   include: {
-                    country: true
-                  }
-                }
-              }
-            }
-          }
+                    country: true,
+                  },
+                },
+              },
+            },
+          },
         },
-        users: true
-      }
+        users: true,
+      },
     });
-    
-    return schools.map(school => ({
+
+    return schools.map((school) => ({
       ...school,
-      id: school.id.toString()
+      id: school.id.toString(),
     }));
   } catch (error) {
     console.error("Error fetching schools:", error);
@@ -209,7 +227,9 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
   }
 }
 
-export async function getSchoolById(id: string): Promise<SchoolWithAddress | null> {
+export async function getSchoolById(
+  id: string
+): Promise<SchoolWithAddress | null> {
   try {
     const school = await prisma.school.findUnique({
       where: { id },
@@ -220,34 +240,39 @@ export async function getSchoolById(id: string): Promise<SchoolWithAddress | nul
               include: {
                 state: {
                   include: {
-                    country: true
-                  }
-                }
-              }
-            }
-          }
+                    country: true,
+                  },
+                },
+              },
+            },
+          },
         },
-        users: true
-      }
+        users: true,
+      },
     });
-    
-    return school ? {
-      ...school,
-      id: school.id.toString()
-    } : null;
+
+    return school
+      ? {
+          ...school,
+          id: school.id.toString(),
+        }
+      : null;
   } catch (error) {
     console.error(`Error fetching school with id ${id}:`, error);
     throw error;
   }
 }
 
-export async function updateSchool(id: string, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
+export async function updateSchool(
+  id: string,
+  data: SchoolUpdateInput
+): Promise<SchoolWithAddress> {
   try {
     const currentSchool = await prisma.school.findUnique({
       where: { id },
       include: {
-        users: true
-      }
+        users: true,
+      },
     });
 
     if (!currentSchool) {
@@ -261,30 +286,35 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
           address_line1: data.address.address_line1,
           address_line2: data.address.address_line2,
           pincode: data.address.pincode,
-          city_id: data.address.city_id
-        }
+          city_id: data.address.city_id,
+        },
       });
     }
 
     let principalId = undefined;
     if (data.principal) {
       // Get the previous principal's email if it exists
-      const previousPrincipal = currentSchool.users?.find(user => user.id === currentSchool.principal_id);
-      
+      const previousPrincipal = currentSchool.users?.find(
+        (user) => user.id === currentSchool.principal_id
+      );
+
       // If there was a previous principal and email has changed, remove school from their schools array
-      if (previousPrincipal && previousPrincipal.email !== data.principal.email) {
+      if (
+        previousPrincipal &&
+        previousPrincipal.email !== data.principal.email
+      ) {
         await prisma.user.update({
           where: { id: previousPrincipal.id },
           data: {
             schools: {
-              disconnect: { id: id }
-            }
-          }
+              disconnect: { id: id },
+            },
+          },
         });
       }
 
       const existingUser = await prisma.user.findUnique({
-        where: { email: data.principal.email }
+        where: { email: data.principal.email },
       });
 
       if (existingUser) {
@@ -296,9 +326,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             last_name: data.principal.last_name,
             user_meta_data: data.principal.user_meta_data,
             schools: {
-              connect: { id: id }
-            }
-          }
+              connect: { id: id },
+            },
+          },
         });
       } else {
         const newPrincipal = await prisma.user.create({
@@ -309,9 +339,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             last_name: data.principal.last_name,
             user_meta_data: data.principal.user_meta_data,
             schools: {
-              connect: { id: id }
-            }
-          }
+              connect: { id: id },
+            },
+          },
         });
         principalId = newPrincipal.id;
       }
@@ -324,22 +354,27 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
         correspondentId = principalId;
       } else {
         // Get the previous correspondent's email if it exists
-        const previousCorrespondent = currentSchool.users?.find(user => user.id === currentSchool.correspondent_id);
-        
+        const previousCorrespondent = currentSchool.users?.find(
+          (user) => user.id === currentSchool.correspondent_id
+        );
+
         // If there was a previous correspondent and email has changed, remove school from their schools array
-        if (previousCorrespondent && previousCorrespondent.email !== data.correspondent.email) {
+        if (
+          previousCorrespondent &&
+          previousCorrespondent.email !== data.correspondent.email
+        ) {
           await prisma.user.update({
             where: { id: previousCorrespondent.id },
             data: {
               schools: {
-                disconnect: { id: id }
-              }
-            }
+                disconnect: { id: id },
+              },
+            },
           });
         }
 
         const existingUser = await prisma.user.findUnique({
-          where: { email: data.correspondent.email }
+          where: { email: data.correspondent.email },
         });
 
         if (existingUser) {
@@ -352,9 +387,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
               last_name: data.correspondent.last_name,
               user_meta_data: data.correspondent.user_meta_data,
               schools: {
-                connect: { id: id }
-              }
-            }
+                connect: { id: id },
+              },
+            },
           });
         } else {
           // Create new user
@@ -366,9 +401,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
               last_name: data.correspondent.last_name,
               user_meta_data: data.correspondent.user_meta_data,
               schools: {
-                connect: { id: id }
-              }
-            }
+                connect: { id: id },
+              },
+            },
           });
           correspondentId = newCorrespondent.id;
         }
@@ -378,22 +413,24 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     let inChargeId = undefined;
     if (data.in_charge) {
       // Get the previous in-charge's email if it exists
-      const previousInCharge = currentSchool.users?.find(user => user.id === currentSchool.in_charge_id);
-      
+      const previousInCharge = currentSchool.users?.find(
+        (user) => user.id === currentSchool.in_charge_id
+      );
+
       // If there was a previous in-charge and email has changed, remove school from their schools array
       if (previousInCharge && previousInCharge.email !== data.in_charge.email) {
         await prisma.user.update({
           where: { id: previousInCharge.id },
           data: {
             schools: {
-              disconnect: { id: id }
-            }
-          }
+              disconnect: { id: id },
+            },
+          },
         });
       }
 
       const existingUser = await prisma.user.findUnique({
-        where: { email: data.in_charge.email }
+        where: { email: data.in_charge.email },
       });
 
       if (existingUser) {
@@ -405,9 +442,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             last_name: data.in_charge.last_name,
             user_meta_data: data.in_charge.user_meta_data,
             schools: {
-              connect: { id: id }
-            }
-          }
+              connect: { id: id },
+            },
+          },
         });
       } else {
         const newInCharge = await prisma.user.create({
@@ -418,9 +455,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             last_name: data.in_charge.last_name,
             user_meta_data: data.in_charge.user_meta_data,
             schools: {
-              connect: { id: id }
-            }
-          }
+              connect: { id: id },
+            },
+          },
         });
         inChargeId = newInCharge.id;
       }
@@ -443,9 +480,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
           connect: [
             ...(principalId ? [{ id: principalId }] : []),
             ...(correspondentId ? [{ id: correspondentId }] : []),
-            ...(inChargeId ? [{ id: inChargeId }] : [])
-          ]
-        }
+            ...(inChargeId ? [{ id: inChargeId }] : []),
+          ],
+        },
       },
       include: {
         address: {
@@ -454,20 +491,20 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
               include: {
                 state: {
                   include: {
-                    country: true
-                  }
-                }
-              }
-            }
-          }
+                    country: true,
+                  },
+                },
+              },
+            },
+          },
         },
-        users: true
-      }
+        users: true,
+      },
     });
-    
+
     return {
       ...school,
-      id: school.id.toString()
+      id: school.id.toString(),
     };
   } catch (error) {
     console.error(`Error updating school with id ${id}:`, error);
@@ -477,6 +514,6 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
 
 export async function deleteSchool(id: string) {
   return prisma.school.delete({
-    where: { id }
+    where: { id },
   });
-} 
+}

@@ -3,16 +3,13 @@ import {
   getCustomisedCourseById,
   updateCustomisedCourse,
   deleteCustomisedCourse,
-  getCustomisedCourses
+  getCustomisedCourses,
 } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
 
-export async function GET(
-  request: Request,
-  { params }: any
-) {
+export async function GET(request: Request, { params }: any) {
   try {
-    if (params.id === 'list') {
+    if (params.id === "list") {
       const { searchParams } = new URL(request.url);
       const student_id = searchParams.get("student_id");
 
@@ -23,7 +20,9 @@ export async function GET(
         );
       }
 
-      const customisedCourses = await getCustomisedCourses({ student_id: student_id });
+      const customisedCourses = await getCustomisedCourses({
+        student_id: student_id,
+      });
       return NextResponse.json(customisedCourses);
     }
 
@@ -46,10 +45,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: any
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const id = params.id;
     const data = await request.json();
@@ -76,15 +72,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: any
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const id = params.id;
     await deleteCustomisedCourse(id);
 
-    return NextResponse.json({ message: "Customised course deleted successfully" });
+    return NextResponse.json({
+      message: "Customised course deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting customised course:", error);
     return NextResponse.json(
@@ -94,10 +89,7 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: any
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     const id = params.id;
     const body = await request.json();
