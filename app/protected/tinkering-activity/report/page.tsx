@@ -111,7 +111,6 @@ export default function TinkeringActivityReport() {
         })
       );
 
-      console.log("UpdatedData", updatedData);
       setActivities(updatedData);
 
       if (data.length > 0) {
@@ -135,8 +134,6 @@ export default function TinkeringActivityReport() {
 
   const handleRowClick = (params: any) => {
     if (!params || !params.row) return;
-
-    console.log("FullActivities", fullActivities);
 
     const fullRow = fullActivities.find((item) => item.id === params.row.id);
 

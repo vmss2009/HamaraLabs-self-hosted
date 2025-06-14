@@ -332,7 +332,6 @@ export default function StudentSnapshot() {
         throw new Error("Failed to fetch competitions");
       }
       const customisedCompetitions = await response.json();
-      console.log("Compettt", customisedCompetitions);
       setCompetitions(customisedCompetitions);
     } catch (error) {
       console.error("Error fetching competitions:", error);
@@ -352,7 +351,6 @@ export default function StudentSnapshot() {
         throw new Error("Failed to fetch courses");
       }
       const customisedCourses = await response.json();
-      console.log(customisedCourses);
       setCourses(customisedCourses);
     } catch (error) {
       console.error("Error fetching courses:", error);
@@ -440,9 +438,6 @@ export default function StudentSnapshot() {
         throw new Error("Invalid status type");
       }
 
-      console.log("PATCH Endpoint:", endpoint);
-      console.log("Request Body:", JSON.stringify({ status: updatedStatus }));
-
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -452,8 +447,6 @@ export default function StudentSnapshot() {
       });
 
       const responseText = await response.text();
-      console.log("Response Status:", response.status);
-      console.log("Response Body:", responseText);
 
       if (!response.ok) {
         throw new Error(
@@ -697,12 +690,6 @@ export default function StudentSnapshot() {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
-
-  useEffect(() => {
-    if (selectedRow) {
-      console.log("Updated selectedRow", selectedRow);
-    }
-  }, [selectedRow]);
 
   const closeDrawer = () => {
     setDrawerOpen(false);
@@ -1099,10 +1086,16 @@ export default function StudentSnapshot() {
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
-            selectedRow={selectedRow}
+            selectedRow={{
+              ...selectedRow,
+              index:
+                tinkeringActivities.findIndex(
+                  (activity) => activity.id === selectedRow?.id
+                ) + 1,
+            }}
             formtype="Tinkering-Activity"
             columns={[
-              { label: "ID", field: "id" },
+              { label: "S.No", field: "index" },
               { label: "Activity Name", field: "name" },
               {
                 label: "Subject",
@@ -1152,10 +1145,16 @@ export default function StudentSnapshot() {
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
-            selectedRow={selectedRow}
+            selectedRow={{
+              ...selectedRow,
+              index:
+                competitions.findIndex(
+                  (competition) => competition.id === selectedRow?.id
+                ) + 1,
+            }}
             formtype="Competition"
             columns={[
-              { label: "ID", field: "id" },
+              { label: "S.No", field: "index" },
               { label: "Competition Name", field: "competition.name" },
               { label: "Description", field: "competition.description" },
               { label: "Organised By", field: "competition.organised_by" },
@@ -1206,10 +1205,15 @@ export default function StudentSnapshot() {
           <DetailViewer
             drawerOpen={drawerOpen}
             closeDrawer={closeDrawer}
-            selectedRow={selectedRow}
+            selectedRow={{
+              ...selectedRow,
+              index:
+                courses.findIndex((course) => course.id === selectedRow?.id) +
+                1,
+            }}
             formtype="Course"
             columns={[
-              { label: "ID", field: "id" },
+              { label: "S.No", field: "index" },
               { label: "Course Name", field: "course.name" },
               { label: "Organized By", field: "course.organized_by" },
               { label: "Description", field: "course.description" },

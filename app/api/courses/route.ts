@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
         : body.course_tags.split(",").map((t: string) => t.trim()),
     };
 
-    console.log("Sending course data:", JSON.stringify(courseData, null, 2));
 
     const result = courseSchema.safeParse(courseData);
     if (!result.success) {

@@ -48,7 +48,6 @@ export default function CourseForm() {
         },
         body: JSON.stringify(courseData),
       });
-      console.log("Submitted Course Data:", courseData);
 
       if (!response.ok) {
         const errorData = await response.json();

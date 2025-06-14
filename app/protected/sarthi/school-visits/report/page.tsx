@@ -71,7 +71,6 @@ export default function SchoolVisitReport() {
   };
 
   const handleRowClick = (params: GridRowParams<SchoolVisitWithRelations>) => {
-    console.log(params.row);
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };

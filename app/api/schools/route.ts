@@ -77,7 +77,6 @@ export async function POST(request: Request) {
     }
 
     const validatedData = result.data;
-    console.log("Validate.data", validatedData);
     // ✅ Create address first
     const address = await createAddress({
       address_line1: validatedData.address.address_line1,

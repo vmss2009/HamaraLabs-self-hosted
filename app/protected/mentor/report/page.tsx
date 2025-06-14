@@ -87,7 +87,6 @@ export default function MentorReport() {
 
   const handleRowClick = (params: any) => {
     if (!params || !params.row) return;
-    console.log("data", params.row);
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -97,7 +96,6 @@ export default function MentorReport() {
   };
 
   const formatValue = (value: any): React.ReactNode => {
-    console.log(value);
     if (value === null || value === undefined) return "N/A";
     if (Array.isArray(value)) {
       return (
@@ -232,7 +230,8 @@ export default function MentorReport() {
           }}
           columns={[
             { label: "S.No", field: "index" },
-            { label: "Name", field: "full_name" },
+            { label: "First name", field: "first_name" },
+            { label: "Last name", field: "last_name" },
             { label: "Email", field: "email" },
             { label: "Phone Number", field: "user_meta_data.phone_number" },
             { label: "Schools", field: "schools" },

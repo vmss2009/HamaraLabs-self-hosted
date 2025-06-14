@@ -38,7 +38,6 @@ export async function PUT(request: NextRequest, { params }: any) {
     }
 
     const data = await request.json();
-    console.log("Raw PUT data:", data);
 
     const result = schoolSchema.safeParse(data);
 

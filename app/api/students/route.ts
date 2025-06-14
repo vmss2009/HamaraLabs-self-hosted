@@ -62,7 +62,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log("DAta", data);
     const result = studentSchema.safeParse(data);
 
     if (!result.success) {
@@ -84,8 +83,6 @@ export async function POST(request: Request) {
       comments: validatedData.comments ?? "",
       schoolId: validatedData.schoolId, // Already string
     };
-
-    console.log("Student data", studentInput);
 
     const student = await createStudent(studentInput);
     return NextResponse.json(student, { status: 201 });

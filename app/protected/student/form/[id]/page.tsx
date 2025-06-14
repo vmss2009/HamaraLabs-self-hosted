@@ -41,7 +41,6 @@ export default function EditStudentForm({
           throw new Error("Failed to fetch student data");
         }
         const studentData = await studentResponse.json();
-        console.log("Student data", studentData);
 
         setSelectedSchool(studentData.school_id.toString());
         setGender(studentData.gender);

@@ -6,8 +6,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    console.log("customized course Bodyy", body);
-
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
@@ -23,7 +21,6 @@ export async function POST(request: Request) {
       student_id: body.student_id,
       status: Array.isArray(body.status) ? body.status : [body.status],
     };
-    console.log("coursedata", courseData);
 
     const customisedCourse = await createCustomisedCourse(courseData);
     return NextResponse.json(customisedCourse);

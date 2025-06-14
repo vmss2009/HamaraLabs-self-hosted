@@ -122,11 +122,7 @@ export default function AssignDialog({
         hour: "2-digit",
         minute: "2-digit",
       });
-
-      console.log("Selected students", selectedStudents);
-      console.log("Selected activity", selectedActivity);
-      console.log("API endpoint", apiEndpoint);
-
+      
       const promises = selectedStudents.map((studentId) =>
         fetch(apiEndpoint, {
           method: "POST",

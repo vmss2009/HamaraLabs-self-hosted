@@ -32,7 +32,6 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log("cluster data", data);
 
     const result = clusterSchema.safeParse(data);
 

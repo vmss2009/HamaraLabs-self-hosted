@@ -28,7 +28,6 @@ export async function GET(request: Request, { params }: any) {
 export async function PUT(request: Request, { params }: any) {
   try {
     const data = await request.json();
-    console.log("Updatedata", data);
 
     const result = studentSchema.safeParse(data);
 

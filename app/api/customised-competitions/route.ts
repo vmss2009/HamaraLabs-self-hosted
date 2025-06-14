@@ -21,7 +21,6 @@ export async function POST(request: Request) {
       student_id: body.student_id,
       status: Array.isArray(body.status) ? body.status : [body.status],
     };
-    console.log("Competation data", competitionData);
 
     const customisedCompetition = await createCustomisedCompetition(
       competitionData

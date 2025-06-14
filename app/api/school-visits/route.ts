@@ -51,7 +51,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log("school visits", body);
 
     const result = schoolVisitSchema.safeParse(body);
 

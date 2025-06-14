@@ -250,7 +250,6 @@ export default function Page() {
   }, []);
 
   const handleRowClick = (params: any) => {
-    console.log("Selected Row Data:", params.row);
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -280,7 +279,6 @@ export default function Page() {
   };
 
   const formatValue = (value: any): React.ReactNode => {
-    console.log("Formatting value:", value);
     if (value === null || value === undefined) return "N/A";
     if (Array.isArray(value)) {
       return (

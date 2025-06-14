@@ -49,7 +49,6 @@ export default function EditCourseForm({
         const res = await fetch(`/api/courses/${resolvedParams.id}`);
         if (!res.ok) throw new Error("Failed to fetch course data");
         const data = await res.json();
-        console.log(data);
 
         setName(data.name || "");
         setDescription(data.description || "");
@@ -63,7 +62,6 @@ export default function EditCourseForm({
         setReferenceLink(data.reference_link || "");
         setRequirements(data.requirements || [""]);
         setCourseTags(data.course_tags || [""]);
-        console.log("test", organizedBy);
       } catch (err) {
         setError("Failed to load course. Try again.");
         console.error(err);
@@ -102,7 +100,6 @@ export default function EditCourseForm({
         },
         body: JSON.stringify(updatedCourse),
       });
-      console.log("Submitted Course Data:", updatedCourse);
 
       if (!res.ok) {
         const errData = await res.json();

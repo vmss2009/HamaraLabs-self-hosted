@@ -70,7 +70,6 @@ export async function PUT(
     const id = params.id;
 
     const body = await request.json();
-    console.log("DATaaa", body);
 
     const result = customisedTinkeringActivitySchema.safeParse(body);
 

@@ -7,22 +7,24 @@ export const getCourseColumns = (
   handleModifyStatus: (row: any, type: string) => void,
   handleDeleteCourse: (row: any) => void
 ): GridColDef[] => [
-  { field: "id", headerName: "ID", width: 80 },
-
+  {
+    field: "id",
+    headerName: "S.No",
+    width: 100,
+    renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+  },
   {
     field: "course_actions",
     headerName: "Course",
     width: 200,
     renderCell: (params) => params.row?.course?.name ?? "N/A",
   },
-
   {
     field: "organized_by",
     headerName: "Organized By",
     width: 180,
     renderCell: (params) => params.row?.course?.organized_by ?? "N/A",
   },
-
   {
     field: "status",
     headerName: "Status",
@@ -34,7 +36,6 @@ export const getCourseColumns = (
         : "N/A";
     },
   },
-
   {
     field: "application_start_date",
     headerName: "Application Start",
@@ -44,7 +45,6 @@ export const getCourseColumns = (
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
   },
-
   {
     field: "application_end_date",
     headerName: "Application End",
@@ -54,7 +54,6 @@ export const getCourseColumns = (
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
   },
-
   {
     field: "course_start_date",
     headerName: "Course Start",
@@ -64,7 +63,6 @@ export const getCourseColumns = (
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
   },
-
   {
     field: "course_end_date",
     headerName: "Course End",
@@ -74,7 +72,6 @@ export const getCourseColumns = (
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
   },
-
   {
     field: "eligibility",
     headerName: "Eligibility",
@@ -85,7 +82,6 @@ export const getCourseColumns = (
       return from && to ? `${from} - ${to}` : "N/A";
     },
   },
-
   {
     field: "reference_link",
     headerName: "Reference",
@@ -106,7 +102,6 @@ export const getCourseColumns = (
       );
     },
   },
-
   {
     field: "requirements",
     headerName: "Requirements",
@@ -116,7 +111,6 @@ export const getCourseColumns = (
       return reqs.length > 0 ? reqs.join(", ") : "N/A";
     },
   },
-
   {
     field: "course_tags",
     headerName: "Tags",
@@ -126,7 +120,6 @@ export const getCourseColumns = (
       return tags.length > 0 ? tags.join(", ") : "N/A";
     },
   },
-
   {
     field: "actions",
     headerName: "Actions",

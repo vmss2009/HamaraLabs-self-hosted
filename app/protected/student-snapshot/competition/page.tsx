@@ -14,8 +14,12 @@ export function getCompetitionColumns(
   handleDeleteCompetition: DeleteCompetitionHandler
 ): GridColDef[] {
   return [
-    { field: "id", headerName: "ID", width: 80 },
-
+    {
+      field: "id",
+      headerName: "S.No",
+      width: 100,
+      renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
+    },
     {
       field: "competition_actions",
       headerName: "Competition",
@@ -28,14 +32,12 @@ export function getCompetitionColumns(
       width: 150,
       renderCell: (params) => params.row?.competition?.description ?? "N/A",
     },
-
     {
       field: "organised_by",
       headerName: "Organised By",
       width: 180,
       renderCell: (params) => params.row?.competition?.organised_by ?? "N/A",
     },
-
     {
       field: "status",
       headerName: "Status",
@@ -47,7 +49,6 @@ export function getCompetitionColumns(
           : "N/A";
       },
     },
-
     {
       field: "application_start_date",
       headerName: "Application Start",
@@ -57,7 +58,6 @@ export function getCompetitionColumns(
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "application_end_date",
       headerName: "Application End",
@@ -67,7 +67,6 @@ export function getCompetitionColumns(
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "competition_start_date",
       headerName: "Competition Start",
@@ -77,7 +76,6 @@ export function getCompetitionColumns(
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "competition_end_date",
       headerName: "Competition End",
@@ -87,14 +85,12 @@ export function getCompetitionColumns(
         return date ? new Date(date).toLocaleDateString() : "N/A";
       },
     },
-
     {
       field: "payment",
       headerName: "Payment",
       width: 150,
       renderCell: (params) => params.row?.competition?.payment ?? "N/A",
     },
-
     {
       field: "requirements",
       headerName: "Requirements",
@@ -107,7 +103,6 @@ export function getCompetitionColumns(
       width: 150,
       renderCell: (params) => params.row?.competition?.reference_links ?? "N/A",
     },
-
     {
       field: "actions",
       headerName: "Actions",
