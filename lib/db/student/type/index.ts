@@ -1,5 +1,4 @@
 import { Student as PrismaStudent } from "@prisma/client";
-import { z } from "zod";
 
 export interface Student {
   instructions?: string;

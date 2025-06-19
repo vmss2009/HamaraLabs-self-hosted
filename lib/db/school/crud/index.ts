@@ -7,9 +7,7 @@ import {
 } from "../type";
 import { v4 as uuidv4 } from "uuid";
 
-export async function createSchool(
-  data: SchoolCreateInput
-): Promise<SchoolWithAddress> {
+export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
     // Check for existing users by email
     const existingInCharge = data.in_charge
@@ -168,9 +166,7 @@ export async function createSchool(
   }
 }
 
-export async function getSchools(
-  filter?: SchoolFilter
-): Promise<SchoolWithAddress[]> {
+export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddress[]> {
   try {
     const where: any = {};
 
@@ -227,9 +223,7 @@ export async function getSchools(
   }
 }
 
-export async function getSchoolById(
-  id: string
-): Promise<SchoolWithAddress | null> {
+export async function getSchoolById(id: string): Promise<SchoolWithAddress | null> {
   try {
     const school = await prisma.school.findUnique({
       where: { id },
@@ -263,10 +257,7 @@ export async function getSchoolById(
   }
 }
 
-export async function updateSchool(
-  id: string,
-  data: SchoolUpdateInput
-): Promise<SchoolWithAddress> {
+export async function updateSchool(id: string, data: SchoolUpdateInput): Promise<SchoolWithAddress> {
   try {
     const currentSchool = await prisma.school.findUnique({
       where: { id },

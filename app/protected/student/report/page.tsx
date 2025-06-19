@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 import Alert from "@mui/material/Alert";
 import { Student } from "@/lib/db/student/type";
 

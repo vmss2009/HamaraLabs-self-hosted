@@ -1,4 +1,4 @@
-import { School as PrismaSchool, User } from "@prisma/client";
+import { User } from "@prisma/client";
 
 export interface UserInput {
   email: string;

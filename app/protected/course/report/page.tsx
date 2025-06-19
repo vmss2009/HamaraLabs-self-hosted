@@ -9,13 +9,13 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
-import DetailViewer from "@/components/forms/DetailViewer";
+import { Button } from "@/components/Button";
+import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Alert from "@mui/material/Alert";
-import AssignDialog from "@/components/forms/DialogBox";
+import AssignDialog from "@/components/DialogBox";
 import { Course } from "@/lib/db/course/type";
 
 export default function CourseReport() {

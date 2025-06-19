@@ -21,8 +21,8 @@ import {
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
-import { Button } from "@/components/ui/Button";
-import DetailViewer from "@/components/forms/DetailViewer";
+import { Button } from "@/components/Button";
+import DetailViewer from "@/components/DetailViewer";
 import EditActivityDialog from "./tinkering-activity/tinkering-activity-edit-form/page";
 import { getCourseColumns } from "./course/page";
 import { getCompetitionColumns } from "./competition/page";

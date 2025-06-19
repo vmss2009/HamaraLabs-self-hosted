@@ -2,13 +2,13 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import { Input } from "@/components/Input";
 import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import SelectField from "@/components/forms/SelectField";
+import SelectField from "@/components/SelectField";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;

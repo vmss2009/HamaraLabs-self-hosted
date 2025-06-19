@@ -10,13 +10,10 @@ import {
   GridToolbarColumnsButton,
   GridActionsCellItem,
 } from "@mui/x-data-grid";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 
 interface School {
   id: number;

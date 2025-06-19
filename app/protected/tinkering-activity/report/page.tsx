@@ -10,14 +10,14 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Alert from "@mui/material/Alert";
-import AssignDialog from "@/components/forms/DialogBox";
+import AssignDialog from "@/components/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {

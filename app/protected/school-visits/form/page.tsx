@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import FormSection from "@/components/forms/FormSection";
-import SelectField from "@/components/forms/SelectField";
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
+import FormSection from "@/components/FormSection";
+import SelectField from "@/components/SelectField";
 import { SchoolWithAddress } from "@/lib/db/school/type";
 import { User } from "@prisma/client";
-import DateFieldGroup from "@/components/forms/DateField";
+import DateFieldGroup from "@/components/DateField";
 
 interface DetailItem {
   key: string;

@@ -2,10 +2,10 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import SelectField from "@/components/forms/SelectField";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import SelectField from "@/components/SelectField";
+import { Input } from "@/components/Input";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
 import { SchoolWithAddress } from "@/lib/db/school/type";
 import { User } from "@prisma/client";

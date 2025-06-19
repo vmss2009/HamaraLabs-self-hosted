@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Checkbox } from "@/components/ui/Checkbox";
+import { Checkbox } from "@/components/Checkbox";
 
 interface CheckboxOption {
   value: string;

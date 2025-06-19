@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Select, SelectOption } from "@/components/ui/Select";
+import { Select, SelectOption } from "@/components/Select";
 
 interface SelectFieldProps {
   name: string;

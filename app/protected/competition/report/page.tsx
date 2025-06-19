@@ -9,13 +9,13 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/forms/DetailViewer";
-import AssignDialog from "@/components/forms/DialogBox";
+import DetailViewer from "@/components/DetailViewer";
+import AssignDialog from "@/components/DialogBox";
 import { Competition } from "@/lib/db/competition/type";
 
 export default function CompetitionReport() {

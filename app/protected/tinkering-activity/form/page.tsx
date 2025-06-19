@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import SelectField from "@/components/forms/SelectField";
-import MultiForm from "@/components/forms/Multiform";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import SelectField from "@/components/SelectField";
+import MultiForm from "@/components/Multiform";
+import { Input } from "@/components/Input";
 import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityForm() {

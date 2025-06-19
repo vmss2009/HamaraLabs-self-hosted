@@ -18,7 +18,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 
 export default function SchoolVisitReport() {
   const router = useRouter();

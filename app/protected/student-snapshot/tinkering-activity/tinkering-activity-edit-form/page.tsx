@@ -10,11 +10,11 @@ import {
   Paper,
   IconButton,
 } from "@mui/material";
-import { Input } from "@/components/ui/Input";
-import SelectField from "@/components/forms/SelectField";
+import { Input } from "@/components/Input";
+import SelectField from "@/components/SelectField";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/Button";
 import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
 
 const EditActivityDialog: React.FC<EditActivityDialogProps> = ({

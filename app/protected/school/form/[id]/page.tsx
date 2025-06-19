@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
-import TextFieldGroup from "@/components/forms/TextFieldGroup";
-import SelectField from "@/components/forms/SelectField";
-import CheckboxGroup from "@/components/forms/CheckboxGroup";
-import RadioButtonGroup from "@/components/forms/RadioButtonGroup";
-import DynamicFieldArray from "@/components/forms/DynamicFieldArray";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import TextFieldGroup from "@/components/TextFieldGroup";
+import SelectField from "@/components/SelectField";
+import CheckboxGroup from "@/components/CheckboxGroup";
+import RadioButtonGroup from "@/components/RadioButtonGroup";
+import DynamicFieldArray from "@/components/DynamicFieldArray";
 import { useRouter } from "next/navigation";
 
 type Country = {

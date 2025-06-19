@@ -9,7 +9,7 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import DetailViewer from "@/components/forms/DetailViewer";
+import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
