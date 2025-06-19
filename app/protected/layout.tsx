@@ -1,7 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import Drawer from "@/components/ui/Drawer";
+import Drawer from "@/components/Drawer";
 
 export default function ProtectedLayout({
   children,

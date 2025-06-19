@@ -1,5 +1,12 @@
 import { Student as PrismaStudent } from "@prisma/client";
 
+export interface Student {
+  instructions?: string;
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
 export interface StudentCreateInput {
   first_name: string;
   last_name: string;
@@ -9,12 +16,12 @@ export interface StudentCreateInput {
   class: string;
   section: string;
   comments?: string;
-  schoolId: number;
+  schoolId: string;
 }
 
 export interface StudentWithSchool extends PrismaStudent {
   school: {
-    id: number;
+    id: string;
     name: string;
     is_ATL: boolean;
   };
@@ -26,5 +33,6 @@ export interface StudentFilter {
   gender?: string;
   class?: string;
   section?: string;
-  schoolId?: number;
-} 
+  schoolId?: string;
+  userSchoolIds?: string[];
+}

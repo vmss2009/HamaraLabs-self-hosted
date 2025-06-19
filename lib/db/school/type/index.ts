@@ -1,40 +1,41 @@
-import { School as PrismaSchool, User } from "@prisma/client";
+import { User } from "@prisma/client";
+
+export interface UserInput {
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
+  user_meta_data?: Record<string, any>; // Or a proper interface if structured
+}
 
 export interface SchoolCreateInput {
   name: string;
   is_ATL: boolean;
+  ATL_establishment_year?: number | null;
   address_id: number;
-  in_charge?: {
-    id: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    phone_number: string;
-    user_meta_data?: Record<string, any>;
-  };
-  correspondent?: {
-    id: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    phone_number: string;
-    user_meta_data?: Record<string, any>;
-  };
-  principal?: {
-    id: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    phone_number: string;
-    user_meta_data?: Record<string, any>;
-  };
+  in_charge?: UserInput;
+  principal?: UserInput;
+  correspondent?: UserInput;
   syllabus: string[];
   website_url?: string;
   paid_subscription: boolean;
-  social_links: string[];
+  social_links?: string[];
 }
 
-export interface SchoolWithAddress extends Omit<PrismaSchool, 'in_charge' | 'correspondent' | 'principal'> {
+export interface SchoolWithAddress {
+  id: string;
+  created_at: Date;
+  name: string;
+  is_ATL: boolean;
+  ATL_establishment_year: number | null;
+  address_id: number;
+  in_charge_id: string | null;
+  correspondent_id: string | null;
+  principal_id: string | null;
+  syllabus: string[];
+  website_url: string | null;
+  paid_subscription: boolean;
+  social_links: string[];
   address: {
     id: number;
     address_line1?: string | null;
@@ -78,10 +79,11 @@ export interface SchoolFilter {
 export interface SchoolUpdateInput {
   name: string;
   is_ATL: boolean;
+  ATL_establishment_year?: number | null;
   syllabus: string[];
   website_url?: string;
   paid_subscription: boolean;
-  social_links: string[];
+  social_links?: string[];
   address: {
     address_line1: string;
     address_line2?: string;

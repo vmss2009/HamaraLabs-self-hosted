@@ -11,12 +11,13 @@ export interface CustomisedTinkeringActivityCreateInput {
   observations: string[];
   extensions: string[];
   resources: string[];
-  base_ta_id: number;
-  student_id: number;
+  base_ta_id: string;
+  student_id: string;
   status: string[];
 }
 
-export interface CustomisedTinkeringActivityWithRelations extends PrismaCustomisedTinkeringActivity {
+export interface CustomisedTinkeringActivityWithRelations
+  extends PrismaCustomisedTinkeringActivity {
   subtopic: {
     id: number;
     subtopic_name: string;
@@ -34,7 +35,7 @@ export interface CustomisedTinkeringActivityWithRelations extends PrismaCustomis
 export interface CustomisedTinkeringActivityFilter {
   name?: string;
   subtopic_id?: number;
-  base_ta_id?: number;
-  student_id?: number;
+  base_ta_id?: string;
+  student_id?: string;
   status?: string[];
-} 
+}

@@ -4,17 +4,23 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import React, { ChangeEvent } from "react";
-import { Button } from "@/components/ui/Button";
-import FormSection from "@/components/forms/FormSection";
+import { Button } from "@/components/Button";
+import FormSection from "@/components/FormSection";
+import DateFieldGroup from "@/components/DateField";
+import { Input } from "@/components/Input";
+import MultiForm from "@/components/Multiform";
 
-export default function EditCourseForm({ params }: { params: Promise<{ id: string }> }) {
+export default function EditCourseForm({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Individual state variables
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [organizedBy, setOrganizedBy] = useState("");
@@ -28,14 +34,13 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
-
   const formatDate = (dateStr: string | undefined | null): string => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
     const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`; // ✅ format for input[type="date"]
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   useEffect(() => {
@@ -44,7 +49,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         const res = await fetch(`/api/courses/${resolvedParams.id}`);
         if (!res.ok) throw new Error("Failed to fetch course data");
         const data = await res.json();
-        console.log(data);
 
         setName(data.name || "");
         setDescription(data.description || "");
@@ -58,7 +62,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         setReferenceLink(data.reference_link || "");
         setRequirements(data.requirements || [""]);
         setCourseTags(data.course_tags || [""]);
-        console.log("test", organizedBy);
       } catch (err) {
         setError("Failed to load course. Try again.");
         console.error(err);
@@ -67,39 +70,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
     fetchCourse();
   }, [resolvedParams.id]);
-
-  // Requirement handlers
-  const handleRequirementChange = (index: number, value: string) => {
-    const newRequirements = [...requirements];
-    newRequirements[index] = value;
-    setRequirements(newRequirements);
-  };
-
-  const addRequirement = () => {
-    setRequirements([...requirements, ""]);
-  };
-
-  const removeRequirement = (index: number) => {
-    if (requirements.length === 1) return; // keep at least one input
-    setRequirements(requirements.filter((_, i) => i !== index));
-  };
-
-  // CourseTags handlers
-  const handleTagChange = (index: number, value: string) => {
-    const newTags = [...courseTags];
-    newTags[index] = value;
-    setCourseTags(newTags);
-  };
-
-  const addTag = () => {
-    setCourseTags([...courseTags, ""]);
-  };
-
-  const removeTag = (index: number) => {
-    if (courseTags.length === 1) return; // keep at least one input
-    setCourseTags(courseTags.filter((_, i) => i !== index));
-  };
-
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -123,7 +93,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         course_tags: courseTags,
       };
 
-
       const res = await fetch(`/api/courses/${resolvedParams.id}`, {
         method: "PUT",
         headers: {
@@ -131,11 +100,10 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
         },
         body: JSON.stringify(updatedCourse),
       });
-      console.log("Submitted Course Data:", updatedCourse);
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || "Update failed");
+        throw new Error(errData.error || "Update failed");
       }
 
       router.push("/protected/course/report");
@@ -152,7 +120,6 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
     const handleSelect = () => {
       if (organizedBy !== "AIM") {
         setIsExternal(true);
-
       } else {
         setIsExternal(false);
       }
@@ -160,12 +127,11 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
     handleSelect();
   }, [organizedBy]);
 
-
   const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     if (val === "External") {
       setIsExternal(true);
-      setOrganizedBy(""); // reset to let user type
+      setOrganizedBy("");
     } else {
       setIsExternal(false);
       setOrganizedBy(val);
@@ -173,15 +139,14 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
   };
 
   return (
-
-
     <div className="flex items-center justify-center w-screen min-h-screen bg-slate-400">
       <div className="m-10 w-full max-w-3xl p-8 bg-white bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl">
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit course form</h1>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+            Edit course form
+          </h1>
           <p className="text-gray-600">Update the course form below</p>
         </div>
-
 
         {error && (
           <div className="bg-red-50 flex gap-3 items-center text-red-500 p-4 rounded-md mb-3">
@@ -206,62 +171,61 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
           </div>
         )}
 
-        <form
-          onSubmit={onSubmit}
-          className="space-y-8 text-black"
-        >
-
+        <form onSubmit={onSubmit} className="space-y-8 text-black">
           <FormSection title="Basic Information">
-
-            <div className="rounded-2xl pb-10 border border-gray-200 bg-white/70 shadow p-6 space-y-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2">Basic Information</h3>
+            <div className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Course Name</label>
-                <input
-                  type="text"
-                  id="name"
+                <Input
+                  id="competition-name"
                   name="name"
                   value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  label="Course Name"
                   required
+                  placeholder="Enter course name"
+                  onChange={(e) => setName(e.target.value)}
+                  className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-bold text-gray-700"
+                >
+                  Description <span className="text-red-500">*</span>
+                </label>
                 <textarea
+                  required
                   id="description"
                   name="description"
                   value={description}
                   rows={4}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none"
-                  required
                 />
               </div>
 
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Organized By</label>
+                <label className="block mb-2 text-sm font-bold text-gray-700">
+                  Organized By <span className="text-red-500">*</span>
+                </label>
 
                 <select
                   value={isExternal ? "External" : organizedBy}
-
                   onChange={handleSelectChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                 >
                   <option value="">Select</option>
                   <option value="AIM">AIM</option>
-                  <option value="External">
-                    External
-                  </option>
+                  <option value="External">External</option>
                 </select>
 
                 {isExternal && (
-                  <input
+                  <Input
                     type="text"
-
+                    name="organizedby"
+                    id="organizedby"
                     value={organizedBy}
                     onChange={(e) => setOrganizedBy(e.target.value)}
                     placeholder="Enter external organizer name"
@@ -271,30 +235,21 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                 )}
               </div>
 
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label htmlFor="applicationStartDate" className="block text-sm font-medium text-gray-700">Application Start Date</label>
-                  <input
-                    type="date"
-                    id="applicationStartDate"
+                  <DateFieldGroup
                     name="applicationStartDate"
                     value={applicationStartDate}
-                    onChange={e => setApplicationStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    onChange={(e) => setApplicationStartDate(e.target.value)}
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="applicationEndDate" className="block text-sm font-medium text-gray-700">Application End Date</label>
-                  <input
-                    type="date"
-                    id="applicationEndDate"
+                  <DateFieldGroup
                     name="applicationEndDate"
                     value={applicationEndDate}
-                    onChange={e => setApplicationEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    onChange={(e) => setApplicationEndDate(e.target.value)}
                     required
                   />
                 </div>
@@ -302,50 +257,42 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <label htmlFor="courseStartDate" className="block text-sm font-medium text-gray-700">Course Start Date</label>
-                  <input
-                    type="date"
-                    id="courseStartDate"
+                  <DateFieldGroup
                     name="courseStartDate"
                     value={courseStartDate}
-                    onChange={e => setCourseStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    onChange={(e) => setCourseStartDate(e.target.value)}
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="courseEndDate" className="block text-sm font-medium text-gray-700">Course End Date</label>
-                  <input
-                    type="date"
-                    id="courseEndDate"
+                  <DateFieldGroup
                     name="courseEndDate"
                     value={courseEndDate}
-                    onChange={e => setCourseEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    onChange={(e) => setCourseEndDate(e.target.value)}
                     required
                   />
                 </div>
               </div>
-
             </div>
           </FormSection>
 
-          {/* Eligibility */}
           <FormSection title="Eligibility">
-            <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Eligibility</h3>
+            <div className="">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-3">
                 <div>
-                  <label htmlFor="eligibilityFrom" className="block mb-2 text-sm font-medium text-gray-700">
-                    Eligibility From
+                  <label
+                    htmlFor="eligibilityFrom"
+                    className="block mb-2 text-sm font-bold text-gray-700"
+                  >
+                    Eligibility From <span className="text-red-600">*</span>
                   </label>
                   <select
+                    required
                     id="eligibilityFrom"
                     name="eligibilityFrom"
                     value={eligibilityFrom}
                     onChange={(e) => setEligibilityFrom(e.target.value)}
-                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -359,17 +306,19 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
                   </select>
                 </div>
 
-
                 <div>
-                  <label htmlFor="eligibilityTo" className="block mb-2 text-sm font-medium text-gray-700">
-                    Eligibility To
+                  <label
+                    htmlFor="eligibilityTo"
+                    className="block mb-2 text-sm font-bold text-gray-700"
+                  >
+                    Eligibility To <span className="text-red-600">*</span>
                   </label>
                   <select
+                    required
                     id="eligibilityTo"
                     name="eligibilityTo"
                     value={eligibilityTo}
                     onChange={(e) => setEligibilityTo(e.target.value)}
-                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
                     <option value="">Select</option>
@@ -386,114 +335,72 @@ export default function EditCourseForm({ params }: { params: Promise<{ id: strin
             </div>
           </FormSection>
 
-
-
           <FormSection title="Requirements & Tags">
-            <div className="rounded-2xl border border-gray-200 bg-white/70 shadow p-6">
-              <h3 className="text-2xl font-semibold text-indigo-600 border-b pb-2 mb-6">Additional Details</h3>
-
+            <div className="">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <MultiForm
+                    placeholder="Requirement"
+                    className="space-y-4"
+                    values={requirements}
+                    setArray={setRequirements}
+                    legend="Requirements"
+                    fieldLabel="Requirement"
+                    name="requirements"
+                  />
+                </div>
 
                 <div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Requirements</h4>
-                  <div className="space-y-4">
-                    {requirements.map((requirement, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={requirement}
-                          onChange={(e) => handleRequirementChange(index, e.target.value)}
-                          placeholder={`Requirement ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === requirements.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addRequirement}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Requirement"
-                          >
-                            +
-                          </button>
-                        )}
-                        {requirements.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeRequirement(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Requirement"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <MultiForm
+                    placeholder="Tag"
+                    className="space-y-4"
+                    values={courseTags}
+                    setArray={setCourseTags}
+                    legend="Course Tags"
+                    fieldLabel="Tag"
+                    name="courseTags"
+                  />
                 </div>
-
-                {/* Course Tags Section */}
-                <div className="">
-                  <h4 className="text-lg font-medium text-gray-700 mb-4">Course Tags</h4>
-                  <div className="space-y-4">
-                    {courseTags.map((tag, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={tag}
-                          onChange={(e) => handleTagChange(index, e.target.value)}
-                          placeholder={`Tag ${index + 1}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-                        />
-                        {index === courseTags.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={addTag}
-                            className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Add Tag"
-                          >
-                            +
-                          </button>
-                        )}
-                        {courseTags.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTag(index)}
-                            className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                            aria-label="Remove Tag"
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
               </div>
             </div>
           </FormSection>
 
           <FormSection title="Reference">
             <div>
-              <label htmlFor="referenceLink" className="block text-sm font-medium text-gray-700">Reference Link</label>
-              <input
+              <label
+                htmlFor="referenceLink"
+                className="block text-sm font-bold text-gray-700 mb-4"
+              >
+                Reference Link
+              </label>
+              <Input
                 type="url"
                 id="referenceLink"
                 name="referenceLink"
                 value={referenceLink}
-                onChange={e => setReferenceLink(e.target.value)}
+                placeholder="Enter referencelink"
+                onChange={(e) => setReferenceLink(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl"
               />
             </div>
           </FormSection>
 
-
           <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="outline"
+              className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              onClick={() => router.back()}
+            >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isLoading}>
-              Update Course
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
+              Update
             </Button>
           </div>
         </form>
