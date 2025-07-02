@@ -18,7 +18,7 @@ export default function SarthiPage() {
           >
             Visits
           </Button>
-          <Button
+          {/* <Button
             variant={activeTab === 'compliance' ? 'default' : 'outline'}
             onClick={() => setActiveTab('compliance')}
             className="min-w-[120px]"
@@ -31,13 +31,11 @@ export default function SarthiPage() {
             className="min-w-[120px]"
           >
             Hackathons
-          </Button>
+          </Button> */}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm">
           {activeTab === 'visits' && <SchoolVisitReport />}
-          {activeTab === 'compliance' && <div className="p-4 text-gray-900">Compliance content will be added here</div>}
-          {activeTab === 'hackathons' && <div className="p-4 text-gray-900">Hackathons content will be added here</div>}
         </div>
       </div>
     </div>
