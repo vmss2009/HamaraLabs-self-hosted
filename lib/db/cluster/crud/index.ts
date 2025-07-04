@@ -81,7 +81,6 @@ export async function getClusterById(id: string) {
 
 export async function updateCluster(id: string, data: ClusterUpdateInput) {
   try {
-    // First, delete all existing hubs and their relations
     await prisma.hub.deleteMany({
       where: { clusters: { some: { id } } }
     });
@@ -120,12 +119,10 @@ export async function updateCluster(id: string, data: ClusterUpdateInput) {
 
 export async function deleteCluster(id: string) {
   try {
-    // First, delete all hubs associated with this cluster
     await prisma.hub.deleteMany({
       where: { clusters: { some: { id } } }
     });
 
-    // Then delete the cluster
     await prisma.cluster.delete({
       where: { id }
     });

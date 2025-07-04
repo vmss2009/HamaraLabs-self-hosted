@@ -8,7 +8,6 @@ import { Input } from "@/components/Input";
 import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import SelectField from "@/components/SelectField";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -23,7 +22,6 @@ type HubInput = {
   spoke_school_ids: number[];
 };
 
-// This component will be updated to fetch and display existing cluster data
 export default function EditClusterForm({
   params,
 }: {
@@ -36,18 +34,15 @@ export default function EditClusterForm({
   const unwrappedParams = use(params);
   const clusterId = unwrappedParams.id;
 
-  // State for form fields
   const [name, setName] = useState("");
   const [schools, setSchools] = useState<School[]>([]);
   const [hubs, setHubs] = useState<HubInput[]>([
     { hub_school_id: 0, spoke_school_ids: [] },
   ]);
 
-  // Fetch schools and cluster data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch schools
         const schoolsResponse = await fetch("/api/schools");
         if (!schoolsResponse.ok) {
           throw new Error("Failed to fetch schools");
@@ -55,14 +50,12 @@ export default function EditClusterForm({
         const schoolsData = await schoolsResponse.json();
         setSchools(schoolsData);
 
-        // Fetch cluster data
         const clusterResponse = await fetch(`/api/cluster/${clusterId}`);
         if (!clusterResponse.ok) {
           throw new Error("Failed to fetch cluster data");
         }
         const clusterData = await clusterResponse.json();
 
-        // Pre-fill form with cluster data
         setName(clusterData.name);
         setHubs(
           clusterData.hubs.map((hub: any) => ({
@@ -77,9 +70,8 @@ export default function EditClusterForm({
     };
 
     fetchData();
-  }, [clusterId]); // Dependency on clusterId to refetch if ID changes
+  }, [clusterId]);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
@@ -87,7 +79,6 @@ export default function EditClusterForm({
     setFormSubmitted(true);
 
     try {
-      // Validate that no hub school is also a spoke school
       for (const hub of hubs) {
         if (hub.spoke_school_ids.includes(hub.hub_school_id)) {
           throw new Error(
@@ -101,7 +92,6 @@ export default function EditClusterForm({
         hubs,
       };
 
-      // Use PUT method for update
       const response = await fetch(`/api/cluster/${clusterId}`, {
         method: "PUT",
         headers: {

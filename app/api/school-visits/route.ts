@@ -21,7 +21,7 @@ export const schoolVisitSchema = z.object({
     "Medium performing",
     "Bad performing",
   ]),
-  details: z.record(z.string(), z.string()), // assuming a key-value structure
+  details: z.record(z.string(), z.string()),
 });
 
 export async function GET(request: Request) {

@@ -190,15 +190,12 @@ export default function Page() {
       }
       const data = await response.json();
 
-      // Transform the data to include flattened address and user data
       const transformedData = data.map((school: any) => {
-        // Flatten address data
         const address = school.address || {};
         const city = address.city || {};
         const state = city.state || {};
         const country = state.country || {};
 
-        // Find users by their roles
         const principal = school.users?.find(
           (user: any) => user.id === school.principal_id
         );
@@ -287,11 +284,9 @@ export default function Page() {
       );
     }
     if (typeof value === "object") {
-      // Handle location objects
       if (value.country_name) return value.country_name;
       if (value.state_name) return value.state_name;
       if (value.city_name) return value.city_name;
-      // For other objects
       return Object.entries(value)
         .map(([k, v]) => `${k}: ${v}`)
         .join(", ");

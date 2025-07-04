@@ -89,7 +89,7 @@ export default function SchoolVisitForm() {
     setIsOtherPOC(value === "other");
     setFormData((prev) => ({
       ...prev,
-      poc_id: value, // do not change this line
+      poc_id: value,
       other_poc: value === "other" ? "" : prev.other_poc,
     }));
   };
@@ -118,21 +118,17 @@ export default function SchoolVisitForm() {
     setError(null);
 
     try {
-      // Create a Map to maintain order
       const detailsMap = new Map();
 
-      // Add fixed fields first
       detailsMap.set("No of UCs submitted", formData.uc_submissions);
       detailsMap.set("Planned showcase date", formData.planned_showcase_date);
 
-      // Add additional details
       details.forEach(({ key, value }) => {
         if (key && value) {
           detailsMap.set(key, value);
         }
       });
 
-      // Convert Map to object while preserving order
       const detailsObject = Object.fromEntries(detailsMap);
 
       const data = {

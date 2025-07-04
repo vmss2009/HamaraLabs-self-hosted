@@ -67,7 +67,6 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    // ✅ Validate input using safeParse
     const result = schoolSchema.safeParse(data);
 
     if (!result.success) {
@@ -77,7 +76,6 @@ export async function POST(request: Request) {
     }
 
     const validatedData = result.data;
-    // ✅ Create address first
     const address = await createAddress({
       address_line1: validatedData.address.address_line1,
       address_line2: validatedData.address.address_line2,
@@ -85,7 +83,6 @@ export async function POST(request: Request) {
       cityId: validatedData.address.cityId,
     });
 
-    // ✅ Create school with validated data
     const school = await createSchool({
       name: validatedData.name,
       is_ATL: validatedData.is_ATL,

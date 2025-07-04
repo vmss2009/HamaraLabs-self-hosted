@@ -28,17 +28,14 @@ export default function ClusterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // State to track if form has been submitted
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  // State for form fields
   const [name, setName] = useState("");
   const [schools, setSchools] = useState<School[]>([]);
   const [hubs, setHubs] = useState<HubInput[]>([
     { hub_school_id: 0, spoke_school_ids: [] },
   ]);
 
-  // Fetch schools on component mount
   useEffect(() => {
     const fetchSchools = async () => {
       try {
@@ -57,7 +54,6 @@ export default function ClusterForm() {
     fetchSchools();
   }, []);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
@@ -65,7 +61,6 @@ export default function ClusterForm() {
     setFormSubmitted(true);
 
     try {
-      // Validate that no hub school is also a spoke school
       for (const hub of hubs) {
         if (hub.spoke_school_ids.includes(hub.hub_school_id)) {
           throw new Error(

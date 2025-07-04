@@ -86,6 +86,20 @@ const Drawer: React.FC = () => {
                         </div>
 
                         <div className="p-3 rounded-md bg-blue-800">
+                            <h3 className="text-lg font-semibold mb-2 text-white">Visits</h3>
+                            <ul className="flex flex-col gap-4">
+                                <li>
+                                    <Link
+                                        href="/protected/school-visits/form"
+                                        className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                    >
+                                        Form
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="p-3 rounded-md bg-blue-800">
                             <h3 className="text-lg font-semibold mb-2 text-white">Student</h3>
                             <ul className="flex flex-col gap-4">
                                 <li>
@@ -212,20 +226,6 @@ const Drawer: React.FC = () => {
                                     className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
                                 >
                                     Report
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="p-3 rounded-md bg-blue-800">
-                        <h3 className="text-lg font-semibold mb-2 text-white">Visits</h3>
-                        <ul className="flex flex-col gap-4">
-                            <li>
-                                <Link
-                                    href="/protected/school-visits/form"
-                                    className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
-                                >
-                                    Form
                                 </Link>
                             </li>
                         </ul>

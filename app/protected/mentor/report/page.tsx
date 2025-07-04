@@ -75,7 +75,6 @@ export default function MentorReport() {
         throw new Error("Failed to delete mentor");
       }
 
-      // Refresh the data
       fetchMentors();
       setSuccess("Mentor deleted successfully");
       setTimeout(() => setSuccess(null), 3000);
@@ -107,11 +106,8 @@ export default function MentorReport() {
       );
     }
     if (typeof value === "object") {
-      // Special handling for nested objects
       if (value.subtopic_name) return value.subtopic_name;
       if (value.topic_name) return value.topic_name;
-      if (value.subject_name) return value.subject_name;
-      // For other objects, format as before
       return Object.entries(value)
         .map(([k, v]) => `${k}: ${v}`)
         .join(", ");

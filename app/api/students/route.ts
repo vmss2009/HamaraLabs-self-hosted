@@ -7,7 +7,6 @@ import {
 import { StudentCreateInput } from "@/lib/db/student/type";
 import { z } from "zod";
 
-// Corrected schema: schoolId is string
 export const studentSchema = z.object({
   first_name: z.string().trim().min(1, "First name is required"),
   last_name: z.string().trim().min(1, "Last name is required"),
@@ -29,7 +28,7 @@ export async function GET(request: Request) {
     const id = searchParams.get("id");
 
     if (id) {
-      const student = await getStudentById(id); // No parseInt — id is string
+      const student = await getStudentById(id);
       if (!student) {
         return NextResponse.json(
           { error: "Student not found" },
@@ -45,7 +44,7 @@ export async function GET(request: Request) {
       gender: searchParams.get("gender") || undefined,
       class: searchParams.get("class") || undefined,
       section: searchParams.get("section") || undefined,
-      schoolId: searchParams.get("schoolId") || undefined, // No parseInt
+      schoolId: searchParams.get("schoolId") || undefined,
     };
 
     const students = await getStudents(filter);
@@ -81,7 +80,7 @@ export async function POST(request: Request) {
       class: validatedData.class,
       section: validatedData.section,
       comments: validatedData.comments ?? "",
-      schoolId: validatedData.schoolId, // Already string
+      schoolId: validatedData.schoolId,
     };
 
     const student = await createStudent(studentInput);

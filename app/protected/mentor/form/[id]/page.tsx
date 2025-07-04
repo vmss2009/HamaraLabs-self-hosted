@@ -28,10 +28,8 @@ export default function EditMentorPage({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // State to track if form has been submitted
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  // State for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,11 +37,9 @@ export default function EditMentorPage({
   const [schools, setSchools] = useState<School[]>([]);
   const [selectedSchools, setSelectedSchools] = useState<string[]>([]);
 
-  // Fetch schools and mentor data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch schools
         const schoolsResponse = await fetch("/api/schools");
         if (!schoolsResponse.ok) {
           throw new Error("Failed to fetch schools");
@@ -51,7 +47,6 @@ export default function EditMentorPage({
         const schoolsData = await schoolsResponse.json();
         setSchools(schoolsData);
 
-        // Fetch mentor data
         const mentorResponse = await fetch(`/api/mentors/${resolvedParams.id}`);
         if (!mentorResponse.ok) {
           throw new Error("Failed to fetch mentor data");
@@ -77,7 +72,6 @@ export default function EditMentorPage({
     fetchData();
   }, [resolvedParams.id]);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);

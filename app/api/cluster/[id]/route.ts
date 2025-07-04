@@ -6,7 +6,6 @@ import {
 } from "@/lib/db/cluster/crud";
 import { clusterSchema } from "../route";
 
-// Handle GET request to fetch a single cluster by ID
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -30,7 +29,6 @@ export async function GET(
   }
 }
 
-// Handle PUT request to update a cluster by ID
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
@@ -63,7 +61,6 @@ export async function PUT(
   }
 }
 
-// Handle DELETE request to delete a cluster by ID
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }

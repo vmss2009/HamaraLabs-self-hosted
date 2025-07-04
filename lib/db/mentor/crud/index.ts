@@ -5,7 +5,6 @@ import { Prisma } from "@prisma/client";
 
 export async function createMentor(data: MentorCreateInput) {
   try {
-    // Check if user with email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email }
     });
@@ -14,7 +13,6 @@ export async function createMentor(data: MentorCreateInput) {
       throw new Error("A user with this email already exists");
     }
 
-    // Create new user with school associations
     const user = await prisma.user.create({
       data: {
         id: uuidv4(),
@@ -93,7 +91,6 @@ export async function getMentorById(id: string) {
 
 export async function updateMentor(id: string, data: MentorUpdateInput) {
   try {
-    // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { id }
     });
@@ -102,7 +99,6 @@ export async function updateMentor(id: string, data: MentorUpdateInput) {
       throw new Error("Mentor not found");
     }
 
-    // If email is being updated, check if it's already in use
     if (data.email && data.email !== existingUser.email) {
       const emailExists = await prisma.user.findUnique({
         where: { email: data.email }
@@ -113,7 +109,6 @@ export async function updateMentor(id: string, data: MentorUpdateInput) {
       }
     }
 
-    // Update user
     const user = await prisma.user.update({
       where: { id },
       data: {
@@ -141,17 +136,15 @@ export async function updateMentor(id: string, data: MentorUpdateInput) {
 
 export async function deleteMentor(id: string) {
   try {
-    // First, disconnect all school associations
     await prisma.user.update({
       where: { id },
       data: {
         schools: {
-          set: [] // This will remove all school associations
+          set: []
         }
       }
     });
 
-    // Then delete the user
     await prisma.user.delete({
       where: { id }
     });

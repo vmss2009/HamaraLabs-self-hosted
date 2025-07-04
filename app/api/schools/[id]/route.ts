@@ -27,7 +27,6 @@ export async function GET(request: NextRequest, { params }: any) {
   }
 }
 
-// --- PUT Handler ---
 export async function PUT(request: NextRequest, { params }: any) {
   try {
     const id = params.id;
@@ -49,7 +48,6 @@ export async function PUT(request: NextRequest, { params }: any) {
 
     const parsed = result.data;
 
-    // ✅ Now construct a fully valid SchoolUpdateInput
     const validatedData: SchoolUpdateInput = {
       name: parsed.name,
       is_ATL: parsed.is_ATL,

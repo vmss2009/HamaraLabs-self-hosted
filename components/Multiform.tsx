@@ -5,7 +5,7 @@ import React, { useState } from "react";
 interface MultiFormProps {
   values?: string[];
   legend?: string;
-  setArray: (newArray: string[]) => void; // <-- changed here
+  setArray: (newArray: string[]) => void;
   fieldLabel?: string;
   className?: string;
   label?: string;

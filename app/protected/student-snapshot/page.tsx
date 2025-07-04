@@ -132,11 +132,9 @@ export default function StudentSnapshot() {
       " - "
     )[0] || "";
 
-  // Fetch clusters and schools on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch clusters
         const clustersResponse = await fetch("/api/cluster");
         if (!clustersResponse.ok) {
           throw new Error("Failed to fetch clusters");
@@ -144,7 +142,6 @@ export default function StudentSnapshot() {
         const clustersData = await clustersResponse.json();
         setClusters(clustersData);
 
-        // Fetch all schools initially (needed for dropdown options before filtering)
         const schoolsResponse = await fetch("/api/schools");
         if (!schoolsResponse.ok) {
           throw new Error("Failed to fetch schools");
@@ -160,15 +157,14 @@ export default function StudentSnapshot() {
     fetchData();
   }, []);
 
-  // Filter hubs when cluster is selected
   useEffect(() => {
     if (currentView === "cluster" && selectedCluster) {
       const cluster = clusters.find((c) => c.id.toString() === selectedCluster);
       if (cluster) {
         setHubs(cluster.hubs);
-        setSelectedHub(""); // Reset selected hub
-        setSelectedSchool(""); // Reset selected school
-        setStudents([]); // Clear students
+        setSelectedHub("");
+        setSelectedSchool("");
+        setStudents([]);
       } else {
         setHubs([]);
         setSelectedHub("");
@@ -762,7 +758,6 @@ export default function StudentSnapshot() {
       ? schools.filter((school) => {
           const hub = hubs.find((h) => h.id.toString() === selectedHub);
           if (hub) {
-            // Include the hub school and its spokes
             return (
               school.id === hub.hub_school.id ||
               hub.spokes.some((spoke: any) => spoke.id === school.id)
@@ -772,30 +767,10 @@ export default function StudentSnapshot() {
         })
       : currentView === "school"
       ? schools
-      : []; // Show all schools in school view, empty if no view selected (shouldn't happen)
-
-  // Reorder filteredSchools to put the hub school first when in cluster view and a hub is selected
-  const orderedFilteredSchools =
-    currentView === "cluster" && selectedHub
-      ? (() => {
-          const hub = hubs.find((h) => h.id.toString() === selectedHub);
-          if (hub) {
-            const hubSchool = schools.find((s) => s.id === hub.hub_school.id);
-            const spokeSchools = schools.filter((s) =>
-              hub.spokes.some((spoke: any) => spoke.id === s.id)
-            );
-            // Ensure hubSchool is found before adding
-            if (hubSchool) {
-              return [hubSchool, ...spokeSchools];
-            }
-          }
-          return filteredSchools; // Fallback to original filtered list if hub or hubSchool not found
-        })()
-      : filteredSchools; // Use original filtered list or all schools in other views
+      : [];
 
   const handleViewChange = (view: "cluster" | "school") => {
     setCurrentView(view);
-    // Reset all relevant selections when switching views
     setSelectedCluster("");
     setSelectedHub("");
     setSelectedSchool("");
@@ -874,7 +849,6 @@ export default function StudentSnapshot() {
             </>
           )}
 
-          {/* School Dropdown (Visible in both views, options change) */}
           <div>
             <label className="block text-sm font-medium text-white mb-1">
               School:
@@ -883,10 +857,8 @@ export default function StudentSnapshot() {
               className="w-64 p-2 border rounded-md text-black"
               value={selectedSchool}
               onChange={(e) => setSelectedSchool(e.target.value)}
-              disabled={currentView === "cluster" && !selectedHub} // Disable in cluster view if no hub selected
             >
               <option value="">SELECT</option>
-              {/* Use filteredSchools in cluster view, all schools in school view */}
               {schools.map((school) => (
                 <option key={school.id} value={school.id.toString()}>
                   {school.name}
@@ -895,7 +867,6 @@ export default function StudentSnapshot() {
             </select>
           </div>
 
-          {/* Student Dropdown (Visible in both views) */}
           <div>
             <label className="block text-sm font-medium text-white mb-1">
               Student:

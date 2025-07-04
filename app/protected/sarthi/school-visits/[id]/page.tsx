@@ -73,7 +73,6 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
         });
         setIsOtherPOC(!data.poc_id && !!data.other_poc);
 
-        // Set additional details
         const additionalDetails = Object.entries(data.details as Record<string, any>)
           .filter(([key]) => key !== "No of UCs submitted" && key !== "Planned showcase date")
           .map(([key, value]) => ({ key, value: value.toString() }));
@@ -142,21 +141,17 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
     setError(null);
 
     try {
-      // Create a Map to maintain order
       const detailsMap = new Map();
       
-      // Add fixed fields first
       detailsMap.set("No of UCs submitted", formData.uc_submissions);
       detailsMap.set("Planned showcase date", formData.planned_showcase_date);
       
-      // Add additional details
       details.forEach(({ key, value }) => {
         if (key && value) {
           detailsMap.set(key, value);
         }
       });
 
-      // Convert Map to object while preserving order
       const detailsObject = Object.fromEntries(detailsMap);
 
       const data = {

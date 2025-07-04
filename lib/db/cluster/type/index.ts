@@ -1,6 +1,3 @@
-import { Cluster as PrismaCluster } from "@prisma/client";
-
-// Cluster Types
 export interface HubInput {
   hub_school_id: string;
   spoke_school_ids: string[];
@@ -36,7 +33,6 @@ export interface ClusterWithRelations {
   }[];
 }
 
-// Hub Types
 export interface HubCreateInput {
   hub_school_id: string;
   spokes: string[];

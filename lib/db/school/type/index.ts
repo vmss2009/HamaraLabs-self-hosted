@@ -5,7 +5,7 @@ export interface UserInput {
   first_name: string;
   last_name: string;
   phone_number?: string;
-  user_meta_data?: Record<string, any>; // Or a proper interface if structured
+  user_meta_data?: Record<string, any>;
 }
 
 export interface SchoolCreateInput {

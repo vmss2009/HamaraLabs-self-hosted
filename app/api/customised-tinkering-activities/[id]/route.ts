@@ -7,7 +7,6 @@ import {
 } from "@/lib/db/customised-tinkering-activity/crud";
 import { z } from "zod";
 
-// Zod schema aligned with your Prisma model
 export const customisedTinkeringActivitySchema = z.object({
   name: z.string().min(1, "Activity name is required"),
   subtopic_id: z
@@ -98,7 +97,7 @@ export async function PUT(
 
 export async function DELETE(request: Request, { params }: any) {
   try {
-    const id = params.id; // id is a string (UUID)
+    const id = params.id;
     await deleteCustomisedTinkeringActivity(id);
     return NextResponse.json({
       message: "Customised tinkering activity deleted successfully",
@@ -114,10 +113,9 @@ export async function DELETE(request: Request, { params }: any) {
 
 export async function PATCH(request: Request, { params }: any) {
   try {
-    const id = params.id; // id is a string (UUID)
+    const id = params.id;
     const body = await request.json();
 
-    // Validate PATCH body for 'status' field
     const statusSchema = z.object({
       status: z.array(z.string()),
     });

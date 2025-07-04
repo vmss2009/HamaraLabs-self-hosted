@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createMentor, getMentors } from "@/lib/db/mentor/crud";
-import { MentorCreateInput } from "@/lib/db/mentor/type";
 
-// lib/validation/mentorSchema.ts
 import { z } from "zod";
 
 export const mentorSchema = z.object({
@@ -25,7 +23,7 @@ export async function GET(request: Request) {
     const filter = {
       name: searchParams.get("name") || undefined,
       email: searchParams.get("email") || undefined,
-      schoolId: searchParams.get("schoolId") || undefined, // ✅ keep as string
+      schoolId: searchParams.get("schoolId") || undefined,
     };
 
     const mentors = await getMentors(filter);

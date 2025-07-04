@@ -22,10 +22,8 @@ export default function MentorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // State to track if form has been submitted
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  // State for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +31,6 @@ export default function MentorForm() {
   const [schools, setSchools] = useState<School[]>([]);
   const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
 
-  // Fetch schools on component mount
   useEffect(() => {
     const fetchSchools = async () => {
       try {
@@ -52,12 +49,11 @@ export default function MentorForm() {
     fetchSchools();
   }, []);
 
-  // Form submission handler
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    setFormSubmitted(true); // Set formSubmitted to true on submission attempt
+    setFormSubmitted(true);
 
     try {
       const mentorData = {

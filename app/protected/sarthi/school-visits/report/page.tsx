@@ -62,8 +62,7 @@ export default function SchoolVisitReport() {
       if (!response.ok) {
         throw new Error("Failed to delete school visit");
       }
-
-      // Refresh the data
+      
       fetchVisits();
     } catch (error) {
       console.error("Error deleting school visit:", error);

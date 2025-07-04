@@ -255,7 +255,6 @@ export default function EditSchoolForm({
     try {
       const formData = new FormData(event.target as HTMLFormElement);
 
-      // Validate ATL establishment year if ATL is Yes
       if (isATL === "Yes") {
         const year = formData.get("ATL_establishment_year");
         if (

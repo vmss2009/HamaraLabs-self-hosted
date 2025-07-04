@@ -1,29 +1,24 @@
 import { prisma } from "../prisma";
 import { User } from "@prisma/client";
 
-// Fetch a user by email
 export const getUserByEmail = async (email: string) => {
     return await prisma.user.findFirst({
         where: { email }
     });
 };
 
-// Fetch a user by ID
 export const getUserById = async (id: string) => {
     return await prisma.user.findUnique({
         where: { id },
     });
 };
 
-// Ensure a user exists in the database, create if not
 export const ensureUserExists = async (id: string, email: string, userMetaData?: any) => {
     try {
-        // First try to find the user
         let user = await prisma.user.findUnique({
             where: { id },
         });
 
-        // If user does not exist, create a new one
         if (!user) {
             user = await prisma.user.create({
                 data: {
@@ -33,7 +28,6 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
                 },
             });
         } else {
-            // Update user metadata if provided
             if (userMetaData) {
                 user = await prisma.user.update({
                     where: { id },
@@ -51,7 +45,6 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
     }
 };
 
-// Update user metadata
 export const updateUserMetadata = async (id: string, userMetaData: any) => {
     try {
         return await prisma.user.update({
@@ -139,7 +132,6 @@ export async function getSchoolKeyUsers(schoolId: string) {
             }
         });
 
-        // Add role information to each user
         return users.map(user => ({
             ...user,
             role: user.id === school.in_charge_id ? 'Incharge' :
