@@ -23,10 +23,10 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { Button } from "@/components/Button";
 import DetailViewer from "@/components/DetailViewer";
-import EditActivityDialog from "./tinkering-activity/tinkering-activity-edit-form/page";
-import { getCourseColumns } from "./course/page";
-import { getCompetitionColumns } from "./competition/page";
-import { getTinkeringActivityColumns } from "./tinkering-activity/page";
+import { EditActivityDialog } from "./tinkering-activity/tinkering-activity-edit-form/edit";
+import { getCourseColumns } from "./course/columns";
+import { getCompetitionColumns } from "./competition/columns";
+import { getTinkeringActivityColumns } from "./tinkering-activity/columns";
 
 const TINKERING_STATUS_OPTIONS = [
   "On hold",

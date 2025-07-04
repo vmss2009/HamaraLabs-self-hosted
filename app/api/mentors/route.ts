@@ -1,21 +1,6 @@
 import { NextResponse } from "next/server";
 import { createMentor, getMentors } from "@/lib/db/mentor/crud";
-
-import { z } from "zod";
-
-export const mentorSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email"),
-  user_meta_data: z
-    .object({
-      phone_number: z.string().optional(),
-    })
-    .optional(),
-  school_ids: z
-    .array(z.string().uuid("Invalid school ID"))
-    .min(1, "At least one school ID is required"),
-});
+import { mentorSchema } from "@/lib/db/mentor/type";
 
 export async function GET(request: Request) {
   try {

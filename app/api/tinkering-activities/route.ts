@@ -4,24 +4,8 @@ import {
   getTinkeringActivitiesBySubtopic,
   getAllTinkeringActivities,
 } from "@/lib/db/tinkering-activity/crud";
-import { z } from "zod";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
-
-export const tinkeringActivitySchema = z.object({
-  name: z.string().min(1, "Activity name is required"),
-  subtopicId: z
-    .number()
-    .int()
-    .positive("Subtopic ID must be a positive number"),
-  introduction: z.string().min(1, "Introduction is required"),
-  goals: z.array(z.string()).optional().default([]),
-  materials: z.array(z.string()).optional().default([]),
-  instructions: z.array(z.string()).optional().default([]),
-  tips: z.array(z.string()).optional().default([]),
-  observations: z.array(z.string()).optional().default([]),
-  extensions: z.array(z.string()).optional().default([]),
-  resources: z.array(z.string()).optional().default([]),
-});
+import { tinkeringActivitySchema } from "@/lib/db/tinkering-activity/type";
 
 export async function GET(request: Request) {
   try {

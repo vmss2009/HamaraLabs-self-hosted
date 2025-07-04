@@ -5,8 +5,7 @@ import {
   deleteSchool,
 } from "@/lib/db/school/crud";
 import { deleteAddress } from "@/lib/db/address/crud";
-import { schoolSchema } from "../route";
-import { SchoolUpdateInput } from "@/lib/db/school/type";
+import { SchoolUpdateInput, schoolSchema } from "@/lib/db/school/type";
 
 export async function GET(request: NextRequest, { params }: any) {
   try {

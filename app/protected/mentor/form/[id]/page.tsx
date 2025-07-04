@@ -90,7 +90,7 @@ export default function EditMentorPage({
       };
 
       const response = await fetch(`/api/mentors/${resolvedParams.id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },

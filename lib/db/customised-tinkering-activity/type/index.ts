@@ -1,4 +1,5 @@
 import { CustomisedTinkeringActivity as PrismaCustomisedTinkeringActivity } from "@prisma/client";
+import { z } from "zod";
 
 export interface CustomisedTinkeringActivityCreateInput {
   name: string;
@@ -39,3 +40,24 @@ export interface CustomisedTinkeringActivityFilter {
   student_id?: string;
   status?: string[];
 }
+
+export const statusSchema = z.object({
+    status: z.array(z.string()),
+  });
+
+export const customisedTinkeringActivitySchema = z.object({
+  name: z.string().min(1, "Activity name is required"),
+  subtopic_id: z
+    .number()
+    .int()
+    .positive("Subtopic ID must be a positive number"),
+  introduction: z.string().min(1, "Introduction is required"),
+  goals: z.array(z.string()).optional().default([]),
+  materials: z.array(z.string()).optional().default([]),
+  instructions: z.array(z.string()).optional().default([]),
+  tips: z.array(z.string()).optional().default([]),
+  observations: z.array(z.string()).optional().default([]),
+  extensions: z.array(z.string()).optional().default([]),
+  resources: z.array(z.string()).optional().default([]),
+  status: z.array(z.string()).optional().default([]),
+});

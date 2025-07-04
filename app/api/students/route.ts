@@ -4,23 +4,7 @@ import {
   getStudents,
   getStudentById,
 } from "@/lib/db/student/crud";
-import { StudentCreateInput } from "@/lib/db/student/type";
-import { z } from "zod";
-
-export const studentSchema = z.object({
-  first_name: z.string().trim().min(1, "First name is required"),
-  last_name: z.string().trim().min(1, "Last name is required"),
-  aspiration: z.string().trim().min(1, "Aspiration is required"),
-  gender: z
-    .string()
-    .transform((val) => val.toLowerCase())
-    .pipe(z.enum(["male", "female", "other"])),
-  email: z.string().email("Invalid email address"),
-  class: z.string().trim().min(1, "Class is required"),
-  section: z.string().trim().min(1, "Section is required"),
-  comments: z.string().trim().optional().nullable(),
-  schoolId: z.string().uuid("schoolId must be a valid UUID"),
-});
+import { StudentCreateInput, studentSchema } from "@/lib/db/student/type";
 
 export async function GET(request: Request) {
   try {

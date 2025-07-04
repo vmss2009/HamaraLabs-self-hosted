@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSchoolVisitById, updateSchoolVisit, deleteSchoolVisit } from "@/lib/db/school-visits/crud";
+import { SchoolVisitUpdateInput, schoolVisitSchema } from "@/lib/db/school-visits/type";
 
-export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: any) {
     try {
         const visit = await getSchoolVisitById(params.id);
         
@@ -25,10 +23,8 @@ export async function GET(
     }
 }
 
-export async function PUT(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: any) {
+
     try {
         const visit = await getSchoolVisitById(params.id);
         
@@ -40,16 +36,24 @@ export async function PUT(
         }
         
         const body = await request.json();
-        
-        const updatedVisit = await updateSchoolVisit(params.id, {
+        const result = schoolVisitSchema.partial().safeParse(body);
+        if (!result.success) {
+            const errorMessages = result.error.errors.map((err) => err.message);
+            console.error("Validation failed:", errorMessages);
+            return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+        }
+
+        const updatedData: SchoolVisitUpdateInput = {
             school_id: body.school_id,
             visit_date: new Date(body.visit_date),
             poc_id: body.poc_id === "other" ? null : body.poc_id,
             other_poc: body.other_poc,
             school_performance: body.school_performance,
             details: body.details,
-        });
-        
+        };
+
+        const updatedVisit = await updateSchoolVisit(params.id, updatedData);
+
         return NextResponse.json(updatedVisit);
     } catch (error) {
         console.error("Error updating school visit:", error);
@@ -60,10 +64,7 @@ export async function PUT(
     }
 }
 
-export async function DELETE(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, { params }: any) {
     try {
         const visit = await getSchoolVisitById(params.id);
         

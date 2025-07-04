@@ -4,8 +4,7 @@ import {
   updateStudent,
   deleteStudent,
 } from "@/lib/db/student/crud";
-import { StudentCreateInput } from "@/lib/db/student/type";
-import { studentSchema } from "../route";
+import { StudentCreateInput, studentSchema  } from "@/lib/db/student/type";
 
 export async function GET(request: Request, { params }: any) {
   try {

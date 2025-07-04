@@ -4,8 +4,7 @@ import {
   updateCourse,
   deleteCourse,
 } from "@/lib/db/course/crud";
-import { CourseUpdateInput } from "@/lib/db/course/type";
-import { courseSchema } from "../route";
+import { CourseUpdateInput, courseSchema } from "@/lib/db/course/type";
 
 export async function GET(req: NextRequest, { params }: any) {
   try {

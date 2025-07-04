@@ -1,4 +1,5 @@
 import { SchoolVisit as PrismaSchoolVisit } from "@prisma/client";
+import { z } from "zod";
 
 export interface SchoolVisitCreateInput {
   school_id: string;
@@ -38,3 +39,21 @@ export interface SchoolVisitWithRelations extends PrismaSchoolVisit {
     last_name: string | null;
   } | null;
 }
+
+export const schoolVisitSchema = z.object({
+  school_id: z.string().uuid("Invalid school ID"),
+  visit_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Invalid visit date",
+  }),
+  poc_id: z.string().nullable().optional(),
+
+  other_poc: z.string().optional(),
+  uc_submissions: z.string().optional(),
+  planned_showcase_date: z.string().optional(),
+  school_performance: z.enum([
+    "Good performing",
+    "Medium performing",
+    "Bad performing",
+  ]),
+  details: z.record(z.string(), z.string()),
+});

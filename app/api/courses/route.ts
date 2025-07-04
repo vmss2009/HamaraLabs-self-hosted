@@ -1,29 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createCourse, getCourses } from "@/lib/db/course/crud";
 import { CourseCreateInput } from "@/lib/db/course/type";
-import { z } from "zod";
-
-export const courseSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  description: z.string().trim().min(1, "Description is required"),
-  organized_by: z.string().trim().min(1, "Organized by is required"),
-  application_start_date: z.coerce.date(),
-  application_end_date: z.coerce.date(),
-  course_start_date: z.coerce.date(),
-  course_end_date: z.coerce.date(),
-  eligibility_from: z.string().trim().min(1, "Eligibility from is required"),
-  eligibility_to: z.string().trim().min(1, "Eligibility to is required"),
-  reference_link: z
-    .string()
-    .trim()
-    .url("Reference link must be a valid URL")
-    .optional()
-    .or(z.literal("")),
-
-  requirements: z.array(z.string().trim()).optional().default([]),
-
-  course_tags: z.array(z.string().trim()).optional().default([]),
-});
+import { courseSchema } from "@/lib/db/course/type";
 
 export async function POST(req: NextRequest) {
   try {

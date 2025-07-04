@@ -4,7 +4,7 @@ import {
   updateTinkeringActivity,
   deleteTinkeringActivity,
 } from "@/lib/db/tinkering-activity/crud";
-import { tinkeringActivitySchema } from "../route";
+import { tinkeringActivitySchema } from "@/lib/db/tinkering-activity/type";
 
 export async function GET(request: Request, { params }: any) {
   try {

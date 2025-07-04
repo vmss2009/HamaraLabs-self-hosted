@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export interface HubInput {
   hub_school_id: string;
   spoke_school_ids: string[];
@@ -66,3 +68,16 @@ export interface HubWithRelations {
   }[];
 }
 
+export const clusterSchema = z.object({
+  name: z.string().min(1, "Cluster name is required"),
+  hubs: z
+    .array(
+      z.object({
+        hub_school_id: z.string().uuid("Invalid hub school ID"),
+        spoke_school_ids: z
+          .array(z.string().uuid("Invalid spoke school ID"))
+          .min(1, "At least one spoke school ID is required"),
+      })
+    )
+    .min(1, "At least one hub is required"),
+});

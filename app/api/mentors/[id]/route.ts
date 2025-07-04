@@ -4,12 +4,9 @@ import {
   updateMentor,
   deleteMentor,
 } from "@/lib/db/mentor/crud";
-import { MentorUpdateInput } from "@/lib/db/mentor/type";
+import { MentorUpdateInput, mentorSchema } from "@/lib/db/mentor/type";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: any) {
   try {
     const mentor = await getMentorById(params.id);
     if (!mentor) {
@@ -25,10 +22,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const body = await request.json();
     const updateData: MentorUpdateInput = {
@@ -38,6 +32,12 @@ export async function PATCH(
       user_meta_data: body.user_meta_data,
       school_ids: body.school_ids,
     };
+    const result = mentorSchema.partial().safeParse(updateData);
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
 
     const mentor = await updateMentor(params.id, updateData);
     return NextResponse.json(mentor);
@@ -53,10 +53,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     await deleteMentor(params.id);
     return NextResponse.json({ message: "Mentor deleted successfully" });

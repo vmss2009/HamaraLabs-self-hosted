@@ -4,7 +4,7 @@ import {
   updateCompetition,
   deleteCompetition,
 } from "@/lib/db/competition/crud";
-import { competitionSchema } from "../route";
+import { competitionSchema } from "@/lib/db/competition/type";
 
 export async function GET(request: Request, { params }: any) {
   try {

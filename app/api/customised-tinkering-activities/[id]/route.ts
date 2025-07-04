@@ -5,24 +5,7 @@ import {
   deleteCustomisedTinkeringActivity,
   getCustomisedTinkeringActivities,
 } from "@/lib/db/customised-tinkering-activity/crud";
-import { z } from "zod";
-
-export const customisedTinkeringActivitySchema = z.object({
-  name: z.string().min(1, "Activity name is required"),
-  subtopic_id: z
-    .number()
-    .int()
-    .positive("Subtopic ID must be a positive number"),
-  introduction: z.string().min(1, "Introduction is required"),
-  goals: z.array(z.string()).optional().default([]),
-  materials: z.array(z.string()).optional().default([]),
-  instructions: z.array(z.string()).optional().default([]),
-  tips: z.array(z.string()).optional().default([]),
-  observations: z.array(z.string()).optional().default([]),
-  extensions: z.array(z.string()).optional().default([]),
-  resources: z.array(z.string()).optional().default([]),
-  status: z.array(z.string()).optional().default([]),
-});
+import { customisedTinkeringActivitySchema, statusSchema } from "@/lib/db/customised-tinkering-activity/type";
 
 export async function GET(request: Request, { params }: any) {
   try {
@@ -63,7 +46,7 @@ export async function GET(request: Request, { params }: any) {
 }
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const id = params.id;
@@ -115,10 +98,6 @@ export async function PATCH(request: Request, { params }: any) {
   try {
     const id = params.id;
     const body = await request.json();
-
-    const statusSchema = z.object({
-      status: z.array(z.string()),
-    });
 
     const result = statusSchema.safeParse(body);
 
