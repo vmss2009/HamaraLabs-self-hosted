@@ -1,23 +1,31 @@
-import { auth } from "@/lib/auth/auth"
-import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth/auth";
 
-async function verifyHMAC(code: string, signature: string, secret: string): Promise<boolean> {
+async function verifyHMAC(code: string, signature: string, timestamp: number, secret: string): Promise<boolean> {
   const encoder = new TextEncoder();
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const allowedSkew = 40;
 
+  if (Math.abs(currentTimestamp - timestamp) > allowedSkew) {
+    throw new Error("Request expired or timestamp is invalid");
+  }
+
+  // Import key
   const key = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
+    { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ["verify"]
+    ['verify']
   );
 
-  const signatureBytes = Uint8Array.from(Buffer.from(signature, "hex"));
+  const message = `${code}:${timestamp}`;
+  const signatureBytes = Uint8Array.from(Buffer.from(signature, 'hex'));
+
   const verified = await crypto.subtle.verify(
-    "HMAC",
+    'HMAC',
     key,
     signatureBytes,
-    encoder.encode(code)
+    encoder.encode(message)
   );
 
   return verified;
@@ -34,14 +42,15 @@ export default auth(async (req, res) => {
       const params = new URLSearchParams(req.nextUrl.search);
       const code = params.get("code");
       const signature = params.get("signature");
+      const timestamp = parseInt(params.get("timestamp")!);
       const SECRET_SALT = process.env.SALT_KEY;
       
       if (!code || !signature || !SECRET_SALT) {
         return new Response("Unauthorized", { status: 401 });
       }
-      
-      const isValid = await verifyHMAC(code, signature, SECRET_SALT);
-      
+
+      const isValid = await verifyHMAC(code, signature, timestamp, SECRET_SALT);
+
       if (!isValid) {
         return new Response("Invalid signature", { status: 403 });
       } else {
@@ -56,17 +65,3 @@ export default auth(async (req, res) => {
     return Response.redirect(newUrl)
   }
 })
-
-// export function middleware() {
-//     const res = NextResponse.next();
-
-//     res.headers.append('Access-Control-Allow-Credentials', "true");
-//     res.headers.append('Access-Control-Allow-Origin', '*'); 
-//     res.headers.append('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT');
-//     res.headers.append(
-//         'Access-Control-Allow-Headers',
-//         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-//     )
-
-//     return res
-// }
