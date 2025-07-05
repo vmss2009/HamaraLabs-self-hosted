@@ -15,18 +15,6 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
         })
       : null;
 
-    const existingPrincipal = data.principal
-      ? await prisma.user.findUnique({
-          where: { email: data.principal.email },
-        })
-      : null;
-
-    const existingCorrespondent = data.correspondent
-      ? await prisma.user.findUnique({
-          where: { email: data.correspondent.email },
-        })
-      : null;
-
     const in_charge = data.in_charge
       ? existingInCharge
         ? await prisma.user.update({
@@ -54,6 +42,12 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
           })
       : null;
 
+    const existingPrincipal = data.principal
+      ? await prisma.user.findUnique({
+          where: { email: data.principal.email },
+        })
+      : null;
+
     const principal = data.principal
       ? existingPrincipal
         ? await prisma.user.update({
@@ -79,6 +73,12 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
               },
             },
           })
+      : null;
+
+    const existingCorrespondent = data.correspondent
+      ? await prisma.user.findUnique({
+          where: { email: data.correspondent.email },
+        })
       : null;
 
     const correspondent = data.correspondent
