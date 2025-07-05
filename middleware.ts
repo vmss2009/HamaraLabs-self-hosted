@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth/auth"
+import { NextResponse } from "next/server";
 
 async function verifyHMAC(code: string, signature: string, secret: string): Promise<boolean> {
   const encoder = new TextEncoder();
@@ -22,7 +23,7 @@ async function verifyHMAC(code: string, signature: string, secret: string): Prom
   return verified;
 }
 
-export default auth( async (req) => {
+export default auth(async (req, res) => {
   if (!req.auth) {
     if (req.nextUrl.pathname.startsWith("/protected")) {
       const newUrl = new URL("/sign-in", req.nextUrl.origin);
@@ -55,3 +56,17 @@ export default auth( async (req) => {
     return Response.redirect(newUrl)
   }
 })
+
+// export function middleware() {
+//     const res = NextResponse.next();
+
+//     res.headers.append('Access-Control-Allow-Credentials', "true");
+//     res.headers.append('Access-Control-Allow-Origin', '*'); 
+//     res.headers.append('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT');
+//     res.headers.append(
+//         'Access-Control-Allow-Headers',
+//         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+//     )
+
+//     return res
+// }
