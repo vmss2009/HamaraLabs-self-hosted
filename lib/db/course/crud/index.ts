@@ -32,9 +32,9 @@ export async function getCourses(filter?: CourseFilter) {
       where.name = { contains: filter.name, mode: "insensitive" };
     }
 
-    if (filter?.organized_by) {
-      where.organized_by = {
-        contains: filter.organized_by,
+    if (filter?.organised_by) {
+      where.organised_by = {
+        contains: filter.organised_by,
         mode: "insensitive",
       };
     }

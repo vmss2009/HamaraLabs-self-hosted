@@ -4,7 +4,7 @@ export type Course = {
   id: string;
   name: string;
   description: string;
-  organized_by: string;
+  organised_by: string;
   application_start_date: string;
   application_end_date: string;
   course_start_date: string;
@@ -21,7 +21,7 @@ export type Course = {
 export interface CourseCreateInput {
   name: string;
   description: string;
-  organized_by: string;
+  organised_by: string;
   application_start_date: Date | string;
   application_end_date: Date | string;
   course_start_date: Date | string;
@@ -37,13 +37,13 @@ export interface CourseUpdateInput extends Partial<CourseCreateInput> {}
 
 export interface CourseFilter {
   name?: string;
-  organized_by?: string;
+  organised_by?: string;
 }
 
 export const courseSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   description: z.string().trim().min(1, "Description is required"),
-  organized_by: z.string().trim().min(1, "Organized by is required"),
+  organised_by: z.string().trim().min(1, "Organised by is required"),
   application_start_date: z.coerce.date(),
   application_end_date: z.coerce.date(),
   course_start_date: z.coerce.date(),

@@ -6,12 +6,12 @@ import { courseSchema } from "@/lib/db/course/type";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    body.organized_by = body.organized_by;
+    body.organised_by = body.organised_by;
 
     const requiredFields = [
       "name",
       "description",
-      "organized_by",
+      "organised_by",
       "application_start_date",
       "application_end_date",
       "course_start_date",
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const courseData: CourseCreateInput = {
       name: body.name,
       description: body.description,
-      organized_by: body.organized_by,
+      organised_by: body.organised_by,
       application_start_date: new Date(body.application_start_date),
       application_end_date: new Date(body.application_end_date),
       course_start_date: new Date(body.course_start_date),

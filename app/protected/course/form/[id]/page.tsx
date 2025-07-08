@@ -23,7 +23,7 @@ export default function EditCourseForm({
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [organizedBy, setOrganizedBy] = useState("");
+  const [organisedBy, setOrganisedBy] = useState("");
   const [applicationStartDate, setApplicationStartDate] = useState("");
   const [applicationEndDate, setApplicationEndDate] = useState("");
   const [courseStartDate, setCourseStartDate] = useState("");
@@ -52,7 +52,7 @@ export default function EditCourseForm({
 
         setName(data.name || "");
         setDescription(data.description || "");
-        setOrganizedBy(data.organized_by || "");
+        setOrganisedBy(data.organised_by || "");
         setApplicationStartDate(formatDate(data.application_start_date));
         setApplicationEndDate(formatDate(data.application_end_date));
         setCourseStartDate(formatDate(data.course_start_date));
@@ -81,7 +81,7 @@ export default function EditCourseForm({
       const updatedCourse = {
         name: formData.get("name"),
         description: formData.get("description"),
-        organizedBy,
+        organised_by: organisedBy,
         application_start_date: formData.get("applicationStartDate"),
         application_end_date: formData.get("applicationEndDate"),
         course_start_date: formData.get("courseStartDate"),
@@ -118,23 +118,23 @@ export default function EditCourseForm({
 
   useEffect(() => {
     const handleSelect = () => {
-      if (organizedBy !== "AIM") {
+      if (organisedBy !== "AIM") {
         setIsExternal(true);
       } else {
         setIsExternal(false);
       }
     };
     handleSelect();
-  }, [organizedBy]);
+  }, [organisedBy]);
 
   const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     if (val === "External") {
       setIsExternal(true);
-      setOrganizedBy("");
+      setOrganisedBy("");
     } else {
       setIsExternal(false);
-      setOrganizedBy(val);
+      setOrganisedBy(val);
     }
   };
 
@@ -207,11 +207,11 @@ export default function EditCourseForm({
 
               <div>
                 <label className="block mb-2 text-sm font-bold text-gray-700">
-                  Organized By <span className="text-red-500">*</span>
+                  Organised By <span className="text-red-500">*</span>
                 </label>
 
                 <select
-                  value={isExternal ? "External" : organizedBy}
+                  value={isExternal ? "External" : organisedBy}
                   onChange={handleSelectChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
@@ -224,10 +224,10 @@ export default function EditCourseForm({
                 {isExternal && (
                   <Input
                     type="text"
-                    name="organizedby"
-                    id="organizedby"
-                    value={organizedBy}
-                    onChange={(e) => setOrganizedBy(e.target.value)}
+                    name="organisedby"
+                    id="organisedby"
+                    value={organisedBy}
+                    onChange={(e) => setOrganisedBy(e.target.value)}
                     placeholder="Enter external organizer name"
                     className="w-full  px-4 py-3 border border-gray-300 rounded-xl"
                     required

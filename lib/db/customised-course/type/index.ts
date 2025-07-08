@@ -11,7 +11,7 @@ export interface CustomisedCourseWithRelations extends PrismaCustomisedCourse {
     id: string;
     name: string;
     description: string;
-    organized_by: string;
+    organised_by: string;
     application_start_date: Date;
     application_end_date: Date;
     course_start_date: Date;

@@ -20,10 +20,10 @@ export const getCourseColumns = (
     renderCell: (params) => params.row?.course?.name ?? "N/A",
   },
   {
-    field: "organized_by",
-    headerName: "Organized By",
+    field: "organised_by",
+    headerName: "Organised By",
     width: 180,
-    renderCell: (params) => params.row?.course?.organized_by ?? "N/A",
+    renderCell: (params) => params.row?.course?.organised_by ?? "N/A",
   },
   {
     field: "status",

@@ -165,7 +165,7 @@ model Course {
   id                     String                @id @default(uuid())
   name                   String
   description            String
-  organized_by           String
+  organised_by           String
   application_start_date DateTime
   application_end_date   DateTime
   course_start_date      DateTime

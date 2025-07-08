@@ -1186,7 +1186,7 @@ export default function StudentSnapshot() {
             columns={[
               { label: "S.No", field: "index" },
               { label: "Course Name", field: "course.name" },
-              { label: "Organized By", field: "course.organized_by" },
+              { label: "Organised By", field: "course.organised_by" },
               { label: "Description", field: "course.description" },
               {
                 label: "Application Start Date",

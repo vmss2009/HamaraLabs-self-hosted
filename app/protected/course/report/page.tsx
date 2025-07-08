@@ -102,7 +102,7 @@ export default function CourseReport() {
     },
     { field: "name", headerName: "Course Name", width: 200 },
     { field: "description", headerName: "Description", width: 250 },
-    { field: "organized_by", headerName: "Organized By", width: 200 },
+    { field: "organised_by", headerName: "Organised By", width: 200 },
     {
       field: "application_start_date",
       headerName: "App Start Date",
@@ -250,7 +250,7 @@ export default function CourseReport() {
             { label: "S.No", field: "index" },
             { label: "Name", field: "name" },
             { label: "Description", field: "description" },
-            { label: "Organized By", field: "organized_by" },
+            { label: "Organised By", field: "organised_by" },
             {
               label: "Application Start Date",
               field: "application_start_date",

@@ -40,7 +40,7 @@ export async function PUT(req: NextRequest, { params }: any) {
     const updateData: CourseUpdateInput = {
       name: body.name,
       description: body.description,
-      organized_by: body.organizedBy,
+      organised_by: body.organisedBy,
       application_start_date: new Date(body.application_start_date),
       application_end_date: new Date(body.application_end_date),
       course_start_date: new Date(body.course_start_date),

@@ -13,7 +13,7 @@ export default function CourseForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [organizedBy, setOrganizedBy] = useState("");
+  const [organisedBy, setOrganisedBy] = useState("");
   const [requirements, setRequirements] = useState([""]);
   const [courseTags, setCourseTags] = useState([""]);
 
@@ -29,7 +29,7 @@ export default function CourseForm() {
       const courseData = {
         name: formData.get("name"),
         description: formData.get("description"),
-        organized_by: organizedBy,
+        organised_by: organisedBy,
         application_start_date: formData.get("applicationStartDate"),
         application_end_date: formData.get("applicationEndDate"),
         course_start_date: formData.get("courseStartDate"),
@@ -69,10 +69,10 @@ export default function CourseForm() {
     const val = e.target.value;
     if (val === "External") {
       setIsExternal(true);
-      setOrganizedBy("");
+      setOrganisedBy("");
     } else {
       setIsExternal(false);
-      setOrganizedBy(val);
+      setOrganisedBy(val);
     }
   };
 
@@ -119,7 +119,7 @@ export default function CourseForm() {
                   id="course-name"
                   name="name"
                   label="Course Name"
-                  setvalue={setOrganizedBy}
+                  setvalue={setOrganisedBy}
                   required
                   placeholder="Enter course name"
                   className="focus:border-blue-500 focus:ring-blue-500"
@@ -141,12 +141,12 @@ export default function CourseForm() {
 
               <div>
                 <label className="block mb-2 text-sm font-bold text-gray-700">
-                  Organized By <span className="text-red-600">*</span>
+                  Organised By <span className="text-red-600">*</span>
                 </label>
 
                 <select
                   required
-                  value={isExternal ? "External" : organizedBy}
+                  value={isExternal ? "External" : organisedBy}
                   onChange={handleSelectChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                 >
@@ -158,10 +158,10 @@ export default function CourseForm() {
                 {isExternal && (
                   <Input
                     type="text"
-                    name="organizedby"
-                    id="organizedby"
-                    value={organizedBy}
-                    onChange={(e) => setOrganizedBy(e.target.value)}
+                    name="organisedby"
+                    id="organisedby"
+                    value={organisedBy}
+                    onChange={(e) => setOrganisedBy(e.target.value)}
                     placeholder="Enter external organizer name"
                     className="w-full  px-4 py-3 border border-gray-300 rounded-xl"
                     required
