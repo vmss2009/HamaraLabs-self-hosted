@@ -1,27 +1,23 @@
-// app/api/courses/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createCourse, getCourses } from "@/lib/db/courses/crud";
-import { CourseCreateInput } from "@/lib/db/courses/type";
+import { createCourse, getCourses } from "@/lib/db/course/crud";
+import { CourseCreateInput } from "@/lib/db/course/type";
+import { courseSchema } from "@/lib/db/course/type";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    body.organized_by = body.organized_by;
+    body.organised_by = body.organised_by;
 
-    // Required fields
     const requiredFields = [
       "name",
       "description",
-      "organized_by",
+      "organised_by",
       "application_start_date",
       "application_end_date",
       "course_start_date",
       "course_end_date",
       "eligibility_from",
       "eligibility_to",
-      "reference_link",
-      "requirements",
-      "course_tags"
     ];
 
     for (const field of requiredFields) {
@@ -33,11 +29,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Prepare course data
     const courseData: CourseCreateInput = {
       name: body.name,
       description: body.description,
-      organized_by: body.organized_by,
+      organised_by: body.organised_by,
       application_start_date: new Date(body.application_start_date),
       application_end_date: new Date(body.application_end_date),
       course_start_date: new Date(body.course_start_date),
@@ -53,15 +48,24 @@ export async function POST(req: NextRequest) {
         : body.course_tags.split(",").map((t: string) => t.trim()),
     };
 
-    console.log("Sending course data:", JSON.stringify(courseData, null, 2));
 
-    const course = await createCourse(courseData);
+    const result = courseSchema.safeParse(courseData);
+    if (!result.success) {
+      const errorMessages = result.error.errors.map((err) => err.message);
+      console.error("Validation failed:", errorMessages);
+      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+    }
+
+    const course = await createCourse(result.data);
     return NextResponse.json(course, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating course:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to create course",
+      },
+      { status: 400 }
     );
   }
 }

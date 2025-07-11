@@ -1,17 +1,17 @@
 import { CustomisedCourse as PrismaCustomisedCourse } from "@prisma/client";
 
 export interface CustomisedCourseCreateInput {
-  course_id: number;
-  student_id: number;
+  course_id: string;
+  student_id: string;
   status: string[];
 }
 
 export interface CustomisedCourseWithRelations extends PrismaCustomisedCourse {
   course: {
-    id: number;
+    id: string;
     name: string;
     description: string;
-    organized_by: string;
+    organised_by: string;
     application_start_date: Date;
     application_end_date: Date;
     course_start_date: Date;
@@ -23,14 +23,14 @@ export interface CustomisedCourseWithRelations extends PrismaCustomisedCourse {
     course_tags: string[];
   };
   student: {
-    id: number;
+    id: string;
     first_name: string;
     last_name: string;
   };
 }
 
 export interface CustomisedCourseFilter {
-  course_id?: number;
-  student_id?: number;
+  course_id?: string;
+  student_id?: string;
   status?: string[];
 }

@@ -1,17 +1,8 @@
-
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
-
-console.log(Object.keys(prisma));
-import {
-  CustomisedCourseCreateInput,
-  CustomisedCourseFilter,
-  CustomisedCourseWithRelations,
-} from "../type";
-
+import { CustomisedCourseCreateInput, CustomisedCourseFilter, CustomisedCourseWithRelations } from "../type";
+import { prisma } from "@/lib/db/prisma";
 
 export async function createCustomisedCourse(
-  data: CustomisedCourseCreateInput
+  data: CustomisedCourseCreateInput,
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.create({
     data: {
@@ -25,7 +16,7 @@ export async function createCustomisedCourse(
           id: true,
           name: true,
           description: true,
-          organized_by: true,
+          organised_by: true,
           application_start_date: true,
           application_end_date: true,
           course_start_date: true,
@@ -49,10 +40,9 @@ export async function createCustomisedCourse(
 }
 
 export async function getCustomisedCourses(
-  filter?: CustomisedCourseFilter
+  filter?: CustomisedCourseFilter,
 ): Promise<CustomisedCourseWithRelations[]> {
   return prisma.customisedCourse.findMany({
-
     where: {
       course_id: filter?.course_id,
       student_id: filter?.student_id,
@@ -64,7 +54,7 @@ export async function getCustomisedCourses(
           id: true,
           name: true,
           description: true,
-          organized_by: true,
+          organised_by: true,
           application_start_date: true,
           application_end_date: true,
           course_start_date: true,
@@ -88,7 +78,7 @@ export async function getCustomisedCourses(
 }
 
 export async function getCustomisedCourseById(
-  id: number
+  id: string,
 ): Promise<CustomisedCourseWithRelations | null> {
   return prisma.customisedCourse.findUnique({
     where: { id },
@@ -98,7 +88,7 @@ export async function getCustomisedCourseById(
           id: true,
           name: true,
           description: true,
-          organized_by: true,
+          organised_by: true,
           application_start_date: true,
           application_end_date: true,
           course_start_date: true,
@@ -122,8 +112,8 @@ export async function getCustomisedCourseById(
 }
 
 export async function updateCustomisedCourse(
-  id: number,
-  data: Partial<CustomisedCourseCreateInput>
+  id: string,
+  data: Partial<CustomisedCourseCreateInput>,
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.update({
     where: { id },
@@ -138,7 +128,7 @@ export async function updateCustomisedCourse(
           id: true,
           name: true,
           description: true,
-          organized_by: true,
+          organised_by: true,
           application_start_date: true,
           application_end_date: true,
           course_start_date: true,
@@ -162,7 +152,7 @@ export async function updateCustomisedCourse(
 }
 
 export async function deleteCustomisedCourse(
-  id: number
+  id: string,
 ): Promise<CustomisedCourseWithRelations> {
   return prisma.customisedCourse.delete({
     where: { id },
@@ -172,7 +162,7 @@ export async function deleteCustomisedCourse(
           id: true,
           name: true,
           description: true,
-          organized_by: true,
+          organised_by: true,
           application_start_date: true,
           application_end_date: true,
           course_start_date: true,

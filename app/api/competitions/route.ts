@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { createCompetition, getCompetitions } from "@/lib/db/competition/crud";
 import { CompetitionCreateInput } from "@/lib/db/competition/type";
+import { competitionSchema } from "@/lib/db/competition/type";
+
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Validate required fields
+
     const requiredFields = [
       "name",
       "description",
@@ -17,7 +19,7 @@ export async function POST(request: Request) {
       "eligibility",
       "reference_links",
       "requirements",
-      "payment"
+      "payment",
     ];
 
     for (const field of requiredFields) {
@@ -29,7 +31,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Prepare competition data
     const competitionData: CompetitionCreateInput = {
       name: body.name,
       description: body.description,
@@ -39,22 +40,35 @@ export async function POST(request: Request) {
       competition_start_date: new Date(body.competition_start_date),
       competition_end_date: new Date(body.competition_end_date),
       eligibility: Array.isArray(body.eligibility) ? body.eligibility : [],
-      reference_links: Array.isArray(body.reference_links) ? body.reference_links : [],
+      reference_links: Array.isArray(body.reference_links)
+        ? body.reference_links
+        : [],
       requirements: Array.isArray(body.requirements) ? body.requirements : [],
       payment: body.payment,
-      fee: body.payment === "paid" ? body.fee : null
+      fee: body.payment === "paid" ? body.fee : null,
     };
 
-    // Log the data being sent to the database
-    console.log("Sending competition data:", JSON.stringify(competitionData, null, 2));
+    const result = competitionSchema.safeParse(competitionData);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.errors[0]?.message ?? "Invalid data" },
+        { status: 400 }
+      );
+    }
 
-    const competition = await createCompetition(competitionData);
+    const competition = await createCompetition(result.data);
     return NextResponse.json(competition);
   } catch (error) {
     console.error("Error creating competition:", error);
+
     return NextResponse.json(
-      { error: "Failed to create competition" },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create competition",
+      },
+      { status: 400 }
     );
   }
 }
@@ -70,4 +84,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-} 
+}

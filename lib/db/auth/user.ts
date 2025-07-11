@@ -1,28 +1,24 @@
 import { prisma } from "../prisma";
+import { User } from "@prisma/client";
 
-// Fetch a user by email
 export const getUserByEmail = async (email: string) => {
     return await prisma.user.findFirst({
         where: { email }
     });
 };
 
-// Fetch a user by ID
 export const getUserById = async (id: string) => {
     return await prisma.user.findUnique({
         where: { id },
     });
 };
 
-// Ensure a user exists in the database, create if not
 export const ensureUserExists = async (id: string, email: string, userMetaData?: any) => {
     try {
-        // First try to find the user
         let user = await prisma.user.findUnique({
             where: { id },
         });
 
-        // If user does not exist, create a new one
         if (!user) {
             user = await prisma.user.create({
                 data: {
@@ -31,9 +27,7 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
                     user_meta_data: userMetaData || {},
                 },
             });
-            console.log(`Created new user: ${email}`);
         } else {
-            // Update user metadata if provided
             if (userMetaData) {
                 user = await prisma.user.update({
                     where: { id },
@@ -41,7 +35,6 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
                         user_meta_data: userMetaData,
                     },
                 });
-                console.log(`Updated user metadata: ${email}`);
             }
         }
 
@@ -52,7 +45,6 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
     }
 };
 
-// Update user metadata
 export const updateUserMetadata = async (id: string, userMetaData: any) => {
     try {
         return await prisma.user.update({
@@ -67,21 +59,87 @@ export const updateUserMetadata = async (id: string, userMetaData: any) => {
     }
 };
 
-// Handle user sign-in process
-export const handleUserSignIn = async (id: string, email: string, userMetaData?: any) => {
+export async function getUsersBySchool(school_id: string): Promise<User[]> {
+  return prisma.user.findMany({
+    where: {
+      schools: {
+        some: {
+          id: school_id
+        }
+      }
+    }
+  });
+}
+
+export async function createUser(data: {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  user_meta_data?: any;
+}): Promise<User> {
+  return prisma.user.create({
+    data: {
+      id: crypto.randomUUID(),
+      ...data,
+    },
+  });
+}
+
+export async function updateUser(id: string, data: {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  user_meta_data?: any;
+}): Promise<User> {
+  return prisma.user.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteUser(id: string): Promise<User> {
+  return prisma.user.delete({
+    where: { id },
+  });
+}
+
+export async function getSchoolKeyUsers(schoolId: string) {
     try {
-        // Ensure the user exists in our database
-        const user = await ensureUserExists(id, email, userMetaData);
-        
-        // You can add additional logic here, such as:
-        // - Logging the sign-in
-        // - Updating last sign-in timestamp
-        // - Checking for any pending notifications
-        // - etc.
-        
-        return user;
+        const school = await prisma.school.findUnique({
+            where: { id: schoolId },
+            select: {
+                in_charge_id: true,
+                correspondent_id: true,
+                principal_id: true
+            }
+        });
+
+        if (!school) {
+            throw new Error("School not found");
+        }
+
+        const userIds = [
+            school.in_charge_id,
+            school.correspondent_id,
+            school.principal_id
+        ].filter((id): id is string => id !== null);
+
+        const users = await prisma.user.findMany({
+            where: {
+                id: {
+                    in: userIds
+                }
+            }
+        });
+
+        return users.map(user => ({
+            ...user,
+            role: user.id === school.in_charge_id ? 'Incharge' :
+                  user.id === school.correspondent_id ? 'Correspondent' :
+                  user.id === school.principal_id ? 'Principal' : ''
+        }));
     } catch (error) {
-        console.error("Error handling user sign-in:", error);
+        console.error("Error fetching school key users:", error);
         throw error;
     }
-};
+}
