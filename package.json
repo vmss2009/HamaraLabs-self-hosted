@@ -13,6 +13,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@faker-js/faker": "^9.8.0",
+    "@google/genai": "^1.9.0",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.9",
     "@mui/x-data-grid": "^7.28.1",

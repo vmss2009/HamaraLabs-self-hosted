@@ -54,7 +54,6 @@ export default auth(async (req, res) => {
       if (!isValid) {
         return new Response("Invalid signature", { status: 403 });
       } else {
-        console.log(isValid);
         return;
       }
     }

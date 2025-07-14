@@ -61,3 +61,44 @@ export const customisedTinkeringActivitySchema = z.object({
   resources: z.array(z.string()).optional().default([]),
   status: z.array(z.string()).optional().default([]),
 });
+
+export interface TinkeringActivityGenerationInput {
+  previousActivities: any[];
+  prompt: string;
+}
+
+export interface GeneratedTinkeringActivity {
+  introduction: string;
+}
+
+export interface GeneratedTAData {
+  id: string;
+  name: string;
+  introduction: string;
+  goals: string[];
+  instructions: string[];
+  tips: string[];
+  resources: string[];
+  materials: string[];
+  assessment: string[];
+  extensions: string[];
+}
+
+export interface DetailedTAGenerationInput {
+  activityIntroduction: string;
+  aspiration: string;
+  comments: string;
+  resources: string;
+}
+
+export interface DetailedGeneratedTA {
+  name: string;
+  introduction: string;
+  goals: string[];
+  materials: string[];
+  instructions: string[];
+  tips: string[];
+  observations: string[];
+  extensions: string[];
+  resources: string[];
+}
