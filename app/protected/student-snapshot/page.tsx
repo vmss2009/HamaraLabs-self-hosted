@@ -100,7 +100,7 @@ export default function StudentSnapshot() {
     "tinkering" | "competition" | "courses"
   >(
     (searchParams.get("tab") as "tinkering" | "competition" | "courses") ||
-      "tinkering"
+    "tinkering"
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -515,7 +515,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       setGeneratedActivities(result.data);
       setGenerateTADialogOpen(false);
       setSelectionDialogOpen(true);
-      
+
     } catch (error) {
       console.error("Error generating tinkering activities:", error);
       alert("Failed to generate tinkering activities. Please try again.");
@@ -527,7 +527,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   const handleGenerateDetailedTA = async () => {
     try {
       setGeneratingDetailed(true);
-      
+
       const response = await fetch("/api/customised-tinkering-activities/generate-ta", {
         method: "POST",
         headers: {
@@ -549,7 +549,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       setDetailedTA(result.data);
       setSelectionDialogOpen(false);
       setReviewDialogOpen(true);
-      
+
     } catch (error) {
       console.error("Error generating detailed tinkering activity:", error);
       alert("Failed to generate detailed tinkering activity. Please try again.");
@@ -561,7 +561,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   const handleAssignTA = async () => {
     try {
       setAssigning(true);
-      
+
       const baseTAResponse = await fetch("/api/tinkering-activities", {
         method: "POST",
         headers: {
@@ -614,16 +614,16 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
 
       alert("Tinkering activity created and assigned successfully!");
       setReviewDialogOpen(false);
-      
+
       setDetailedTA(null);
       setReviewSubject("");
       setReviewTopic("");
       setReviewSubtopic("");
       setSelectedActivityIntro("");
       setGeneratedActivities([]);
-      
+
       fetchTinkeringActivities();
-      
+
     } catch (error) {
       console.error("Error assigning tinkering activity:", error);
       alert("Failed to assign tinkering activity. Please try again.");
@@ -1023,18 +1023,18 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   const filteredSchools =
     currentView === "cluster" && selectedHub
       ? schools.filter((school) => {
-          const hub = hubs.find((h) => h.id.toString() === selectedHub);
-          if (hub) {
-            return (
-              school.id === hub.hub_school.id ||
-              hub.spokes.some((spoke: any) => spoke.id === school.id)
-            );
-          }
-          return false;
-        })
+        const hub = hubs.find((h) => h.id.toString() === selectedHub);
+        if (hub) {
+          return (
+            school.id === hub.hub_school.id ||
+            hub.spokes.some((spoke: any) => spoke.id === school.id)
+          );
+        }
+        return false;
+      })
       : currentView === "school"
-      ? schools
-      : [];
+        ? schools
+        : [];
 
   const handleViewChange = (view: "cluster" | "school") => {
     setCurrentView(view);
@@ -1301,27 +1301,27 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 },
               }}
               slots={{
-              toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-              <GridToolbarQuickFilter sx={{ width: "100%" }} />
-              <GridToolbarColumnsButton />
-                <MuiButton
-                  variant="contained"
-                  size="small"
-                  sx={{ ml: 1 }}
-                  onClick={() => {
-                  if (selectedStudent) {
-                  fetchStudentDetails(selectedStudent);
-                }
-                  setSelectedTinkeringActivities(tinkeringActivities);
-                         setGenerateTADialogOpen(true);
-                       }}
-                     >
-                       Generate TA
-                     </MuiButton>
-                   </GridToolbarContainer>
-                 ),
-               }}
+                toolbar: () => (
+                  <GridToolbarContainer className="bg-gray-50 p-2">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                    <GridToolbarColumnsButton />
+                    <MuiButton
+                      variant="contained"
+                      size="small"
+                      sx={{ ml: 1 }}
+                      onClick={() => {
+                        if (selectedStudent) {
+                          fetchStudentDetails(selectedStudent);
+                        }
+                        setSelectedTinkeringActivities(tinkeringActivities);
+                        setGenerateTADialogOpen(true);
+                      }}
+                    >
+                      Generate TA
+                    </MuiButton>
+                  </GridToolbarContainer>
+                ),
+              }}
             />
           ) : activeTab === "competition" ? (
             <DataGrid
@@ -1654,8 +1654,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         />
 
         {/* Generate TA Dialog */}
-        <Dialog 
-          open={generateTADialogOpen} 
+        <Dialog
+          open={generateTADialogOpen}
           onClose={() => setGenerateTADialogOpen(false)}
           maxWidth="md"
           fullWidth
@@ -1668,7 +1668,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Select Tinkering Activities
                 </label>
-                
+
                 {/* Select All Checkbox */}
                 <div className="mb-3">
                   <FormControlLabel
@@ -1786,8 +1786,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         </Dialog>
 
         {/* TA Selection Dialog */}
-        <Dialog 
-          open={selectionDialogOpen} 
+        <Dialog
+          open={selectionDialogOpen}
           onClose={() => setSelectionDialogOpen(false)}
           maxWidth="md"
           fullWidth
@@ -1844,8 +1844,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         </Dialog>
 
         {/* TA Review Dialog */}
-        <Dialog 
-          open={reviewDialogOpen} 
+        <Dialog
+          open={reviewDialogOpen}
           onClose={() => setReviewDialogOpen(false)}
           maxWidth="lg"
           fullWidth
@@ -1856,12 +1856,12 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               {detailedTA && (
                 <>
 
-                {/* Subject/Topic/Subtopic Selection */}
+                  {/* Subject/Topic/Subtopic Selection */}
                   <div className="space-y-4">
                     <Typography variant="h6" className="font-semibold">
                       Assignment Details
                     </Typography>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Subject Selection */}
                       <div>

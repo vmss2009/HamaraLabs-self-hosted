@@ -78,6 +78,7 @@ export interface TinkeringActivityCreateInput {
   observations: string[];
   extensions: string[];
   resources: string[];
+  comments: string;
   type: "customised" | "default";
 }
 
@@ -92,6 +93,7 @@ export interface TinkeringActivity {
   observations?: string[];
   resources?: string[];
   extensions?: string[];
+  comments?: string;
   subject_name?: string | null;
   topic_name?: string | null;
   subtopic_name?: string | null;
@@ -117,4 +119,5 @@ export const tinkeringActivitySchema = z.object({
   observations: z.array(z.string()).optional().default([]),
   extensions: z.array(z.string()).optional().default([]),
   resources: z.array(z.string()).optional().default([]),
+  comments: z.string().optional().default(""),
 });

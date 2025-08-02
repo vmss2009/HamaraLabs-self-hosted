@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id             String    @id
-  email          String    @unique
+  id             String        @id
+  email          String        @unique
+  user_meta_data Json?         @default("{}")
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
   first_name     String?
   last_name      String?
-  user_meta_data Json?     @default("{}")
-  created_at     DateTime  @default(now())
-  updated_at     DateTime  @updatedAt
-  students       Student[]
-  schools        School[]  @relation("UserSchools")
   school_visits  SchoolVisit[] @relation("VisitPOC")
+  students       Student[]
+  schools        School[]      @relation("UserSchools")
 }
 
 model Country {
@@ -57,31 +57,30 @@ model Address {
 }
 
 model School {
-  id                String    @id @default(uuid())
-  created_at        DateTime  @default(now())
-  name              String
-  is_ATL            Boolean
+  id                     String        @id @default(uuid())
+  created_at             DateTime      @default(now())
+  name                   String
+  is_ATL                 Boolean
+  syllabus               String[]
+  website_url            String?
+  paid_subscription      Boolean
+  social_links           String[]
+  address_id             Int
+  correspondent_id       String?
+  in_charge_id           String?
+  principal_id           String?
   ATL_establishment_year Int?
-  address_id        Int
-  in_charge_id      String?
-  correspondent_id  String?
-  principal_id      String?
-  syllabus          String[]
-  website_url       String?
-  paid_subscription Boolean
-  social_links      String[]
-  address           Address   @relation(fields: [address_id], references: [id])
-  students          Student[]
-  users             User[]    @relation("UserSchools")
-  hub_school        Hub[]     @relation("HubSchool")
-  hub_spokes        Hub[]     @relation("HubSpokes")
-  visits            SchoolVisit[]
+  hub_school             Hub[]         @relation("HubSchool")
+  address                Address       @relation(fields: [address_id], references: [id])
+  visits                 SchoolVisit[]
+  students               Student[]
+  hub_spokes             Hub[]         @relation("HubSpokes")
+  users                  User[]        @relation("UserSchools")
 }
 
-
 model Student {
-  id                    String                          @id @default(uuid())
-  created_at            DateTime                        @default(now())
+  id                    String                        @id @default(uuid())
+  created_at            DateTime                      @default(now())
   first_name            String
   last_name             String
   aspiration            String
@@ -92,11 +91,11 @@ model Student {
   comments              String?
   school_id             String
   user_id               String?
-  school                School                          @relation(fields: [school_id], references: [id])
-  user                  User?                           @relation(fields: [user_id], references: [id])
-  customised_activities CustomisedTinkeringActivity[]
+  school                School                        @relation(fields: [school_id], references: [id])
+  user                  User?                         @relation(fields: [user_id], references: [id])
   CustomisedCompetition CustomisedCompetition[]
-  CustomisedCourse     CustomisedCourse[]
+  CustomisedCourse      CustomisedCourse[]
+  customised_activities CustomisedTinkeringActivity[]
 }
 
 model Subject {
@@ -126,10 +125,9 @@ model Subtopic {
 }
 
 model TinkeringActivity {
-  id                          String                          @id @default(uuid())
-  created_at                  DateTime                        @default(now())
+  id                          String                        @id @default(uuid())
+  created_at                  DateTime                      @default(now())
   name                        String
-  subtopic_id                 Int
   introduction                String
   goals                       String[]
   materials                   String[]
@@ -138,12 +136,14 @@ model TinkeringActivity {
   observations                String[]
   extensions                  String[]
   resources                   String[]
-  subtopic                    Subtopic                        @relation(fields: [subtopic_id], references: [id])
+  subtopic_id                 Int
+  comments                    String
+  subtopic                    Subtopic                      @relation(fields: [subtopic_id], references: [id])
   CustomisedTinkeringActivity CustomisedTinkeringActivity[]
 }
 
 model Competition {
-  id                     String                    @id @default(uuid())
+  id                     String                  @id @default(uuid())
   name                   String
   description            String
   eligibility            String[]
@@ -154,18 +154,18 @@ model Competition {
   application_start_date DateTime
   competition_end_date   DateTime
   competition_start_date DateTime
-  created_at             DateTime                  @default(now())
+  created_at             DateTime                @default(now())
   organised_by           String
   reference_links        String[]
-  updated_at             DateTime                  @updatedAt
+  comments               String
+  updated_at             DateTime                @updatedAt
   CustomisedCompetition  CustomisedCompetition[]
 }
 
 model Course {
-  id                     String                @id @default(uuid())
+  id                     String             @id @default(uuid())
   name                   String
   description            String
-  organised_by           String
   application_start_date DateTime
   application_end_date   DateTime
   course_start_date      DateTime
@@ -173,29 +173,29 @@ model Course {
   eligibility_from       String
   eligibility_to         String
   reference_link         String
-  requirements           String[]
+  created_at             DateTime           @default(now())
+  updated_at             DateTime           @updatedAt
   course_tags            String[]
-  created_at             DateTime              @default(now())
-  updated_at             DateTime              @updatedAt
-  CustomisedCourse      CustomisedCourse[]
+  requirements           String[]
+  comments               String
+  organised_by           String
+  CustomisedCourse       CustomisedCourse[]
 }
 
 model CustomisedCourse {
-  id         String    @id @default(uuid())
-  created_at DateTime  @default(now())
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
   course_id  String
   student_id String
   status     String[]
-
-  course  Course  @relation(fields: [course_id], references: [id])
-  student Student @relation(fields: [student_id], references: [id])
-
-  @@map("customised_course")
+  comments   String
+  course     Course   @relation(fields: [course_id], references: [id])
+  student    Student  @relation(fields: [student_id], references: [id])
 }
 
 model CustomisedTinkeringActivity {
-  id           String              @id @default(uuid())
-  created_at   DateTime            @default(now())
+  id           String            @id @default(uuid())
+  created_at   DateTime          @default(now())
   name         String
   subtopic_id  Int
   introduction String
@@ -209,23 +209,21 @@ model CustomisedTinkeringActivity {
   base_ta_id   String
   student_id   String
   status       String[]
-  subtopic     Subtopic            @relation(fields: [subtopic_id], references: [id])
-  base_ta      TinkeringActivity   @relation(fields: [base_ta_id], references: [id])
-  student      Student             @relation(fields: [student_id], references: [id])
-
-  @@map("customised_tinkering_activity")
+  comments     String
+  base_ta      TinkeringActivity @relation(fields: [base_ta_id], references: [id])
+  student      Student           @relation(fields: [student_id], references: [id])
+  subtopic     Subtopic          @relation(fields: [subtopic_id], references: [id])
 }
 
 model CustomisedCompetition {
-  id             String        @id @default(uuid())
-  created_at     DateTime      @default(now())
+  id             String      @id @default(uuid())
+  created_at     DateTime    @default(now())
   competition_id String
   student_id     String
   status         String[]
-  competition    Competition   @relation(fields: [competition_id], references: [id])
-  student        Student       @relation(fields: [student_id], references: [id])
-
-  @@map("customised_competition")
+  comments       String
+  competition    Competition @relation(fields: [competition_id], references: [id])
+  student        Student     @relation(fields: [student_id], references: [id])
 }
 
 model Hub {
@@ -234,28 +232,28 @@ model Hub {
   updated_at    DateTime  @updatedAt
   hub_school_id String
   hub_school    School    @relation("HubSchool", fields: [hub_school_id], references: [id])
-  spokes        School[]  @relation("HubSpokes")
   clusters      Cluster[] @relation("HubClusters")
+  spokes        School[]  @relation("HubSpokes")
 }
 
 model Cluster {
-  id          String    @id @default(uuid())
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  name        String
-  hubs        Hub[]     @relation("HubClusters")
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  name       String
+  hubs       Hub[]    @relation("HubClusters")
 }
 
 model SchoolVisit {
-  id              String    @id @default(uuid())
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
-  school_id       String
+  id                 String   @id @default(uuid())
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  school_id          String
+  visit_date         DateTime
+  poc_id             String?
   school_performance String?
-  visit_date      DateTime
-  poc_id          String?
-  other_poc       String?
-  details         Json
-  school          School    @relation(fields: [school_id], references: [id])
-  point_of_contact User?    @relation("VisitPOC", fields: [poc_id], references: [id])
+  details            Json
+  other_poc          String?
+  point_of_contact   User?    @relation("VisitPOC", fields: [poc_id], references: [id])
+  school             School   @relation(fields: [school_id], references: [id])
 }
