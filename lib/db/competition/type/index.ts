@@ -15,6 +15,7 @@ export interface Competition {
   requirements: string[];
   payment: string;
   fee: string | null;
+  comments: string;
 }
 
 export interface CompetitionCreateInput {
@@ -30,6 +31,7 @@ export interface CompetitionCreateInput {
   competition_start_date: Date;
   organised_by: string;
   reference_links: string[];
+  comments: string;
 }
 
 export interface CompetitionUpdateInput
@@ -73,6 +75,7 @@ export const competitionSchema = z
       ),
     fee: z.string().trim().nullable().optional(),
     payment: z.string().trim().min(1, "Payment method is required"),
+    comments: z.string().trim().optional().default(""),
   })
   .refine(
     (data) => {

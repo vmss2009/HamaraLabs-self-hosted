@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   DataGrid,
   GridColumnVisibilityModel,
@@ -18,11 +19,19 @@ import {
   RadioGroup,
   FormControlLabel,
   FormLabel,
+  Button as MuiButton,
+  Autocomplete,
+  TextField,
+  Checkbox,
+  Box,
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { Button } from "@/components/Button";
 import DetailViewer from "@/components/DetailViewer";
+import { Input } from "@/components/Input";
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { EditActivityDialog } from "./tinkering-activity/tinkering-activity-edit-form/edit";
 import { getCourseColumns } from "./course/columns";
 import { getCompetitionColumns } from "./competition/columns";
@@ -61,23 +70,38 @@ const COURSE_STATUS_OPTIONS = [
   "Course completed",
 ];
 
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
+
 export default function StudentSnapshot() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [schools, setSchools] = useState<any[]>([]);
   const [currentView, setCurrentView] = useState<"cluster" | "school">(
-    "cluster"
+    (searchParams.get("view") as "cluster" | "school") || "cluster"
   );
 
   const [clusters, setClusters] = useState<any[]>([]);
-  const [selectedCluster, setSelectedCluster] = useState("");
+  const [selectedCluster, setSelectedCluster] = useState(
+    searchParams.get("cluster") || ""
+  );
   const [hubs, setHubs] = useState<any[]>([]);
-  const [selectedHub, setSelectedHub] = useState("");
+  const [selectedHub, setSelectedHub] = useState(searchParams.get("hub") || "");
 
   const [students, setStudents] = useState<any[]>([]);
-  const [selectedSchool, setSelectedSchool] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedSchool, setSelectedSchool] = useState(
+    searchParams.get("school") || ""
+  );
+  const [selectedStudent, setSelectedStudent] = useState(
+    searchParams.get("student") || ""
+  );
   const [activeTab, setActiveTab] = useState<
     "tinkering" | "competition" | "courses"
-  >("tinkering");
+  >(
+    (searchParams.get("tab") as "tinkering" | "competition" | "courses") ||
+    "tinkering"
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tinkeringActivities, setTinkeringActivities] = useState<any[]>([]);
@@ -127,10 +151,49 @@ export default function StudentSnapshot() {
     description: false,
   });
 
+  const [generateTADialogOpen, setGenerateTADialogOpen] = useState(false);
+  const [selectedTinkeringActivities, setSelectedTinkeringActivities] = useState<any[]>([]);
+  const [aspiration, setAspiration] = useState("");
+  const [comments, setComments] = useState("");
+  const [resources, setResources] = useState("");
+  const [prompt, setPrompt] = useState(`Based on the previously completed tinkering activities by a student, his/her aspirations and his/her interests, suggest the next best tinkering activity.
+The generated tinkering activity must be less/more complex than the previous tinkering activities.
+It must be short, succinct, clear, concise, and easy to understand.
+It must be creative, fun, engaging, intuitive, and hands-on.
+If required use goals, materials, instructions, tips, observations, extensions, and resources as per the below rule.
+Do not put large sentences or paragraphs. For example - goals, materials, instructions, tips, observations, extensions, and resources (each point must be less than 10 words and a maximum of 3 or 4 bullet points).`);
+
+  const [selectionDialogOpen, setSelectionDialogOpen] = useState(false);
+  const [generatedActivities, setGeneratedActivities] = useState<any[]>([]);
+  const [selectedActivityIntro, setSelectedActivityIntro] = useState("");
+  const [generating, setGenerating] = useState(false);
+
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [detailedTA, setDetailedTA] = useState<any>(null);
+  const [reviewSubject, setReviewSubject] = useState("");
+  const [reviewTopic, setReviewTopic] = useState("");
+  const [reviewSubtopic, setReviewSubtopic] = useState("");
+  const [generatingDetailed, setGeneratingDetailed] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+
   const latestStatus =
     selectedActivity?.status?.[selectedActivity.status.length - 1]?.split(
       " - "
     )[0] || "";
+
+  const updateURLParams = (params: Record<string, string>) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        newSearchParams.set(key, value);
+      } else {
+        newSearchParams.delete(key);
+      }
+    });
+
+    router.push(`?${newSearchParams.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -182,6 +245,15 @@ export default function StudentSnapshot() {
   useEffect(() => {
     fetchSchools();
   }, []);
+
+  useEffect(() => {
+    if (clusters.length > 0 && selectedCluster && !hubs.length) {
+      const cluster = clusters.find((c) => c.id.toString() === selectedCluster);
+      if (cluster) {
+        setHubs(cluster.hubs);
+      }
+    }
+  }, [clusters, selectedCluster, hubs.length]);
 
   useEffect(() => {
     if (selectedSchool) {
@@ -271,6 +343,54 @@ export default function StudentSnapshot() {
     fetchSubtopics();
   }, [selectedTopic]);
 
+  useEffect(() => {
+    const fetchTopicsForReview = async () => {
+      if (!reviewSubject) {
+        setTopics([]);
+        setReviewTopic("");
+        setSubtopics([]);
+        setReviewSubtopic("");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/topics?subjectId=${reviewSubject}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch topics");
+        }
+        const data = await response.json();
+        setTopics(data);
+      } catch (error) {
+        console.error("Error fetching topics for review:", error);
+      }
+    };
+
+    fetchTopicsForReview();
+  }, [reviewSubject]);
+
+  useEffect(() => {
+    const fetchSubtopicsForReview = async () => {
+      if (!reviewTopic) {
+        setSubtopics([]);
+        setReviewSubtopic("");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/subtopics?topicId=${reviewTopic}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch subtopics");
+        }
+        const data = await response.json();
+        setSubtopics(data);
+      } catch (error) {
+        console.error("Error fetching subtopics for review:", error);
+      }
+    };
+
+    fetchSubtopicsForReview();
+  }, [reviewTopic]);
+
   const fetchSchools = async () => {
     try {
       const response = await fetch("/api/schools");
@@ -356,13 +476,160 @@ export default function StudentSnapshot() {
     }
   };
 
-  const handleModifyStatus = (
-    item: any,
-    type: "tinkering" | "competition" | "courses"
-  ) => {
-    setSelectedActivity(item);
-    setStatusType(type);
-    setStatusDialogOpen(true);
+  const fetchStudentDetails = async (studentId: string) => {
+    try {
+      const response = await fetch(`/api/students/${studentId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch student details");
+      }
+      const studentData = await response.json();
+      setAspiration(studentData.aspiration || "");
+      setComments(studentData.comments || "");
+    } catch (error) {
+      console.error("Error fetching student details:", error);
+    }
+  };
+
+  const handleGenerateTA = async () => {
+    try {
+      setGenerating(true);
+
+      const finalPrompt = `Aspirations: ${aspiration}\nInterests: ${comments}\n${resources !== "" ? `Resources: ${resources}\nThe tinkering activity must be confined to the resource provided` : ""}\n${prompt}`;
+
+      const response = await fetch("/api/customised-tinkering-activities/generate-tas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          previousActivities: selectedTinkeringActivities,
+          prompt: finalPrompt,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate tinkering activities");
+      }
+
+      const result = await response.json();
+      setGeneratedActivities(result.data);
+      setGenerateTADialogOpen(false);
+      setSelectionDialogOpen(true);
+
+    } catch (error) {
+      console.error("Error generating tinkering activities:", error);
+      alert("Failed to generate tinkering activities. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleGenerateDetailedTA = async () => {
+    try {
+      setGeneratingDetailed(true);
+
+      const response = await fetch("/api/customised-tinkering-activities/generate-ta", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          activityIntroduction: selectedActivityIntro,
+          aspiration: aspiration,
+          comments: comments,
+          resources: resources,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate detailed tinkering activity");
+      }
+
+      const result = await response.json();
+      setDetailedTA(result.data);
+      setSelectionDialogOpen(false);
+      setReviewDialogOpen(true);
+
+    } catch (error) {
+      console.error("Error generating detailed tinkering activity:", error);
+      alert("Failed to generate detailed tinkering activity. Please try again.");
+    } finally {
+      setGeneratingDetailed(false);
+    }
+  };
+
+  const handleAssignTA = async () => {
+    try {
+      setAssigning(true);
+
+      const baseTAResponse = await fetch("/api/tinkering-activities", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: detailedTA.name,
+          subtopicId: parseInt(reviewSubtopic),
+          introduction: detailedTA.introduction,
+          goals: detailedTA.goals,
+          materials: detailedTA.materials,
+          instructions: detailedTA.instructions,
+          tips: detailedTA.tips,
+          observations: detailedTA.observations,
+          extensions: detailedTA.extensions,
+          resources: detailedTA.resources,
+        }),
+      });
+
+      if (!baseTAResponse.ok) {
+        throw new Error("Failed to create base tinkering activity");
+      }
+
+      const baseTAData = await baseTAResponse.json();
+      const baseTAId = baseTAData.id;
+
+      const formattedDate = new Date().toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      const customizedTAResponse = await fetch("/api/customised-tinkering-activities", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: baseTAId,
+          student_id: selectedStudent,
+          status: [`Assigned - ${formattedDate}`],
+        }),
+      });
+
+      if (!customizedTAResponse.ok) {
+        throw new Error("Failed to assign customized tinkering activity");
+      }
+
+      alert("Tinkering activity created and assigned successfully!");
+      setReviewDialogOpen(false);
+
+      setDetailedTA(null);
+      setReviewSubject("");
+      setReviewTopic("");
+      setReviewSubtopic("");
+      setSelectedActivityIntro("");
+      setGeneratedActivities([]);
+
+      fetchTinkeringActivities();
+
+    } catch (error) {
+      console.error("Error assigning tinkering activity:", error);
+      alert("Failed to assign tinkering activity. Please try again.");
+    } finally {
+      setAssigning(false);
+    }
   };
 
   const STATUS_OPTIONS_MAP = {
@@ -756,18 +1023,18 @@ export default function StudentSnapshot() {
   const filteredSchools =
     currentView === "cluster" && selectedHub
       ? schools.filter((school) => {
-          const hub = hubs.find((h) => h.id.toString() === selectedHub);
-          if (hub) {
-            return (
-              school.id === hub.hub_school.id ||
-              hub.spokes.some((spoke: any) => spoke.id === school.id)
-            );
-          }
-          return false;
-        })
+        const hub = hubs.find((h) => h.id.toString() === selectedHub);
+        if (hub) {
+          return (
+            school.id === hub.hub_school.id ||
+            hub.spokes.some((spoke: any) => spoke.id === school.id)
+          );
+        }
+        return false;
+      })
       : currentView === "school"
-      ? schools
-      : [];
+        ? schools
+        : [];
 
   const handleViewChange = (view: "cluster" | "school") => {
     setCurrentView(view);
@@ -776,6 +1043,15 @@ export default function StudentSnapshot() {
     setSelectedSchool("");
     setSelectedStudent("");
     setStudents([]);
+
+    updateURLParams({
+      view,
+      cluster: "",
+      hub: "",
+      school: "",
+      student: "",
+      tab: activeTab,
+    });
   };
 
   return (
@@ -817,7 +1093,17 @@ export default function StudentSnapshot() {
                 <select
                   className="w-64 p-2 border rounded-md text-black"
                   value={selectedCluster}
-                  onChange={(e) => setSelectedCluster(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCluster(e.target.value);
+                    updateURLParams({
+                      view: currentView,
+                      cluster: e.target.value,
+                      hub: "",
+                      school: "",
+                      student: "",
+                      tab: activeTab,
+                    });
+                  }}
                 >
                   <option value="">SELECT</option>
                   {clusters.map((cluster) => (
@@ -835,7 +1121,17 @@ export default function StudentSnapshot() {
                 <select
                   className="w-64 p-2 border rounded-md text-black"
                   value={selectedHub}
-                  onChange={(e) => setSelectedHub(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedHub(e.target.value);
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: e.target.value,
+                      school: "",
+                      student: "",
+                      tab: activeTab,
+                    });
+                  }}
                   disabled={!selectedCluster}
                 >
                   <option value="">SELECT</option>
@@ -856,10 +1152,20 @@ export default function StudentSnapshot() {
             <select
               className="w-64 p-2 border rounded-md text-black"
               value={selectedSchool}
-              onChange={(e) => setSelectedSchool(e.target.value)}
+              onChange={(e) => {
+                setSelectedSchool(e.target.value);
+                updateURLParams({
+                  view: currentView,
+                  cluster: selectedCluster,
+                  hub: selectedHub,
+                  school: e.target.value,
+                  student: "",
+                  tab: activeTab,
+                });
+              }}
             >
               <option value="">SELECT</option>
-              {schools.map((school) => (
+              {filteredSchools.map((school) => (
                 <option key={school.id} value={school.id.toString()}>
                   {school.name}
                 </option>
@@ -874,7 +1180,17 @@ export default function StudentSnapshot() {
             <select
               className="w-64 p-2 border rounded-md text-black"
               value={selectedStudent}
-              onChange={(e) => setSelectedStudent(e.target.value)}
+              onChange={(e) => {
+                setSelectedStudent(e.target.value);
+                updateURLParams({
+                  view: currentView,
+                  cluster: selectedCluster,
+                  hub: selectedHub,
+                  school: selectedSchool,
+                  student: e.target.value,
+                  tab: activeTab,
+                });
+              }}
               disabled={!selectedSchool}
             >
               <option value="">SELECT</option>
@@ -892,14 +1208,34 @@ export default function StudentSnapshot() {
             <div className="flex space-x-4">
               <Button
                 variant={activeTab === "tinkering" ? "default" : "outline"}
-                onClick={() => setActiveTab("tinkering")}
+                onClick={() => {
+                  setActiveTab("tinkering");
+                  updateURLParams({
+                    view: currentView,
+                    cluster: selectedCluster,
+                    hub: selectedHub,
+                    school: selectedSchool,
+                    student: selectedStudent,
+                    tab: "tinkering",
+                  });
+                }}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Tinkering Activities
               </Button>
               <Button
                 variant={activeTab === "competition" ? "default" : "outline"}
-                onClick={() => setActiveTab("competition")}
+                onClick={() => {
+                  setActiveTab("competition");
+                  updateURLParams({
+                    view: currentView,
+                    cluster: selectedCluster,
+                    hub: selectedHub,
+                    school: selectedSchool,
+                    student: selectedStudent,
+                    tab: "competition",
+                  });
+                }}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Competitions
@@ -907,7 +1243,17 @@ export default function StudentSnapshot() {
 
               <Button
                 variant={activeTab === "courses" ? "default" : "outline"}
-                onClick={() => setActiveTab("courses")}
+                onClick={() => {
+                  setActiveTab("courses");
+                  updateURLParams({
+                    view: currentView,
+                    cluster: selectedCluster,
+                    hub: selectedHub,
+                    school: selectedSchool,
+                    student: selectedStudent,
+                    tab: "courses",
+                  });
+                }}
                 className="px-4 py-2 rounded-t-lg"
               >
                 Student Courses
@@ -959,6 +1305,20 @@ export default function StudentSnapshot() {
                   <GridToolbarContainer className="bg-gray-50 p-2">
                     <GridToolbarQuickFilter sx={{ width: "100%" }} />
                     <GridToolbarColumnsButton />
+                    <MuiButton
+                      variant="contained"
+                      size="small"
+                      sx={{ ml: 1 }}
+                      onClick={() => {
+                        if (selectedStudent) {
+                          fetchStudentDetails(selectedStudent);
+                        }
+                        setSelectedTinkeringActivities(tinkeringActivities);
+                        setGenerateTADialogOpen(true);
+                      }}
+                    >
+                      Generate TA
+                    </MuiButton>
                   </GridToolbarContainer>
                 ),
               }}
@@ -1292,6 +1652,387 @@ export default function StudentSnapshot() {
           topics={topics}
           subtopics={subtopics}
         />
+
+        {/* Generate TA Dialog */}
+        <Dialog
+          open={generateTADialogOpen}
+          onClose={() => setGenerateTADialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Generate Tinkering Activity</DialogTitle>
+          <DialogContent>
+            <div className="space-y-4 mt-4">
+              {/* Tinkering Activities Selection */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                  Select Tinkering Activities
+                </label>
+
+                {/* Select All Checkbox */}
+                <div className="mb-3">
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={selectedTinkeringActivities.length === tinkeringActivities.length && tinkeringActivities.length > 0}
+                        indeterminate={selectedTinkeringActivities.length > 0 && selectedTinkeringActivities.length < tinkeringActivities.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedTinkeringActivities(tinkeringActivities);
+                          } else {
+                            setSelectedTinkeringActivities([]);
+                          }
+                        }}
+                      />
+                    }
+                    label={`Select All (${tinkeringActivities.length} activities)`}
+                    className="text-sm"
+                  />
+                </div>
+
+                <Autocomplete
+                  multiple
+                  options={tinkeringActivities}
+                  disableCloseOnSelect
+                  getOptionLabel={(option: any) => option.name || ''}
+                  value={selectedTinkeringActivities}
+                  onChange={(_, newValue: any[]) => {
+                    setSelectedTinkeringActivities(newValue);
+                  }}
+                  renderOption={(props, option: any, { selected }) => (
+                    <Box component="li" {...props}>
+                      <Checkbox
+                        icon={icon}
+                        checkedIcon={checkedIcon}
+                        style={{ marginRight: 8 }}
+                        checked={selected}
+                      />
+                      {option.name || 'Unnamed Activity'}
+                    </Box>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Search tinkering activities..."
+                      variant="outlined"
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Aspiration Field */}
+              <div>
+                <Input
+                  name="aspiration"
+                  label="Aspiration"
+                  required
+                  value={aspiration}
+                  onChange={(e) => setAspiration(e.target.value)}
+                  className="focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Comments Field */}
+              <div>
+                <Input
+                  name="comments"
+                  label="Comments"
+                  required
+                  value={comments}
+                  onChange={(e) => setComments(e.target.value)}
+                  className="focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Resources Field */}
+              <div>
+                <Input
+                  name="resources"
+                  label="Resources"
+                  value={resources}
+                  onChange={(e) => setResources(e.target.value)}
+                  className="focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Prompt Field */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                  Prompt
+                </label>
+                <TextField
+                  multiline
+                  rows={8}
+                  fullWidth
+                  variant="outlined"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+              </div>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setGenerateTADialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateTA}
+              variant="default"
+              disabled={generating}
+            >
+              {generating ? "Generating..." : "Generate"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* TA Selection Dialog */}
+        <Dialog
+          open={selectionDialogOpen}
+          onClose={() => setSelectionDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Select a Generated Tinkering Activity</DialogTitle>
+          <DialogContent>
+            <div className="space-y-4 mt-4">
+              <FormControl component="fieldset" fullWidth>
+                <FormLabel component="legend">
+                  Choose one of the generated activities:
+                </FormLabel>
+                <RadioGroup
+                  value={selectedActivityIntro}
+                  onChange={(e) => setSelectedActivityIntro(e.target.value)}
+                  className="mt-4"
+                >
+                  {generatedActivities.map((activity, index) => (
+                    <FormControlLabel
+                      key={index}
+                      value={activity.introduction}
+                      control={<Radio />}
+                      label={
+                        <Box className="p-3 border rounded-lg hover:bg-gray-50">
+                          <Typography variant="body1" className="font-medium">
+                            {activity.introduction}
+                          </Typography>
+                        </Box>
+                      }
+                      className="mb-3 ml-0"
+                      sx={{
+                        alignItems: 'flex-start',
+                        '& .MuiFormControlLabel-label': {
+                          width: '100%'
+                        }
+                      }}
+                    />
+                  ))}
+                </RadioGroup>
+              </FormControl>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSelectionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateDetailedTA}
+              variant="default"
+              disabled={!selectedActivityIntro || generatingDetailed}
+            >
+              {generatingDetailed ? "Generating..." : "Select Activity"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* TA Review Dialog */}
+        <Dialog
+          open={reviewDialogOpen}
+          onClose={() => setReviewDialogOpen(false)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>Review and Assign Tinkering Activity</DialogTitle>
+          <DialogContent>
+            <div className="space-y-6 mt-4">
+              {detailedTA && (
+                <>
+
+                  {/* Subject/Topic/Subtopic Selection */}
+                  <div className="space-y-4">
+                    <Typography variant="h6" className="font-semibold">
+                      Assignment Details
+                    </Typography>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Subject Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Subject *
+                        </label>
+                        <select
+                          className="w-full p-2 border rounded-md"
+                          value={reviewSubject}
+                          onChange={(e) => setReviewSubject(e.target.value)}
+                        >
+                          <option value="">Select Subject</option>
+                          {subjects.map((subject) => (
+                            <option key={subject.id} value={subject.id.toString()}>
+                              {subject.subject_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Topic Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Topic *
+                        </label>
+                        <select
+                          className="w-full p-2 border rounded-md"
+                          value={reviewTopic}
+                          onChange={(e) => setReviewTopic(e.target.value)}
+                          disabled={!reviewSubject}
+                        >
+                          <option value="">Select Topic</option>
+                          {topics.map((topic) => (
+                            <option key={topic.id} value={topic.id.toString()}>
+                              {topic.topic_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Subtopic Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Subtopic *
+                        </label>
+                        <select
+                          className="w-full p-2 border rounded-md"
+                          value={reviewSubtopic}
+                          onChange={(e) => setReviewSubtopic(e.target.value)}
+                          disabled={!reviewTopic}
+                        >
+                          <option value="">Select Subtopic</option>
+                          {subtopics.map((subtopic) => (
+                            <option key={subtopic.id} value={subtopic.id.toString()}>
+                              {subtopic.subtopic_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Activity Details */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Typography variant="h6" className="font-semibold mb-3">
+                      {detailedTA.name}
+                    </Typography>
+                    <Typography variant="body1" className="text-gray-700 mb-4">
+                      {detailedTA.introduction}
+                    </Typography>
+
+                    {/* Goals */}
+                    {detailedTA.goals && detailedTA.goals.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Goals:</Typography>
+                        <ul className="list-disc ml-5">
+                          {detailedTA.goals.map((goal: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{goal}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Materials */}
+                    {detailedTA.materials && detailedTA.materials.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Materials:</Typography>
+                        <ul className="list-disc ml-5">
+                          {detailedTA.materials.map((material: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{material}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Instructions */}
+                    {detailedTA.instructions && detailedTA.instructions.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Instructions:</Typography>
+                        <ol className="list-decimal ml-5">
+                          {detailedTA.instructions.map((instruction: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{instruction}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+
+                    {/* Tips */}
+                    {detailedTA.tips && detailedTA.tips.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Tips:</Typography>
+                        <ul className="list-disc ml-5">
+                          {detailedTA.tips.map((tip: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Observations */}
+                    {detailedTA.observations && detailedTA.observations.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Observations:</Typography>
+                        <ul className="list-disc ml-5">
+                          {detailedTA.observations.map((observation: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{observation}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Extensions */}
+                    {detailedTA.extensions && detailedTA.extensions.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Extensions:</Typography>
+                        <ul className="list-disc ml-5">
+                          {detailedTA.extensions.map((extension: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{extension}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Resources */}
+                    {detailedTA.resources && detailedTA.resources.length > 0 && (
+                      <div className="mb-4">
+                        <Typography variant="subtitle2" className="font-medium mb-2">Resources:</Typography>
+                        <ul className="list-disc ml-5">
+                          {detailedTA.resources.map((resource: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-600">{resource}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setReviewDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAssignTA}
+              variant="default"
+              disabled={!reviewSubject || !reviewTopic || !reviewSubtopic || assigning}
+            >
+              {assigning ? "Assigning..." : "Assign"}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

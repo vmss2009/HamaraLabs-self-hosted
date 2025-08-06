@@ -4,6 +4,7 @@ export interface CustomisedCourseCreateInput {
   course_id: string;
   student_id: string;
   status: string[];
+  comments: string;
 }
 
 export interface CustomisedCourseWithRelations extends PrismaCustomisedCourse {
