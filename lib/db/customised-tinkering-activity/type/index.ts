@@ -15,7 +15,6 @@ export interface CustomisedTinkeringActivityCreateInput {
   base_ta_id: string;
   student_id: string;
   status: string[];
-  comments: string;
 }
 
 export interface CustomisedTinkeringActivityWithRelations
@@ -61,7 +60,6 @@ export const customisedTinkeringActivitySchema = z.object({
   extensions: z.array(z.string()).optional().default([]),
   resources: z.array(z.string()).optional().default([]),
   status: z.array(z.string()).optional().default([]),
-  comments: z.string().optional().default(""),
 });
 
 export interface TinkeringActivityGenerationInput {

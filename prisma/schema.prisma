@@ -137,7 +137,6 @@ model TinkeringActivity {
   extensions                  String[]
   resources                   String[]
   subtopic_id                 Int
-  comments                    String
   subtopic                    Subtopic                      @relation(fields: [subtopic_id], references: [id])
   CustomisedTinkeringActivity CustomisedTinkeringActivity[]
 }
@@ -157,7 +156,6 @@ model Competition {
   created_at             DateTime                @default(now())
   organised_by           String
   reference_links        String[]
-  comments               String
   updated_at             DateTime                @updatedAt
   CustomisedCompetition  CustomisedCompetition[]
 }
@@ -177,7 +175,6 @@ model Course {
   updated_at             DateTime           @updatedAt
   course_tags            String[]
   requirements           String[]
-  comments               String
   organised_by           String
   CustomisedCourse       CustomisedCourse[]
 }
@@ -188,7 +185,6 @@ model CustomisedCourse {
   course_id  String
   student_id String
   status     String[]
-  comments   String
   course     Course   @relation(fields: [course_id], references: [id])
   student    Student  @relation(fields: [student_id], references: [id])
 }
@@ -209,7 +205,6 @@ model CustomisedTinkeringActivity {
   base_ta_id   String
   student_id   String
   status       String[]
-  comments     String
   base_ta      TinkeringActivity @relation(fields: [base_ta_id], references: [id])
   student      Student           @relation(fields: [student_id], references: [id])
   subtopic     Subtopic          @relation(fields: [subtopic_id], references: [id])
@@ -221,7 +216,6 @@ model CustomisedCompetition {
   competition_id String
   student_id     String
   status         String[]
-  comments       String
   competition    Competition @relation(fields: [competition_id], references: [id])
   student        Student     @relation(fields: [student_id], references: [id])
 }

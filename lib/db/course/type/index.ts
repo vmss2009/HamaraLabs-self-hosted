@@ -14,7 +14,6 @@ export type Course = {
   reference_link: string;
   requirements: string[];
   course_tags: string[];
-  comments: string;
   created_at: string;
   updated_at: string;
 };
@@ -32,7 +31,6 @@ export interface CourseCreateInput {
   reference_link?: string;
   requirements: string[];
   course_tags: string[];
-  comments: string;
 }
 
 export interface CourseUpdateInput extends Partial<CourseCreateInput> {}
@@ -62,6 +60,4 @@ export const courseSchema = z.object({
   requirements: z.array(z.string().trim()).optional().default([]),
 
   course_tags: z.array(z.string().trim()).optional().default([]),
-  
-  comments: z.string().trim().optional().default(""),
 });

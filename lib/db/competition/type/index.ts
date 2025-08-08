@@ -15,7 +15,6 @@ export interface Competition {
   requirements: string[];
   payment: string;
   fee: string | null;
-  comments: string;
 }
 
 export interface CompetitionCreateInput {
@@ -31,7 +30,6 @@ export interface CompetitionCreateInput {
   competition_start_date: Date;
   organised_by: string;
   reference_links: string[];
-  comments: string;
 }
 
 export interface CompetitionUpdateInput

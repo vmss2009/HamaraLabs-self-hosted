@@ -120,7 +120,6 @@ export async function createTinkeringActivity(data: any) {
         observations: validatedData.observations,
         extensions: validatedData.extensions,
         resources: validatedData.resources,
-        comments: validatedData.comments || "",
       },
     });
 
@@ -224,7 +223,6 @@ export async function updateTinkeringActivity(id: string, data: any) {
         observations: validatedData.observations,
         extensions: validatedData.extensions,
         resources: validatedData.resources,
-        comments: validatedData.comments || "",
       },
       include: {
         subtopic: {

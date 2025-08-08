@@ -4,7 +4,6 @@ export interface CustomisedCompetitionCreateInput {
   competition_id: string;
   student_id: string;
   status: string[];
-  comments: string;
 }
 
 export interface CustomisedCompetitionWithRelations

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   DataGrid,
@@ -73,7 +73,7 @@ const COURSE_STATUS_OPTIONS = [
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
-export default function StudentSnapshot() {
+function StudentSnapshot() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -2035,5 +2035,13 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         </Dialog>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div />}> 
+      <StudentSnapshot />
+    </Suspense>
   );
 }
