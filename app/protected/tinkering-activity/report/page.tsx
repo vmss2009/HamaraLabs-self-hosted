@@ -407,7 +407,6 @@ export default function TinkeringActivityReport() {
           selectedActivity={selectedActivity}
           setSuccess={setSuccess}
         />
-        ;
       </div>
     </div>
   );
