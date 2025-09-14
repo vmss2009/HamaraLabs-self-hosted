@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   createTinkeringActivity,
   getTinkeringActivitiesBySubtopic,
@@ -25,19 +25,18 @@ export async function GET(request: Request) {
         };
       });
 
-      return NextResponse.json(transformedActivities);
+      return success(transformedActivities);
     }
 
     const tinkeringActivities = await getTinkeringActivitiesBySubtopic(
       parseInt(subtopicId)
     );
-    return NextResponse.json(tinkeringActivities);
+    return success(tinkeringActivities);
   } catch (error) {
     console.error("Error fetching tinkering activities:", error);
-    return NextResponse.json(
-      { message: "Error fetching tinkering activities" },
-      { status: 500 }
-    );
+    return failure("Error fetching tinkering activities", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -50,18 +49,21 @@ export async function POST(request: Request) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
-    const tinkeringActivity = await createTinkeringActivity(validatedData);
+    const payload = { ...validatedData, type: "default" } as const;
+    const tinkeringActivity = await createTinkeringActivity(payload);
 
-    return NextResponse.json(tinkeringActivity);
+    return success(tinkeringActivity);
   } catch (error) {
     console.error("Error creating tinkering activity:", error);
-    return NextResponse.json(
-      { message: "Error creating tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Error creating tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

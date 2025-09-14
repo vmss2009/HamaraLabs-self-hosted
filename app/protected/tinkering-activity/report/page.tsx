@@ -9,12 +9,12 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Alert from "@mui/material/Alert";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
+import Alert from "@/components/Alert";
 import AssignDialog from "@/components/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import DetailViewer from "@/components/DetailViewer";
@@ -25,7 +25,7 @@ export default function TinkeringActivityReport() {
   const [activities, setActivities] = useState<TinkeringActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<TinkeringActivity | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [missingRelationships, setMissingRelationships] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -114,12 +114,10 @@ export default function TinkeringActivityReport() {
       setActivities(updatedData);
 
       if (data.length > 0) {
-        const allMissingData = data.every(
-          (activity: any) =>
-            !activity.subtopic_name &&
-            !activity.topic_name &&
-            !activity.subject_name
-        );
+        const allMissingData = data.every((activity: Record<string, unknown>) => {
+          const a = activity as { subtopic_name?: string; topic_name?: string; subject_name?: string };
+          return !a.subtopic_name && !a.topic_name && !a.subject_name;
+        });
         if (allMissingData) {
           setMissingRelationships(true);
         }
@@ -132,7 +130,7 @@ export default function TinkeringActivityReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<TinkeringActivity>) => {
     if (!params || !params.row) return;
 
     const fullRow = fullActivities.find((item) => item.id === params.row.id);
@@ -171,27 +169,6 @@ export default function TinkeringActivityReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.subtopic_name) return value.subtopic_name;
-      if (value.topic_name) return value.topic_name;
-      if (value.subject_name) return value.subject_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const handleAssign = (activity: TinkeringActivityWithSubtopic) => {
     setSelectedActivity(activity);
@@ -273,7 +250,7 @@ export default function TinkeringActivityReport() {
           />
           <GridActionsCellItem
             key="delete"
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"
@@ -299,7 +276,7 @@ export default function TinkeringActivityReport() {
           >
             <div className="font-medium">Incomplete Data</div>
             <div className="text-sm mt-1">
-              Some tinkering activities don't have proper subject, topic, or
+              Some tinkering activities don&apos;t have proper subject, topic, or
               subtopic associations. Please ensure you select the proper
               Subject, Topic, and Subtopic when creating activities.
             </div>

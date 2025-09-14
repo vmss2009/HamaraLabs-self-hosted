@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { createSchool, getSchools } from "@/lib/db/school/crud";
 import { createAddress } from "@/lib/db/address/crud";
 import { schoolSchema } from "@/lib/db/school/type";
@@ -20,13 +20,12 @@ export async function GET(request: Request) {
     };
 
     const schools = await getSchools(filter);
-    return NextResponse.json(schools);
+    return success(schools);
   } catch (error) {
     console.error("Error fetching schools:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch schools" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch schools", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -39,7 +38,10 @@ export async function POST(request: Request) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
@@ -64,15 +66,12 @@ export async function POST(request: Request) {
       social_links: validatedData.social_links,
     });
 
-    return NextResponse.json(school, { status: 201 });
+    return success(school, 201);
   } catch (error) {
     console.error("Error creating school:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return failure(error.message, 400);
     }
-    return NextResponse.json(
-      { error: "Failed to create school" },
-      { status: 500 }
-    );
+    return failure("Failed to create school", 500);
   }
 }

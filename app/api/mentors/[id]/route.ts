@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   getMentorById,
   updateMentor,
@@ -6,23 +6,22 @@ import {
 } from "@/lib/db/mentor/crud";
 import { MentorUpdateInput, mentorSchema } from "@/lib/db/mentor/type";
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const mentor = await getMentorById(params.id);
     if (!mentor) {
-      return NextResponse.json({ error: "Mentor not found" }, { status: 404 });
+      return failure("Mentor not found", 404);
     }
-    return NextResponse.json(mentor);
+    return success(mentor);
   } catch (error) {
     console.error("Error fetching mentor:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch mentor" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch mentor", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PUT(request: Request, { params }: any) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const body = await request.json();
     const updateData: MentorUpdateInput = {
@@ -36,32 +35,31 @@ export async function PUT(request: Request, { params }: any) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
-    const mentor = await updateMentor(params.id, updateData);
-    return NextResponse.json(mentor);
+    const mentor = await updateMentor(params.id, result.data);
+    return success(mentor);
   } catch (error) {
     console.error("Error updating mentor:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
+      return failure(error.message, 400);
     }
-    return NextResponse.json(
-      { error: "Failed to update mentor" },
-      { status: 500 }
-    );
+    return failure("Failed to update mentor", 500);
   }
 }
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
   try {
     await deleteMentor(params.id);
-    return NextResponse.json({ message: "Mentor deleted successfully" });
+    return success({ message: "Mentor deleted successfully" });
   } catch (error) {
     console.error("Error deleting mentor:", error);
-    return NextResponse.json(
-      { error: "Failed to delete mentor" },
-      { status: 500 }
-    );
+    return failure("Failed to delete mentor", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

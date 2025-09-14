@@ -1,19 +1,9 @@
+"use client";
+
 import React from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  Typography,
-  Box,
-  Paper,
-  IconButton,
-} from "@mui/material";
+import Modal from "@/components/Modal";
 import { Input } from "@/components/Input";
 import SelectField from "@/components/SelectField";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import { Button } from "@/components/Button";
 import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
 
@@ -37,35 +27,34 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
   subtopics,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-3xl font-bold text-blue-800 mb-2">
-          Edit Tinkering Activity
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Update the details of this tinkering activity.
-        </p>
-      </div>
-
-      <DialogContent dividers sx={{ pt: 2 }}>
-        <Grid container spacing={3}>
-          {/* Activity Name */}
-          <Grid item xs={12}>
-            <Input
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Edit Tinkering Activity"
+      size="xl"
+      footer={
+        <>
+          <Button onClick={onClose} variant="outline">Cancel</Button>
+          <Button onClick={onSubmit} variant="default">Save Changes</Button>
+        </>
+      }
+    >
+      <div className="space-y-6">
+        {/* Activity Name */}
+        <div>
+          <Input
               name="Activity Name"
               label="Activity Name"
               value={editFormData.name || ""}
               onChange={(e) => handleEditFormChange("name", e.target.value)}
               className="focus:border-blue-500 focus:ring-blue-500"
             />
-          </Grid>
-
-          {/* Subject, Topic, Subtopic */}
-          <Grid item xs={12}>
-            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <SelectField
+        </div>
+        {/* Subject, Topic, Subtopic */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <SelectField
                     name="subject"
                     label="Subject"
                     options={subjects.map((subject) => ({
@@ -75,10 +64,10 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
                     value={selectedSubject}
                     onChange={(e) => setSelectedSubject(e.target.value)}
                   />
-                </Grid>
+            </div>
 
-                <Grid item xs={12} md={4}>
-                  <SelectField
+            <div>
+              <SelectField
                     name="Topic"
                     label="Topic"
                     options={topics.map((topic) => ({
@@ -88,10 +77,10 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
                     value={selectedTopic}
                     onChange={(e) => setSelectedTopic(e.target.value)}
                   />
-                </Grid>
+            </div>
 
-                <Grid item xs={12} md={4}>
-                  <SelectField
+            <div>
+              <SelectField
                     name="Subtopic"
                     label="Subtopic"
                     options={subtopics.map((subtopic) => ({
@@ -101,22 +90,14 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
                     value={selectedSubtopic}
                     onChange={(e) => setSelectedSubtopic(e.target.value)}
                   />
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
+            </div>
+          </div>
+        </div>
 
-          {/* Introduction */}
-          <Grid item xs={12}>
-            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-              <Typography
-                variant="h6"
-                color="text.primary"
-                sx={{ mb: 1, fontWeight: "bold" }}
-              >
-                Introduction
-              </Typography>
-              <textarea
+        {/* Introduction */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="text-lg font-semibold text-gray-900 mb-2">Introduction</div>
+          <textarea
                 name="introduction"
                 value={editFormData.introduction || ""}
                 onChange={(e) =>
@@ -126,91 +107,68 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
                 rows={4}
                 className="flex w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm"
               />
-            </Paper>
-          </Grid>
+        </div>
 
-          {/* Dynamic Array Fields */}
-          {[
-            "goals",
+        {/* Dynamic Array Fields */}
+        {[
+          "goals",
             "materials",
             "instructions",
             "tips",
             "observations",
             "extensions",
             "resources",
-          ].map((field) => (
-            <Grid item xs={12} key={field}>
-              <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-                <Typography
-                  variant="h6"
-                  color="text.primary"
-                  sx={{ mb: 1, fontWeight: "bold" }}
-                >
-                  {field.charAt(0).toUpperCase() + field.slice(1)}
-                </Typography>
+        ].map((field) => (
+          <div key={field} className="bg-gray-50 p-4 rounded-lg">
+            <div className="text-lg font-semibold text-gray-900 mb-2">
+              {field.charAt(0).toUpperCase() + field.slice(1)}
+            </div>
 
-                {(() => {
-                  let arrayValue = editFormData[field];
-                  if (!Array.isArray(arrayValue)) {
-                    arrayValue = arrayValue ? [arrayValue] : [""];
-                  }
+            {(() => {
+              let arrayValue = (editFormData as any)[field];
+              if (!Array.isArray(arrayValue)) {
+                arrayValue = arrayValue ? [arrayValue] : [""];
+              }
 
-                  return arrayValue.map((item: string, index: number) => (
-                    <Box
-                      key={index}
-                      sx={{ display: "flex", alignItems: "center", mb: 1 }}
-                    >
-                      <Input
+              return arrayValue.map((item: string, index: number) => (
+                <div key={index} className="flex items-center mb-2">
+                  <Input
                         name={`${field}-${index}`}
                         value={item}
                         onChange={(e) =>
-                          handleArrayFieldChange(field, index, e.target.value)
+                          handleArrayFieldChange(field as any, index, e.target.value)
                         }
                         className="focus:border-blue-500 focus:ring-blue-500"
                       />
 
-                      <IconButton
-                        onClick={() => handleRemoveArrayItem(field, index)}
-                        sx={{
-                          ml: 1,
-                          color: "error.main",
-                        }}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveArrayItem(field as any, index)}
+                        className="ml-2 text-red-600 hover:text-red-700 p-1"
+                        aria-label="Remove"
                       >
-                        <RemoveCircleIcon sx={{ fontSize: 36 }} />
-                      </IconButton>
-                    </Box>
+                        −
+                      </button>
+                    </div>
                   ));
                 })()}
 
-                <Box display="flex" alignItems="center" mt={1}>
-                  <IconButton
-                    onClick={() => handleAddArrayItem(field)}
-                    sx={{
-                      color: "success.main",
-                    }}
-                  >
-                    <AddCircleIcon sx={{ fontSize: 36 }} />
-                  </IconButton>
-                  <Typography variant="body2" sx={{ ml: 1 }}>
-                    Add{" "}
-                    {field.charAt(0).toUpperCase() +
-                      field.slice(1).replace(/s$/, "")}
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} variant="ghost" color="secondary">
-          Cancel
-        </Button>
-        <Button onClick={onSubmit} color="primary">
-          Save Changes
-        </Button>
-      </DialogActions>
-    </Dialog>
+            <div className="flex items-center mt-1">
+              <button
+                type="button"
+                onClick={() => handleAddArrayItem(field as any)}
+                className="text-green-600 hover:text-green-700 p-1"
+                aria-label="Add"
+              >
+                +
+              </button>
+              <span className="ml-2 text-sm text-gray-700">
+                Add {field.charAt(0).toUpperCase() + field.slice(1).replace(/s$/, "")}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Modal>
   );
 };

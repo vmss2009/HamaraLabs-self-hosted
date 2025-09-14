@@ -6,9 +6,9 @@ interface MultiFormProps {
   values?: string[];
   legend?: string;
   setArray: (newArray: string[]) => void;
-  fieldLabel?: string;
   className?: string;
   label?: string;
+  fieldLabel?: string;
   name?: string;
   placeholder?: string;
   required?: boolean;
@@ -18,9 +18,9 @@ const MultiForm: React.FC<MultiFormProps> = ({
   values = [],
   legend,
   setArray,
-  fieldLabel,
   className = "",
   label,
+  fieldLabel,
   name,
   placeholder = "",
   required = false,
@@ -50,7 +50,7 @@ const MultiForm: React.FC<MultiFormProps> = ({
     setArray(newValues);
   };
 
-  const displayLabel = legend || label || "Field";
+  const displayLabel = legend || fieldLabel || label || "Field";
 
   return (
     <div className={`space-y-4 text-black ${className}`}>

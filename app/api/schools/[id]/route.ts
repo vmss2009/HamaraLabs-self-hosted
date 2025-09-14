@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
+import { NextRequest } from "next/server";
 import {
   getSchoolById,
   updateSchool,
@@ -7,32 +8,31 @@ import {
 import { deleteAddress } from "@/lib/db/address/crud";
 import { SchoolUpdateInput, schoolSchema } from "@/lib/db/school/type";
 
-export async function GET(request: NextRequest, { params }: any) {
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
     const school = await getSchoolById(id);
 
     if (!school) {
-      return NextResponse.json({ error: "School not found" }, { status: 404 });
+      return failure("School not found", 404);
     }
 
-    return NextResponse.json(school);
+    return success(school);
   } catch (error) {
     console.error("Error fetching school:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch school" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch school", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PUT(request: NextRequest, { params }: any) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
 
     const school = await getSchoolById(id);
     if (!school) {
-      return NextResponse.json({ error: "School not found" }, { status: 404 });
+      return failure("School not found", 404);
     }
 
     const data = await request.json();
@@ -42,7 +42,10 @@ export async function PUT(request: NextRequest, { params }: any) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const parsed = result.data;
@@ -70,35 +73,33 @@ export async function PUT(request: NextRequest, { params }: any) {
 
     const updatedSchool = await updateSchool(id, validatedData);
 
-    return NextResponse.json(updatedSchool);
+    return success(updatedSchool);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return failure("Internal server error", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: any) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
     const school = await getSchoolById(id);
 
     if (!school) {
-      return NextResponse.json({ error: "School not found" }, { status: 404 });
+      return failure("School not found", 404);
     }
 
     await deleteSchool(id);
 
     await deleteAddress(school.address_id);
 
-    return NextResponse.json({ message: "School deleted successfully" });
+    return success({ message: "School deleted successfully" });
   } catch (error) {
     console.error("Error deleting school:", error);
-    return NextResponse.json(
-      { error: "Failed to delete school" },
-      { status: 500 }
-    );
+    return failure("Failed to delete school", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

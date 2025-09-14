@@ -8,13 +8,14 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { Button } from "@/components/Button";
 import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Alert from "@mui/material/Alert";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
+import ReportShell from "@/components/ReportShell";
+import Alert from "@/components/Alert";
 import AssignDialog from "@/components/DialogBox";
 import { Course } from "@/lib/db/course/type";
 
@@ -23,7 +24,7 @@ export default function CourseReport() {
   const [courses, setCourses] = useState<Course[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<Course | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Course | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function CourseReport() {
       if (!response.ok) {
         throw new Error("Failed to fetch courses");
       }
-      let data = await response.json();
+      const data = await response.json();
 
       setCourses(data);
     } catch (error) {
@@ -51,7 +52,7 @@ export default function CourseReport() {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString();
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
@@ -81,7 +82,7 @@ export default function CourseReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<Course>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -167,7 +168,7 @@ export default function CourseReport() {
           />
           <GridActionsCellItem
             key="delete"
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"
@@ -178,8 +179,8 @@ export default function CourseReport() {
   ];
 
   return (
-    <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20">
+    <ReportShell>
+      <div className="w-full">
         {error && (
           <Alert
             severity="error"
@@ -293,6 +294,6 @@ export default function CourseReport() {
         />
         ;
       </div>
-    </div>
+    </ReportShell>
   );
 }

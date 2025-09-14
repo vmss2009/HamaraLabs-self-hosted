@@ -11,12 +11,8 @@ import {
   GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
+import Alert from "@/components/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
 import DetailViewer from "@/components/DetailViewer";
 
@@ -78,11 +74,6 @@ export default function SchoolVisitReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any) => {
-    if (value === null || value === undefined) return "N/A";
-    if (typeof value === "object") return JSON.stringify(value);
-    return value.toString();
-  };
 
   const columns: GridColDef[] = [
     {
@@ -136,7 +127,7 @@ export default function SchoolVisitReport() {
             }
           />
           <GridActionsCellItem
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id.toString())}
             color="error"
@@ -147,7 +138,8 @@ export default function SchoolVisitReport() {
   ];
 
   return (
-    <div>
+    <div className="flex justify-center items-start min-h-screen w-screen bg-gray-500">
+      <div className="pt-20 w-full">
       {error && (
         <Alert
           severity="error"
@@ -163,7 +155,7 @@ export default function SchoolVisitReport() {
         </Alert>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm">
+      <div className="w-[calc(100vw-6rem)] mx-auto my-10 bg-white rounded-xl shadow-sm">
         <DataGrid
           rows={visits}
           columns={columns}
@@ -223,6 +215,7 @@ export default function SchoolVisitReport() {
           },
         ]}
       />
+      </div>
     </div>
   );
 }

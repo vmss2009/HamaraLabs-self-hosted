@@ -3,13 +3,26 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
 import { useRouter } from "next/navigation";
 
+type ClusterSchool = { id: number; name: string };
+
+interface ClusterHub {
+  id: number;
+  hub_school: ClusterSchool;
+  spokes: ClusterSchool[];
+}
+
+interface Cluster {
+  id: string;
+  name: string;
+  hubs: ClusterHub[];
+}
+
 export default function ClusterReport() {
-  const [clusters, setClusters] = useState<any[]>([]);
-  const [selectedCluster, setSelectedCluster] = useState<any>(null);
+  const [clusters, setClusters] = useState<Cluster[]>([]);
+  const [selectedCluster, setSelectedCluster] = useState<Cluster | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -17,7 +30,7 @@ export default function ClusterReport() {
     try {
       const response = await fetch("/api/cluster");
       if (!response.ok) throw new Error("Failed to fetch clusters");
-      const data = await response.json();
+      const data: Cluster[] = await response.json();
       setClusters(data);
     } catch {
       setError("Failed to load clusters. Please try again later.");
@@ -83,7 +96,7 @@ export default function ClusterReport() {
                       className="text-red-600 hover:text-red-700"
                       onClick={() => handleDelete(cluster.id)}
                     >
-                      <DeleteOutlineIcon color="error" />
+                      <DeleteIcon />
                     </Button>
                   </div>
                 ))}
@@ -99,14 +112,14 @@ export default function ClusterReport() {
                 </div>
 
                 <div className="flex justify-center space-x-12 relative">
-                  {selectedCluster.hubs.map((hub: any) => (
+                  {selectedCluster.hubs.map((hub) => (
                     <div key={hub.id} className="flex flex-col items-center">
                       <div className="hub-node border border-gray-300 rounded-lg p-4 mb-8 bg-green-100 text-green-800 font-semibold">
                         {hub.hub_school.name}
                       </div>
 
                       <div className="flex flex-col items-center space-y-4 pt-8">
-                        {hub.spokes.map((spoke: any) => (
+                        {hub.spokes.map((spoke) => (
                           <div
                             key={spoke.id}
                             className="spoke-node border border-gray-300 rounded-lg p-3 bg-white text-gray-800"

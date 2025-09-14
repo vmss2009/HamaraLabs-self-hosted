@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   createStudent,
   getStudents,
@@ -14,12 +14,9 @@ export async function GET(request: Request) {
     if (id) {
       const student = await getStudentById(id);
       if (!student) {
-        return NextResponse.json(
-          { error: "Student not found" },
-          { status: 404 }
-        );
+        return failure("Student not found", 404);
       }
-      return NextResponse.json(student);
+      return success(student);
     }
 
     const filter = {
@@ -32,13 +29,12 @@ export async function GET(request: Request) {
     };
 
     const students = await getStudents(filter);
-    return NextResponse.json(students);
+    return success(students);
   } catch (error) {
     console.error("Error fetching students:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch students" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch students", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -50,7 +46,10 @@ export async function POST(request: Request) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
@@ -68,15 +67,12 @@ export async function POST(request: Request) {
     };
 
     const student = await createStudent(studentInput);
-    return NextResponse.json(student, { status: 201 });
+    return success(student, 201);
   } catch (error) {
     console.error("Error creating student:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to create student",
-      },
-      { status: 400 }
+    return failure(
+      error instanceof Error ? error.message : "Failed to create student",
+      400
     );
   }
 }

@@ -10,6 +10,7 @@ import {
   DetailedGeneratedTA,
 } from "../type";
 import { GoogleGenAI, Type } from "@google/genai";
+import type { Prisma } from "@prisma/client";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
 
@@ -58,7 +59,7 @@ export async function createCustomisedTinkeringActivity(
 export async function getCustomisedTinkeringActivities(
   filter?: CustomisedTinkeringActivityFilter
 ): Promise<CustomisedTinkeringActivityWithRelations[]> {
-  const where: any = {};
+  const where: Prisma.CustomisedTinkeringActivityWhereInput = {};
 
   if (filter?.name) {
     where.name = { contains: filter.name, mode: "insensitive" };
@@ -210,7 +211,7 @@ export async function generateCustomisedTinkeringActivities(
 ): Promise<GeneratedTinkeringActivity[]> {
   const { previousActivities, prompt } = input;
 
-  const updatedData = previousActivities.map((obj: any) =>
+  const updatedData = previousActivities.map((obj: Record<string, unknown>) =>
     Object.fromEntries(
       Object.entries(obj).filter(([key]) => 
         ["name", "introduction", "status"].includes(key)
@@ -349,15 +350,16 @@ export async function generateCustomisedTinkeringActivity(
 
     const data: DetailedGeneratedTA = JSON.parse(response.text!);
     
-    const arrayFields: (keyof DetailedGeneratedTA)[] = [
+    
+    const arrayFields: Array<keyof Pick<DetailedGeneratedTA, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources">> = [
       "goals", "materials", "instructions", "tips", "observations", "extensions", "resources"
     ];
-    
-    arrayFields.forEach(field => {
+
+    for (const field of arrayFields) {
       if (!Array.isArray(data[field])) {
-        (data as any)[field] = [];
+        (data as any)[field] = [] as string[];
       }
-    });
+    }
 
     return data;
 

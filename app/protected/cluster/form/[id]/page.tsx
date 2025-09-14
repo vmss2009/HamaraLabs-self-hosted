@@ -5,12 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import { Input } from "@/components/Input";
-import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import SearchableSelect from "@/components/SearchableSelect";
 
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
 type School = {
   id: number;
@@ -58,9 +54,9 @@ export default function EditClusterForm({
 
         setName(clusterData.name);
         setHubs(
-          clusterData.hubs.map((hub: any) => ({
+          clusterData.hubs.map((hub: { hub_school: { id: number }; spokes: Array<{ id: number }> }) => ({
             hub_school_id: hub.hub_school.id,
-            spoke_school_ids: hub.spokes.map((spoke: any) => spoke.id),
+            spoke_school_ids: hub.spokes.map((spoke) => spoke.id),
           }))
         );
       } catch (error) {
@@ -215,87 +211,35 @@ export default function EditClusterForm({
                 </div>
 
                 <div className="space-y-4">
-                  <Autocomplete
-                    id={`hub-school-${index}`}
-                    options={schools}
-                    getOptionLabel={(option) => option.name}
-                    value={
-                      schools.find(
-                        (school) => school.id === hub.hub_school_id
-                      ) || null
-                    }
-                    onChange={(_, newValue) => {
-                      updateHubSchool(index, newValue ? newValue.id : 0);
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Hub School"
-                        placeholder="Search or select a school..."
-                        variant="outlined"
-                        error={formSubmitted && hub.hub_school_id === 0}
-                        helperText={
-                          formSubmitted && hub.hub_school_id === 0
-                            ? "Please select a hub school"
-                            : ""
-                        }
-                      />
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                      Hub School {formSubmitted && hub.hub_school_id === 0 && (
+                        <span className="text-red-600 ml-1">*</span>
+                      )}
+                    </label>
+                    <SearchableSelect<number>
+                      label="Hub School"
+                      options={schools.map((s) => ({ value: s.id, label: s.name }))}
+                      value={hub.hub_school_id || null}
+                      onChange={(val) => updateHubSchool(index, (val as number) || 0)}
+                      multiple={false}
+                      placeholder="Search schools..."
+                    />
+                    {formSubmitted && hub.hub_school_id === 0 && (
+                      <p className="mt-1.5 text-sm text-red-600 font-medium">Please select a hub school</p>
                     )}
-                  />
+                  </div>
 
                   <div className="w-full">
-                    <Autocomplete
+                    <SearchableSelect<number>
+                      label="Spoke Schools"
+                      options={schools
+                        .filter((s) => s.id !== hub.hub_school_id)
+                        .map((s) => ({ value: s.id, label: s.name }))}
+                      value={hub.spoke_school_ids}
+                      onChange={(vals) => updateSpokeSchools(index, (vals as number[]) || [])}
                       multiple
-                      id={`spoke-schools-${index}`}
-                      options={schools.filter(
-                        (school) => school.id !== hub.hub_school_id
-                      )}
-                      disableCloseOnSelect
-                      getOptionLabel={(option) => option.name}
-                      value={schools.filter((school) =>
-                        hub.spoke_school_ids.includes(school.id)
-                      )}
-                      onChange={(_, newValue) => {
-                        updateSpokeSchools(
-                          index,
-                          newValue.map((school) => school.id)
-                        );
-                      }}
-                      renderOption={(props, option, { selected }) => {
-                        const { key, ...otherProps } = props;
-                        return (
-                          <Box
-                            component="li"
-                            sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                            key={key}
-                            {...otherProps}
-                          >
-                            <Checkbox
-                              icon={icon}
-                              checkedIcon={checkedIcon}
-                              style={{ marginRight: 8 }}
-                              checked={selected}
-                            />
-                            {option.name}
-                          </Box>
-                        );
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Spoke Schools"
-                          placeholder="Search schools..."
-                          variant="outlined"
-                          error={
-                            formSubmitted && hub.spoke_school_ids.length === 0
-                          }
-                          helperText={
-                            hub.spoke_school_ids.length === 0
-                              ? "Please select at least one spoke school"
-                              : ""
-                          }
-                        />
-                      )}
+                      placeholder="Search and select multiple schools..."
                     />
                   </div>
                 </div>

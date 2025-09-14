@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-  Box,
-  Checkbox,
-  TextField,
-  Autocomplete,
-} from "@mui/material";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import Modal from "@/components/Modal";
 import { Button } from "@/components/Button";
+import { Checkbox } from "@/components/Checkbox";
+import SearchableSelect from "@/components/SearchableSelect";
 
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
+function Alert({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+      {children}
+    </div>
+  );
+}
 
 interface Student {
   id: string | number;
@@ -157,102 +152,76 @@ export default function AssignDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Assign {formtype}</DialogTitle>
-      <DialogContent>
-        {assignError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {assignError}
-          </Alert>
-        )}
-        <Box mt={2}>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {formtype}: {selectedActivity?.name}
-            </label>
-          </div>
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title={`Assign ${formtype}`}
+      size="md"
+      footer={
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={assignLoading}
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleAssignSubmit}
+            disabled={assignLoading || selectedStudents.length === 0}
+          >
+            {assignLoading ? "Assigning..." : "Assign"}
+          </Button>
+        </>
+      }
+    >
+      {assignError && <Alert>{assignError}</Alert>}
 
-          <div className="space-y-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select School
-              </label>
-              <select
-                className="w-full p-2 border rounded-md"
-                value={selectedSchool}
-                onChange={(e) => setSelectedSchool(e.target.value)}
-                disabled={assignLoading}
-              >
-                <option value="">Select a school</option>
-                {schools.map((school) => (
-                  <option key={school.id} value={school.id}>
-                    {school.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <div className="mt-2 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {formtype}: {selectedActivity?.name}
+          </label>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Students
-              </label>
-              <Autocomplete
-                multiple
-                options={students}
-                disableCloseOnSelect
-                getOptionLabel={(option: Student) =>
-                  `${option.first_name} ${option.last_name}`
-                }
-                value={students.filter((student) =>
-                  selectedStudents.includes(String(student.id))
-                )}
-                onChange={(_, newValue: Student[]) => {
-                  setSelectedStudents(newValue.map((s) => String(s.id)));
-                }}
-                disabled={!selectedSchool || assignLoading}
-                renderOption={(props, option: Student, { selected }) => (
-                  <Box component="li" {...props}>
-                    <Checkbox
-                      icon={icon}
-                      checkedIcon={checkedIcon}
-                      style={{ marginRight: 8 }}
-                      checked={selected}
-                    />
-                    {option.first_name} {option.last_name}
-                  </Box>
-                )}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Search students..."
-                    variant="outlined"
-                  />
-                )}
-              />
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Select School
+          </label>
+          <div className="w-full">
+            <SearchableSelect<string | number>
+              label="School"
+              options={schools.map((s) => ({ value: s.id, label: s.name }))}
+              value={selectedSchool || null}
+              onChange={(val) => setSelectedSchool((val as string | number) || "")}
+              placeholder="Search schools..."
+              multiple={false}
+            />
           </div>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          variant="default"
-          color="primary"
-          size="sm"
-          disabled={assignLoading}
-          onClick={handleClose}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="default"
-          color="primary"
-          size="sm"
-          onClick={handleAssignSubmit}
-          disabled={assignLoading || selectedStudents.length === 0}
-        >
-          {assignLoading ? "Assigning..." : "Assign"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Select Students
+          </label>
+          <div className="w-full">
+            <SearchableSelect<string>
+              label="Students"
+              options={students.map((st) => ({
+                value: String(st.id),
+                label: `${st.first_name} ${st.last_name}`.trim(),
+              }))}
+              value={selectedStudents}
+              onChange={(vals) => setSelectedStudents((vals as string[]) || [])}
+              multiple
+              placeholder="Search and select students..."
+            />
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 }

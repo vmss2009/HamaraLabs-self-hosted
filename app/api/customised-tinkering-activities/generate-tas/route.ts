@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { generateCustomisedTinkeringActivities } from "@/lib/db/customised-tinkering-activity/crud";
 import { TinkeringActivityGenerationInput } from "@/lib/db/customised-tinkering-activity/type";
 
@@ -7,17 +8,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     
     if (!body.previousActivities || !Array.isArray(body.previousActivities)) {
-      return NextResponse.json(
-        { error: "previousActivities is required and must be an array" },
-        { status: 400 }
-      );
+      return failure("previousActivities is required and must be an array", 400, { code: "VALIDATION_ERROR" });
     }
 
     if (!body.prompt || typeof body.prompt !== "string") {
-      return NextResponse.json(
-        { error: "prompt is required and must be a string" },
-        { status: 400 }
-      );
+      return failure("prompt is required and must be a string", 400, { code: "VALIDATION_ERROR" });
     }
 
     const input: TinkeringActivityGenerationInput = {
@@ -27,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const generatedActivities = await generateCustomisedTinkeringActivities(input);
 
-    return NextResponse.json({
+    return success({
       success: true,
       data: generatedActivities,
       count: generatedActivities.length,
@@ -36,12 +31,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error generating tinkering activities:", error);
     
-    return NextResponse.json(
-      { 
-        error: "Failed to generate tinkering activities",
-        details: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
-    );
+    return failure("Failed to generate tinkering activities", 500, {
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

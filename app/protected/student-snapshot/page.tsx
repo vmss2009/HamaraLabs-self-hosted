@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   DataGrid,
@@ -9,29 +9,13 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import {
-  FormControl,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormLabel,
-  Button as MuiButton,
-  Autocomplete,
-  TextField,
-  Checkbox,
-  Box,
-} from "@mui/material";
-import Typography from "@mui/material/Typography";
-import Alert from "@mui/material/Alert";
+import Modal from "@/components/Modal";
+import { Button as UIButton } from "@/components/Button";
+import Alert from "@/components/Alert";
 import { Button } from "@/components/Button";
 import DetailViewer from "@/components/DetailViewer";
+import SearchableSelect from "@/components/SearchableSelect";
 import { Input } from "@/components/Input";
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { EditActivityDialog } from "./tinkering-activity/tinkering-activity-edit-form/edit";
 import { getCourseColumns } from "./course/columns";
 import { getCompetitionColumns } from "./competition/columns";
@@ -70,26 +54,55 @@ const COURSE_STATUS_OPTIONS = [
   "Course completed",
 ];
 
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
+
+// Types for snapshot page
+interface School { id: number; name: string }
+interface ClusterSchool { id: number; name: string }
+interface Hub { id: number; hub_school: ClusterSchool; spokes: ClusterSchool[] }
+interface Cluster { id: string | number; hubs: Hub[] }
+interface Student { id: string | number; first_name?: string; last_name?: string; name?: string }
+interface SnapshotItem { id: string | number; status: string[]; [key: string]: unknown }
+interface EditFormData {
+  name: string;
+  introduction: string;
+  goals: string[];
+  materials: string[];
+  instructions: string[];
+  tips: string[];
+  observations: string[];
+  extensions: string[];
+  resources: string[];
+}
+interface TinkeringActivitySelection extends SnapshotItem {
+  name?: string;
+  introduction?: string;
+  goals?: string[];
+  materials?: string[];
+  instructions?: string[];
+  tips?: string[];
+  observations?: string[];
+  extensions?: string[];
+  resources?: string[];
+  subtopic?: { id: number; topic?: { id: number; subject?: { id: number } } };
+}
 
 function StudentSnapshot() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [schools, setSchools] = useState<any[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
   const [currentView, setCurrentView] = useState<"cluster" | "school">(
     (searchParams.get("view") as "cluster" | "school") || "cluster"
   );
 
-  const [clusters, setClusters] = useState<any[]>([]);
+  const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selectedCluster, setSelectedCluster] = useState(
     searchParams.get("cluster") || ""
   );
-  const [hubs, setHubs] = useState<any[]>([]);
+  const [hubs, setHubs] = useState<Hub[]>([]);
   const [selectedHub, setSelectedHub] = useState(searchParams.get("hub") || "");
 
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedSchool, setSelectedSchool] = useState(
     searchParams.get("school") || ""
   );
@@ -104,20 +117,30 @@ function StudentSnapshot() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tinkeringActivities, setTinkeringActivities] = useState<any[]>([]);
-  const [competitions, setCompetitions] = useState<any[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [tinkeringActivities, setTinkeringActivities] = useState<SnapshotItem[]>([]);
+  const [competitions, setCompetitions] = useState<SnapshotItem[]>([]);
+  const [courses, setCourses] = useState<SnapshotItem[]>([]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [selectedActivity, setSelectedActivity] = useState<SnapshotItem | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [statusType, setStatusType] = useState<
     "tinkering" | "competition" | "courses"
   >("tinkering");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState<any>({});
+  const [editFormData, setEditFormData] = useState<EditFormData>({
+    name: "",
+    introduction: "",
+    goals: [],
+    materials: [],
+    instructions: [],
+    tips: [],
+    observations: [],
+    extensions: [],
+    resources: [],
+  });
   const [subjects, setSubjects] = useState<
     Array<{ id: number; subject_name: string }>
   >([]);
@@ -152,7 +175,7 @@ function StudentSnapshot() {
   });
 
   const [generateTADialogOpen, setGenerateTADialogOpen] = useState(false);
-  const [selectedTinkeringActivities, setSelectedTinkeringActivities] = useState<any[]>([]);
+  const [selectedTinkeringActivities, setSelectedTinkeringActivities] = useState<SnapshotItem[]>([]);
   const [aspiration, setAspiration] = useState("");
   const [comments, setComments] = useState("");
   const [resources, setResources] = useState("");
@@ -164,12 +187,12 @@ If required use goals, materials, instructions, tips, observations, extensions, 
 Do not put large sentences or paragraphs. For example - goals, materials, instructions, tips, observations, extensions, and resources (each point must be less than 10 words and a maximum of 3 or 4 bullet points).`);
 
   const [selectionDialogOpen, setSelectionDialogOpen] = useState(false);
-  const [generatedActivities, setGeneratedActivities] = useState<any[]>([]);
+  const [generatedActivities, setGeneratedActivities] = useState<EditFormData[]>([]);
   const [selectedActivityIntro, setSelectedActivityIntro] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [detailedTA, setDetailedTA] = useState<any>(null);
+  const [detailedTA, setDetailedTA] = useState<EditFormData | null>(null);
   const [reviewSubject, setReviewSubject] = useState("");
   const [reviewTopic, setReviewTopic] = useState("");
   const [reviewSubtopic, setReviewSubtopic] = useState("");
@@ -419,7 +442,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   };
 
-  const fetchTinkeringActivities = async () => {
+  const fetchTinkeringActivities = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -436,9 +459,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedStudent]);
 
-  const fetchCompetitions = async () => {
+  const fetchCompetitions = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -455,9 +478,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedStudent]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -474,7 +497,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedStudent]);
 
   const fetchStudentDetails = async (studentId: string) => {
     try {
@@ -568,16 +591,16 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: detailedTA.name,
+          name: detailedTA?.name ?? "",
           subtopicId: parseInt(reviewSubtopic),
-          introduction: detailedTA.introduction,
-          goals: detailedTA.goals,
-          materials: detailedTA.materials,
-          instructions: detailedTA.instructions,
-          tips: detailedTA.tips,
-          observations: detailedTA.observations,
-          extensions: detailedTA.extensions,
-          resources: detailedTA.resources,
+          introduction: detailedTA?.introduction ?? "",
+          goals: detailedTA?.goals ?? [],
+          materials: detailedTA?.materials ?? [],
+          instructions: detailedTA?.instructions ?? [],
+          tips: detailedTA?.tips ?? [],
+          observations: detailedTA?.observations ?? [],
+          extensions: detailedTA?.extensions ?? [],
+          resources: detailedTA?.resources ?? [],
         }),
       });
 
@@ -639,7 +662,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   };
   const statusOptions = STATUS_OPTIONS_MAP[statusType] || [];
 
-  const getLatestStatus = (item: any) => {
+  const getLatestStatus = (item: SnapshotItem | null) => {
     const statusArray = item?.status;
     if (Array.isArray(statusArray) && statusArray.length > 0) {
       return statusArray[statusArray.length - 1];
@@ -648,9 +671,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   };
 
   useEffect(() => {
-    if (selectedActivity?.status?.length > 0) {
-      const latest =
-        selectedActivity.status[selectedActivity.status.length - 1];
+    if (selectedActivity && Array.isArray(selectedActivity.status) && selectedActivity.status.length > 0) {
+      const latest = selectedActivity.status[selectedActivity.status.length - 1];
       const statusOnly = latest.split(" - ")[0];
       setSelectedStatus(statusOnly);
       setIsSubmitEnabled(false);
@@ -756,7 +778,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     return new Date(0);
   };
 
-  const handleEditTinkeringActivity = (activity: any) => {
+  const handleEditTinkeringActivity = (activity: TinkeringActivitySelection) => {
     setSelectedActivity(activity);
     setEditFormData({
       name: activity.name || "",
@@ -783,7 +805,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     setEditDialogOpen(true);
   };
 
-  const handleEditFormChange = (field: string, value: any) => {
+  const handleEditFormChange = (field: keyof EditFormData, value: string | string[]) => {
     setEditFormData({
       ...editFormData,
       [field]: value,
@@ -795,7 +817,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     index: number,
     value: string
   ) => {
-    const newArray = [...editFormData[field]];
+    const newArray = [...(editFormData[field as keyof EditFormData] as string[])];
     newArray[index] = value;
     setEditFormData({
       ...editFormData,
@@ -806,12 +828,12 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   const handleAddArrayItem = (field: string) => {
     setEditFormData({
       ...editFormData,
-      [field]: [...editFormData[field], ""],
+      [field]: [...(editFormData[field as keyof EditFormData] as string[]), ""],
     });
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
-    const newArray = [...editFormData[field]];
+    const newArray = [...(editFormData[field as keyof EditFormData] as string[])];
     newArray.splice(index, 1);
     setEditFormData({
       ...editFormData,
@@ -851,7 +873,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   };
 
-  const handleDeleteTinkeringActivity = async (activity: any) => {
+  const handleDeleteTinkeringActivity = async (activity: SnapshotItem) => {
     if (!confirm("Are you sure you want to delete this tinkering activity?")) {
       return;
     }
@@ -875,7 +897,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   };
 
-  const handleDeleteCompetition = async (competition: any) => {
+  const handleDeleteCompetition = async (competition: SnapshotItem) => {
     if (!confirm("Are you sure you want to delete this competition?")) {
       return;
     }
@@ -899,22 +921,22 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   };
 
-  const handleModifyCourse = (item: any) => {
+  const handleModifyCourse = (item: SnapshotItem) => {
     setSelectedActivity(item);
     setStatusType("courses");
     setStatusDialogOpen(true);
   };
-  const handleModifyCompetition = (item: any) => {
+  const handleModifyCompetition = (item: SnapshotItem) => {
     setSelectedActivity(item);
     setStatusType("competition");
     setStatusDialogOpen(true);
   };
-  const handleModifyactivity = (item: any) => {
+  const handleModifyactivity = (item: SnapshotItem) => {
     setSelectedActivity(item);
     setStatusType("tinkering");
     setStatusDialogOpen(true);
   };
-  const handleDeleteCourse = async (course: any) => {
+  const handleDeleteCourse = async (course: SnapshotItem) => {
     if (!confirm("Are you sure you want to delete this course?")) {
       return;
     }
@@ -935,21 +957,21 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   };
 
-  const tinkeringActivityColumns = getTinkeringActivityColumns(
-    handleModifyactivity,
-    handleEditTinkeringActivity,
-    handleDeleteTinkeringActivity
-  );
-  const competitionColumns = getCompetitionColumns(
-    handleModifyCompetition,
-    handleDeleteCompetition
-  );
-  const courseColumns = getCourseColumns(
-    handleModifyCourse,
-    handleDeleteCourse
-  );
+  const tinkeringActivityColumns = (getTinkeringActivityColumns as any)(
+    handleModifyactivity as any,
+    handleEditTinkeringActivity as any,
+    handleDeleteTinkeringActivity as any
+  ) as any;
+  const competitionColumns = (getCompetitionColumns as any)(
+    handleModifyCompetition as any,
+    handleDeleteCompetition as any
+  ) as any;
+  const courseColumns = (getCourseColumns as any)(
+    handleModifyCourse as any,
+    handleDeleteCourse as any
+  ) as any;
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: { row: Record<string, unknown> }) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -959,19 +981,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     setSelectedRow(null);
   };
 
-  const formatValue = (value: any) => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) return value.join(", ");
-    return value.toString();
-  };
-
-  const formatDate = (dateString: string | Date | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  const getRowClassName = (params: any) => {
+  const getRowClassName = (params: { row: { status?: string[] } }) => {
     const statusArray = params.row.status;
     const latestStatus =
       Array.isArray(statusArray) && statusArray.length > 0
@@ -1027,7 +1037,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         if (hub) {
           return (
             school.id === hub.hub_school.id ||
-            hub.spokes.some((spoke: any) => spoke.id === school.id)
+            hub.spokes.some((spoke: ClusterSchool) => spoke.id === school.id)
           );
         }
         return false;
@@ -1058,10 +1068,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     <div className="bg-slate-400 h-screen  w-screen ">
       <div className=" p-6 ">
         {error && (
-          <Alert
-            severity="error"
+<Alert
+            type="error"
             className="mb-4"
-            onClose={() => setError(null)}
           >
             {error}
           </Alert>
@@ -1106,9 +1115,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   }}
                 >
                   <option value="">SELECT</option>
-                  {clusters.map((cluster) => (
+                    {clusters.map((cluster: any) => (
                     <option key={cluster.id} value={cluster.id.toString()}>
-                      {cluster.name}
+                      {(cluster as any).name}
                     </option>
                   ))}
                 </select>
@@ -1221,7 +1230,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 }}
                 className="px-4 py-2 rounded-t-lg"
               >
-                Student Tinkering Activities
+                Tinkering Activities
               </Button>
               <Button
                 variant={activeTab === "competition" ? "default" : "outline"}
@@ -1238,7 +1247,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 }}
                 className="px-4 py-2 rounded-t-lg"
               >
-                Student Competitions
+                Competitions
               </Button>
 
               <Button
@@ -1256,13 +1265,14 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 }}
                 className="px-4 py-2 rounded-t-lg"
               >
-                Student Courses
+                Courses
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-50 h-auto rounded-xl shadow-sm ">
+        <div className="w-[calc(100vw-6rem)] mx-auto my-10">
+          <div className="bg-gray-50 rounded-xl shadow-sm ">
           {activeTab === "tinkering" ? (
             <DataGrid
               rows={sortedTinkeringActivities}
@@ -1277,7 +1287,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               onColumnVisibilityModelChange={(newModel) =>
                 setColumnVisibilityModel(newModel)
               }
-              getRowId={(row) => row.id}
+              getRowId={(row: any) => row.id}
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
@@ -1305,10 +1315,10 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   <GridToolbarContainer className="bg-gray-50 p-2">
                     <GridToolbarQuickFilter sx={{ width: "100%" }} />
                     <GridToolbarColumnsButton />
-                    <MuiButton
-                      variant="contained"
-                      size="small"
-                      sx={{ ml: 1 }}
+<UIButton
+                      variant="default"
+                      size="sm"
+                      className="ml-2"
                       onClick={() => {
                         if (selectedStudent) {
                           fetchStudentDetails(selectedStudent);
@@ -1318,7 +1328,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                       }}
                     >
                       Generate TA
-                    </MuiButton>
+                    </UIButton>
                   </GridToolbarContainer>
                 ),
               }}
@@ -1337,7 +1347,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               onColumnVisibilityModelChange={(newModel) =>
                 setColumnVisibilitycompetitionModel(newModel)
               }
-              getRowId={(row) => row.id}
+              getRowId={(row: any) => row.id}
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
@@ -1378,7 +1388,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               }}
               pageSizeOptions={[5, 10, 25, 50]}
               disableRowSelectionOnClick
-              getRowId={(row) => row.id}
+              getRowId={(row: any) => row.id}
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
@@ -1411,6 +1421,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               }}
             />
           )}
+        </div>
         </div>
 
         {activeTab === "tinkering" ? (
@@ -1588,50 +1599,47 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           />
         ) : null}
 
-        <Dialog
-          open={statusDialogOpen}
-          onClose={() => setStatusDialogOpen(false)}
-        >
-          <DialogTitle>Modify Status</DialogTitle>
-          <DialogContent>
-            <FormControl component="fieldset" sx={{ mt: 2 }}>
-              <FormLabel component="legend">Select Status</FormLabel>
-              <RadioGroup value={selectedStatus} onChange={handleStatusChange}>
+          <Modal
+            open={statusDialogOpen}
+            onClose={() => setStatusDialogOpen(false)}
+            title="Modify Status"
+            footer={
+              <>
+                <UIButton onClick={() => setStatusDialogOpen(false)} variant="outline">
+                  Cancel
+                </UIButton>
+                <UIButton onClick={handleStatusSubmit} variant="default" disabled={!isSubmitEnabled}>
+                  Submit
+                </UIButton>
+              </>
+            }
+          >
+            <div className="mt-2">
+              <div className="text-sm font-semibold mb-2">Select Status</div>
+              <div className="space-y-2">
                 {statusOptions.map((status) => (
-                  <FormControlLabel
-                    key={status}
-                    value={status}
-                    control={<Radio />}
-                    label={status}
-                    disabled={status === latestStatus}
-                  />
+                  <label key={status} className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      className="h-4 w-4 text-blue-700"
+                      name="status"
+                      value={status}
+                      checked={selectedStatus === status}
+                      onChange={handleStatusChange}
+                      disabled={status === latestStatus}
+                    />
+                    <span className="text-gray-800">{status}</span>
+                  </label>
                 ))}
-              </RadioGroup>
+              </div>
 
-              {getLatestStatus(selectedActivity) && (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 2 }}
-                >
-                  Current status:{" "}
-                  <strong>{getLatestStatus(selectedActivity)}</strong>
-                </Typography>
+              {selectedActivity && getLatestStatus(selectedActivity) && (
+                <div className="text-sm text-gray-600 mt-2">
+                  Current status: <strong>{getLatestStatus(selectedActivity)}</strong>
+                </div>
               )}
-            </FormControl>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleStatusSubmit}
-              variant="default"
-              color="primary"
-              disabled={!isSubmitEnabled}
-            >
-              Submit
-            </Button>
-          </DialogActions>
-        </Dialog>
+            </div>
+          </Modal>
 
         <EditActivityDialog
           open={editDialogOpen}
@@ -1654,14 +1662,22 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         />
 
         {/* Generate TA Dialog */}
-        <Dialog
+        <Modal
           open={generateTADialogOpen}
           onClose={() => setGenerateTADialogOpen(false)}
-          maxWidth="md"
-          fullWidth
+          title="Generate Tinkering Activity"
+          size="lg"
+          footer={
+            <>
+              <UIButton onClick={() => setGenerateTADialogOpen(false)} variant="outline">
+                Cancel
+              </UIButton>
+              <UIButton onClick={handleGenerateTA} variant="default" disabled={generating}>
+                {generating ? "Generating..." : "Generate"}
+              </UIButton>
+            </>
+          }
         >
-          <DialogTitle>Generate Tinkering Activity</DialogTitle>
-          <DialogContent>
             <div className="space-y-4 mt-4">
               {/* Tinkering Activities Selection */}
               <div>
@@ -1669,55 +1685,49 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   Select Tinkering Activities
                 </label>
 
-                {/* Select All Checkbox */}
+{/* Select All Checkbox */}
                 <div className="mb-3">
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={selectedTinkeringActivities.length === tinkeringActivities.length && tinkeringActivities.length > 0}
-                        indeterminate={selectedTinkeringActivities.length > 0 && selectedTinkeringActivities.length < tinkeringActivities.length}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedTinkeringActivities(tinkeringActivities);
-                          } else {
-                            setSelectedTinkeringActivities([]);
-                          }
-                        }}
-                      />
-                    }
-                    label={`Select All (${tinkeringActivities.length} activities)`}
-                    className="text-sm"
-                  />
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+                      checked={selectedTinkeringActivities.length === tinkeringActivities.length && tinkeringActivities.length > 0}
+                      ref={(el) => {
+                        if (el) el.indeterminate = selectedTinkeringActivities.length > 0 && selectedTinkeringActivities.length < tinkeringActivities.length;
+                      }}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedTinkeringActivities(tinkeringActivities);
+                        } else {
+                          setSelectedTinkeringActivities([]);
+                        }
+                      }}
+                    />
+                    <span>
+                      Select All ({tinkeringActivities.length} activities)
+                    </span>
+                  </label>
                 </div>
 
-                <Autocomplete
-                  multiple
-                  options={tinkeringActivities}
-                  disableCloseOnSelect
-                  getOptionLabel={(option: any) => option.name || ''}
-                  value={selectedTinkeringActivities}
-                  onChange={(_, newValue: any[]) => {
-                    setSelectedTinkeringActivities(newValue);
-                  }}
-                  renderOption={(props, option: any, { selected }) => (
-                    <Box component="li" {...props}>
-                      <Checkbox
-                        icon={icon}
-                        checkedIcon={checkedIcon}
-                        style={{ marginRight: 8 }}
-                        checked={selected}
-                      />
-                      {option.name || 'Unnamed Activity'}
-                    </Box>
-                  )}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Search tinkering activities..."
-                      variant="outlined"
-                    />
-                  )}
-                />
+                <div className="w-full">
+                  <SearchableSelect<string>
+                    label="Activities"
+                    options={tinkeringActivities.map((a) => ({
+                      value: String((a as any).id),
+                      label: String((a as any).name ?? "Unnamed Activity"),
+                    }))}
+                    value={selectedTinkeringActivities.map((a) => String((a as any).id))}
+                    onChange={(vals) => {
+                      const list = (Array.isArray(vals) ? vals : vals ? [vals] : []) as string[];
+                      const ids = new Set(list);
+                      setSelectedTinkeringActivities(
+                        tinkeringActivities.filter((a) => ids.has(String((a as any).id)))
+                      );
+                    }}
+                    multiple
+                    placeholder="Search and select activities..."
+                  />
+                </div>
               </div>
 
               {/* Aspiration Field */}
@@ -1760,107 +1770,89 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Prompt
                 </label>
-                <TextField
-                  multiline
+                <textarea
                   rows={8}
-                  fullWidth
-                  variant="outlined"
+                  className="w-full rounded-md border border-gray-300 p-3 text-black"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                 />
               </div>
             </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setGenerateTADialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleGenerateTA}
-              variant="default"
-              disabled={generating}
-            >
-              {generating ? "Generating..." : "Generate"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        </Modal>
 
         {/* TA Selection Dialog */}
-        <Dialog
+        <Modal
           open={selectionDialogOpen}
           onClose={() => setSelectionDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
+          title="Select a Generated Tinkering Activity"
+          size="lg"
+          footer={
+            <>
+              <UIButton onClick={() => setSelectionDialogOpen(false)} variant="outline">
+                Cancel
+              </UIButton>
+              <UIButton
+                onClick={handleGenerateDetailedTA}
+                variant="default"
+                disabled={!selectedActivityIntro || generatingDetailed}
+              >
+                {generatingDetailed ? "Generating..." : "Select Activity"}
+              </UIButton>
+            </>
+          }
         >
-          <DialogTitle>Select a Generated Tinkering Activity</DialogTitle>
-          <DialogContent>
-            <div className="space-y-4 mt-4">
-              <FormControl component="fieldset" fullWidth>
-                <FormLabel component="legend">
-                  Choose one of the generated activities:
-                </FormLabel>
-                <RadioGroup
-                  value={selectedActivityIntro}
-                  onChange={(e) => setSelectedActivityIntro(e.target.value)}
-                  className="mt-4"
-                >
-                  {generatedActivities.map((activity, index) => (
-                    <FormControlLabel
-                      key={index}
+<div className="space-y-4 mt-4">
+              <div className="text-sm font-semibold">Choose one of the generated activities:</div>
+              <div className="mt-2 space-y-2">
+                {generatedActivities.map((activity, index) => (
+                  <label key={index} className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      className="mt-1 h-4 w-4 text-blue-700"
+                      name="generatedActivity"
                       value={activity.introduction}
-                      control={<Radio />}
-                      label={
-                        <Box className="p-3 border rounded-lg hover:bg-gray-50">
-                          <Typography variant="body1" className="font-medium">
-                            {activity.introduction}
-                          </Typography>
-                        </Box>
-                      }
-                      className="mb-3 ml-0"
-                      sx={{
-                        alignItems: 'flex-start',
-                        '& .MuiFormControlLabel-label': {
-                          width: '100%'
-                        }
-                      }}
+                      checked={selectedActivityIntro === activity.introduction}
+                      onChange={(e) => setSelectedActivityIntro(e.target.value)}
                     />
-                  ))}
-                </RadioGroup>
-              </FormControl>
+                    <div className="p-3 border rounded-lg hover:bg-gray-50 w-full">
+                      <div className="font-medium text-gray-900">
+                        {activity.introduction}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setSelectionDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleGenerateDetailedTA}
-              variant="default"
-              disabled={!selectedActivityIntro || generatingDetailed}
-            >
-              {generatingDetailed ? "Generating..." : "Select Activity"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        </Modal>
 
         {/* TA Review Dialog */}
-        <Dialog
+        <Modal
           open={reviewDialogOpen}
           onClose={() => setReviewDialogOpen(false)}
-          maxWidth="lg"
-          fullWidth
+          title="Review and Assign Tinkering Activity"
+          size="xl"
+          footer={
+            <>
+              <UIButton onClick={() => setReviewDialogOpen(false)} variant="outline">
+                Cancel
+              </UIButton>
+              <UIButton
+                onClick={handleAssignTA}
+                variant="default"
+                disabled={!reviewSubject || !reviewTopic || !reviewSubtopic || assigning}
+              >
+                {assigning ? "Assigning..." : "Assign"}
+              </UIButton>
+            </>
+          }
         >
-          <DialogTitle>Review and Assign Tinkering Activity</DialogTitle>
-          <DialogContent>
             <div className="space-y-6 mt-4">
               {detailedTA && (
                 <>
 
                   {/* Subject/Topic/Subtopic Selection */}
                   <div className="space-y-4">
-                    <Typography variant="h6" className="font-semibold">
-                      Assignment Details
-                    </Typography>
+                    <div className="text-lg font-semibold text-gray-900">Assignment Details</div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Subject Selection */}
@@ -1925,17 +1917,17 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   </div>
                   {/* Activity Details */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <Typography variant="h6" className="font-semibold mb-3">
+                    <div className="text-lg font-semibold text-gray-900 mb-3">
                       {detailedTA.name}
-                    </Typography>
-                    <Typography variant="body1" className="text-gray-700 mb-4">
+                    </div>
+                    <div className="text-gray-700 mb-4">
                       {detailedTA.introduction}
-                    </Typography>
+                    </div>
 
                     {/* Goals */}
                     {detailedTA.goals && detailedTA.goals.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Goals:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Goals:</div>
                         <ul className="list-disc ml-5">
                           {detailedTA.goals.map((goal: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{goal}</li>
@@ -1947,7 +1939,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                     {/* Materials */}
                     {detailedTA.materials && detailedTA.materials.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Materials:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Materials:</div>
                         <ul className="list-disc ml-5">
                           {detailedTA.materials.map((material: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{material}</li>
@@ -1959,7 +1951,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                     {/* Instructions */}
                     {detailedTA.instructions && detailedTA.instructions.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Instructions:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Instructions:</div>
                         <ol className="list-decimal ml-5">
                           {detailedTA.instructions.map((instruction: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{instruction}</li>
@@ -1971,7 +1963,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                     {/* Tips */}
                     {detailedTA.tips && detailedTA.tips.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Tips:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Tips:</div>
                         <ul className="list-disc ml-5">
                           {detailedTA.tips.map((tip: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{tip}</li>
@@ -1983,7 +1975,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                     {/* Observations */}
                     {detailedTA.observations && detailedTA.observations.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Observations:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Observations:</div>
                         <ul className="list-disc ml-5">
                           {detailedTA.observations.map((observation: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{observation}</li>
@@ -1995,7 +1987,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                     {/* Extensions */}
                     {detailedTA.extensions && detailedTA.extensions.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Extensions:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Extensions:</div>
                         <ul className="list-disc ml-5">
                           {detailedTA.extensions.map((extension: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{extension}</li>
@@ -2007,7 +1999,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                     {/* Resources */}
                     {detailedTA.resources && detailedTA.resources.length > 0 && (
                       <div className="mb-4">
-                        <Typography variant="subtitle2" className="font-medium mb-2">Resources:</Typography>
+                        <div className="text-sm font-semibold text-gray-800 mb-2">Resources:</div>
                         <ul className="list-disc ml-5">
                           {detailedTA.resources.map((resource: string, index: number) => (
                             <li key={index} className="text-sm text-gray-600">{resource}</li>
@@ -2019,20 +2011,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 </>
               )}
             </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setReviewDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAssignTA}
-              variant="default"
-              disabled={!reviewSubject || !reviewTopic || !reviewSubtopic || assigning}
-            >
-              {assigning ? "Assigning..." : "Assign"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        </Modal>
       </div>
     </div>
   );

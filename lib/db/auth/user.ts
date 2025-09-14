@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import { User } from "@prisma/client";
+import { User, Prisma } from "@prisma/client";
 
 export const getUserByEmail = async (email: string) => {
     return await prisma.user.findFirst({
@@ -13,7 +13,9 @@ export const getUserById = async (id: string) => {
     });
 };
 
-export const ensureUserExists = async (id: string, email: string, userMetaData?: any) => {
+type UserMeta = Prisma.InputJsonValue;
+
+export const ensureUserExists = async (id: string, email: string, userMetaData?: UserMeta) => {
     try {
         let user = await prisma.user.findUnique({
             where: { id },
@@ -45,7 +47,7 @@ export const ensureUserExists = async (id: string, email: string, userMetaData?:
     }
 };
 
-export const updateUserMetadata = async (id: string, userMetaData: any) => {
+export const updateUserMetadata = async (id: string, userMetaData: UserMeta) => {
     try {
         return await prisma.user.update({
             where: { id },
@@ -75,7 +77,7 @@ export async function createUser(data: {
   email: string;
   first_name?: string;
   last_name?: string;
-  user_meta_data?: any;
+  user_meta_data?: UserMeta;
 }): Promise<User> {
   return prisma.user.create({
     data: {
@@ -89,7 +91,7 @@ export async function updateUser(id: string, data: {
   email?: string;
   first_name?: string;
   last_name?: string;
-  user_meta_data?: any;
+  user_meta_data?: UserMeta;
 }): Promise<User> {
   return prisma.user.update({
     where: { id },

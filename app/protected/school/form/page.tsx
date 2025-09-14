@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import TextFieldGroup from "@/components/TextFieldGroup";
 import SelectField from "@/components/SelectField";
+import SearchableSelect from "@/components/SearchableSelect";
 import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
 import DynamicFieldArray from "@/components/DynamicFieldArray";
@@ -33,6 +34,10 @@ export default function SchoolForm() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  // guards against setting state after unmount
+  const mountedRef = useRef(true);
+  const countryCtrlRef = useRef<AbortController | null>(null);
+  const stateCtrlRef = useRef<AbortController | null>(null);
   const [syllabus, setSyllabus] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +52,7 @@ export default function SchoolForm() {
   const [selectedCity, setSelectedCity] = useState<string>("");
 
   useEffect(() => {
+    mountedRef.current = true;
     const fetchCountries = async () => {
       try {
         const response = await fetch("/api/countries");
@@ -62,6 +68,11 @@ export default function SchoolForm() {
     };
 
     fetchCountries();
+    return () => {
+      mountedRef.current = false;
+      countryCtrlRef.current?.abort();
+      stateCtrlRef.current?.abort();
+    };
   }, []);
 
   const handleCountryChange = async (
@@ -380,39 +391,73 @@ export default function SchoolForm() {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
-                <SelectField
-                  name="country"
+                <SearchableSelect<string>
                   label="Country"
                   options={countryOptions}
-                  value={selectedCountry}
-                  onChange={handleCountryChange}
-                  required
+                  value={selectedCountry || null}
+                  onChange={(val) => {
+                    const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                    setSelectedCountry(v);
+                    // abort previous
+                    countryCtrlRef.current?.abort();
+                    const ctrl = new AbortController();
+                    countryCtrlRef.current = ctrl;
+                    (async () => {
+                      try {
+const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal });
+                        if (!response.ok) throw new Error("Failed to fetch states");
+                        const data = await response.json();
+                        if (ctrl.signal.aborted || !mountedRef.current) return;
+                        setStates(data);
+                        setCities([]);
+                        setSelectedState("");
+                        setSelectedCity("");
+                      } catch (err) {
+                        if (ctrl.signal.aborted || !mountedRef.current) return;
+                        setError("Error loading states. Please try again.");
+                        console.error(err);
+                      }
+                    })();
+                  }}
                 />
 
-                <SelectField
-                  name="state"
+                <SearchableSelect<string>
                   label="State"
                   options={stateOptions}
-                  value={selectedState}
-                  onChange={handleStateChange}
-                  required
-                  className={
-                    !selectedCountry ? "opacity-50 pointer-events-none" : ""
-                  }
+                  value={selectedState || null}
+                  onChange={(val) => {
+                    const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                    setSelectedState(v);
+                    // abort previous
+                    stateCtrlRef.current?.abort();
+                    const ctrl = new AbortController();
+                    stateCtrlRef.current = ctrl;
+                    (async () => {
+                      try {
+                        const response = await fetch(`/api/cities?stateId=${v}`, { signal: ctrl.signal });
+                        if (!response.ok) throw new Error("Failed to fetch cities");
+                        const data = await response.json();
+                        if (ctrl.signal.aborted || !mountedRef.current) return;
+                        setCities(data);
+                        setSelectedCity("");
+                      } catch (err) {
+                        if (ctrl.signal.aborted || !mountedRef.current) return;
+                        setError("Error loading cities. Please try again.");
+                        console.error(err);
+                      }
+                    })();
+                  }}
+                  className={!selectedCountry ? "opacity-50 pointer-events-none" : ""}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-                <SelectField
-                  name="city"
+                <SearchableSelect<string>
                   label="City"
                   options={cityOptions}
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  required
-                  className={
-                    !selectedState ? "opacity-50 pointer-events-none" : ""
-                  }
+                  value={selectedCity || null}
+                  onChange={(val) => setSelectedCity((Array.isArray(val) ? val[0] : val) ?? "")}
+                  className={!selectedState ? "opacity-50 pointer-events-none" : ""}
                 />
 
                 <TextFieldGroup

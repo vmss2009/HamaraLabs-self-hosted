@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   getCustomisedTinkeringActivityById,
   updateCustomisedTinkeringActivity,
@@ -7,49 +7,43 @@ import {
 } from "@/lib/db/customised-tinkering-activity/crud";
 import { customisedTinkeringActivitySchema, statusSchema } from "@/lib/db/customised-tinkering-activity/type";
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    if (params.id === "list") {
+    const { id } = await params;
+    if (id === "list") {
       const { searchParams } = new URL(request.url);
       const studentId = searchParams.get("student_id");
 
       if (!studentId) {
-        return NextResponse.json(
-          { error: "Student ID is required" },
-          { status: 400 }
-        );
+        return failure("Student ID is required", 400, { code: "MISSING_PARAM" });
       }
 
       const customisedTAs = await getCustomisedTinkeringActivities({
         student_id: studentId,
       });
-      return NextResponse.json(customisedTAs);
+      return success(customisedTAs);
     }
 
-    const customisedTA = await getCustomisedTinkeringActivityById(params.id);
+    const customisedTA = await getCustomisedTinkeringActivityById(id);
 
     if (!customisedTA) {
-      return NextResponse.json(
-        { error: "Customised tinkering activity not found" },
-        { status: 404 }
-      );
+      return failure("Customised tinkering activity not found", 404);
     }
 
-    return NextResponse.json(customisedTA);
+    return success(customisedTA);
   } catch (error) {
     console.error("Error fetching customised tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch customised tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch customised tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export async function PUT(
   request: Request,
-  { params }: any
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
 
     const body = await request.json();
 
@@ -58,7 +52,10 @@ export async function PUT(
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
@@ -68,35 +65,33 @@ export async function PUT(
       validatedData
     );
 
-    return NextResponse.json(updatedActivity);
+    return success(updatedActivity);
   } catch (error) {
     console.error("Error updating customised tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to update customised tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to update customised tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await deleteCustomisedTinkeringActivity(id);
-    return NextResponse.json({
+    return success({
       message: "Customised tinkering activity deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting customised tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to delete customised tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to delete customised tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PATCH(request: Request, { params }: any) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await request.json();
 
     const result = statusSchema.safeParse(body);
@@ -104,19 +99,21 @@ export async function PATCH(request: Request, { params }: any) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const updatedActivity = await updateCustomisedTinkeringActivity(id, {
       status: result.data.status,
     });
 
-    return NextResponse.json(updatedActivity);
+    return success(updatedActivity);
   } catch (error) {
     console.error("Error updating customised tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to update customised tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to update customised tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

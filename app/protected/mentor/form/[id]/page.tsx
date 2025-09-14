@@ -5,13 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import { Input } from "@/components/Input";
-import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import MultiSelect from "@/components/MultiSelect";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
-
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
 type School = {
   id: number;
@@ -119,7 +114,7 @@ export default function EditMentorPage({
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit Mentor</h1>
           <p className="text-gray-600 mt-2">
-            Update the mentor's information below.
+            Update the mentor&apos;s information below.
           </p>
         </div>
 
@@ -196,53 +191,16 @@ export default function EditMentorPage({
 
           <FormSection title="School Selection">
             <div className="w-full">
-              <Autocomplete
-                multiple
-                id="schools-select"
-                options={schools}
-                disableCloseOnSelect
-                getOptionLabel={(option) => option.name}
-                value={schools.filter((school) =>
-                  selectedSchools.includes(school.id.toString())
-                )}
-                onChange={(_, newValue) => {
-                  setSelectedSchools(
-                    newValue.map((school) => school.id.toString())
-                  );
-                }}
-                renderOption={(props, option, { selected }) => {
-                  const { key, ...otherProps } = props;
-                  return (
-                    <Box
-                      component="li"
-                      sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                      key={key}
-                      {...otherProps}
-                    >
-                      <Checkbox
-                        icon={icon}
-                        checkedIcon={checkedIcon}
-                        style={{ marginRight: 8 }}
-                        checked={selected}
-                      />
-                      {option.name}
-                    </Box>
-                  );
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Search schools..."
-                    variant="outlined"
-                    error={formSubmitted && selectedSchools.length === 0}
-                    helperText={
-                      selectedSchools.length === 0
-                        ? "Please select at least one school"
-                        : ""
-                    }
-                  />
-                )}
+              <MultiSelect
+                label="Schools"
+                options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
+                selectedValues={selectedSchools}
+                onChange={(vals) => setSelectedSchools(vals)}
+                searchable
               />
+              {formSubmitted && selectedSchools.length === 0 && (
+                <p className="mt-1.5 text-sm text-red-600 font-medium">Please select at least one school</p>
+              )}
             </div>
           </FormSection>
 

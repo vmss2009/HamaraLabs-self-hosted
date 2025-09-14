@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import FormSection from "@/components/FormSection";
 import SelectField from "@/components/SelectField";
+import SearchableSelect from "@/components/SearchableSelect";
 import { SchoolWithAddress } from "@/lib/db/school/type";
 import { User } from "@prisma/client";
 import DateFieldGroup from "@/components/DateField";
@@ -27,6 +28,8 @@ export default function SchoolVisitForm() {
   const [schools, setSchools] = useState<SchoolWithAddress[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
   const [schoolUsers, setSchoolUsers] = useState<UserWithRole[]>([]);
+  const mountedRef = useRef(true);
+  const usersCtrlRef = useRef<AbortController | null>(null);
   const [details, setDetails] = useState<DetailItem[]>([
     { key: "", value: "" },
   ]);
@@ -42,6 +45,7 @@ export default function SchoolVisitForm() {
   });
 
   useEffect(() => {
+    mountedRef.current = true;
     const fetchSchools = async () => {
       try {
         const response = await fetch("/api/schools");
@@ -55,21 +59,31 @@ export default function SchoolVisitForm() {
       }
     };
     fetchSchools();
+    return () => {
+      mountedRef.current = false;
+      usersCtrlRef.current?.abort();
+    };
   }, []);
 
   useEffect(() => {
     const fetchSchoolUsers = async () => {
       if (selectedSchool) {
         try {
+          usersCtrlRef.current?.abort();
+          const ctrl = new AbortController();
+          usersCtrlRef.current = ctrl;
           const response = await fetch(
-            `/api/users?school_id=${selectedSchool}`
+            `/api/users?school_id=${selectedSchool}`,
+            { signal: ctrl.signal }
           );
           if (!response.ok) {
             throw new Error("Failed to fetch school users");
           }
           const data = await response.json();
+          if (ctrl.signal.aborted || !mountedRef.current) return;
           setSchoolUsers(data);
         } catch (error) {
+          if (!mountedRef.current) return;
           console.error("Error fetching school users:", error);
         }
       }
@@ -198,17 +212,16 @@ export default function SchoolVisitForm() {
           <FormSection title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
               <div className="w-full md:col-span-2">
-                <SelectField
-                  name="school"
+                <SearchableSelect<string>
                   label="School"
-                  value={formData.school_id}
-                  onChange={handleSchoolChange}
-                  options={schools.map((school) => ({
-                    value: school.id.toString(),
-                    label: school.name,
-                  }))}
-                  placeholder="Select a school"
-                  required
+                  options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
+                  value={formData.school_id || null}
+                  onChange={(val) => {
+                    const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                    setSelectedSchool(v);
+                    setFormData((prev) => ({ ...prev, school_id: v, poc_id: "" }));
+                    setSchoolUsers([]);
+                  }}
                 />
               </div>
 
@@ -227,20 +240,25 @@ export default function SchoolVisitForm() {
               </div>
 
               <div className="w-full">
-                <SelectField
-                  name="poc"
+                <SearchableSelect<string>
                   label="Point of Contact"
-                  value={formData.poc_id}
-                  onChange={handlePOCChange}
                   options={[
-                    ...schoolUsers.map((user) => ({
-                      value: user.id,
-                      label: `${user.first_name} ${user.last_name} - ${user.role}`,
+                    ...schoolUsers.map((u) => ({
+                      value: String(u.id),
+                      label: `${u.first_name} ${u.last_name} - ${u.role}`,
                     })),
                     { value: "other", label: "Other" },
                   ]}
-                  placeholder="Select POC"
-                  required
+                  value={formData.poc_id || null}
+                  onChange={(val) => {
+                    const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                    setIsOtherPOC(v === "other");
+                    setFormData((prev) => ({
+                      ...prev,
+                      poc_id: v,
+                      other_poc: v === "other" ? "" : prev.other_poc,
+                    }));
+                  }}
                 />
               </div>
 

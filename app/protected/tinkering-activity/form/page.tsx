@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import SelectField from "@/components/SelectField";
+import SearchableSelect from "@/components/SearchableSelect";
 import MultiForm from "@/components/Multiform";
 import { Input } from "@/components/Input";
 import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type";
@@ -208,52 +209,27 @@ export default function TinkeringActivityForm() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <SelectField
-                name="subject"
+              <SearchableSelect<string>
                 label="Subject"
-                options={[
-                  ...subjects.map((subject) => ({
-                    value: subject.id.toString(),
-                    label: subject.subject_name,
-                  })),
-                ]}
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                required
+                options={subjects.map((s) => ({ value: s.id.toString(), label: s.subject_name }))}
+                value={selectedSubject || null}
+                onChange={(v) => setSelectedSubject((Array.isArray(v) ? v[0] : v) ?? "")}
               />
 
-              <SelectField
-                name="topic"
+              <SearchableSelect<string>
                 label="Topic"
-                options={[
-                  ...topics.map((topic) => ({
-                    value: topic.id.toString(),
-                    label: topic.topic_name,
-                  })),
-                ]}
-                value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
-                required
-                className={
-                  !selectedSubject ? "opacity-50 pointer-events-none" : ""
-                }
+                options={topics.map((t) => ({ value: t.id.toString(), label: t.topic_name }))}
+                value={selectedTopic || null}
+                onChange={(v) => setSelectedTopic((Array.isArray(v) ? v[0] : v) ?? "")}
+                className={!selectedSubject ? "opacity-50 pointer-events-none" : ""}
               />
 
-              <SelectField
-                name="subtopic"
+              <SearchableSelect<string>
                 label="Subtopic"
-                options={[
-                  ...subtopics.map((subtopic) => ({
-                    value: subtopic.id.toString(),
-                    label: subtopic.subtopic_name,
-                  })),
-                ]}
-                value={selectedSubtopic}
-                onChange={(e) => setSelectedSubtopic(e.target.value)}
-                required
-                className={
-                  !selectedTopic ? "opacity-50 pointer-events-none" : ""
-                }
+                options={subtopics.map((st) => ({ value: st.id.toString(), label: st.subtopic_name }))}
+                value={selectedSubtopic || null}
+                onChange={(v) => setSelectedSubtopic((Array.isArray(v) ? v[0] : v) ?? "")}
+                className={!selectedTopic ? "opacity-50 pointer-events-none" : ""}
               />
             </div>
           </FormSection>

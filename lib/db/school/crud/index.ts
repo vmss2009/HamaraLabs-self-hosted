@@ -6,6 +6,7 @@ import {
   SchoolWithAddress,
 } from "../type";
 import { v4 as uuidv4 } from "uuid";
+import type { Prisma } from "@prisma/client";
 
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
@@ -164,7 +165,7 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
 
 export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddress[]> {
   try {
-    const where: any = {};
+    const where: Prisma.SchoolWhereInput = {};
 
     if (filter?.name) {
       where.name = { contains: filter.name, mode: "insensitive" };
@@ -180,10 +181,18 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
 
     if (filter?.cityId || filter?.stateId || filter?.countryId) {
       where.address = {
-        city: filter?.cityId ? { id: filter.cityId } : undefined,
-        state: filter?.stateId ? { id: filter.stateId } : undefined,
-        country: filter?.countryId ? { id: filter.countryId } : undefined,
-      };
+        city: {
+          ...(filter?.cityId ? { id: filter.cityId } : {}),
+          ...(filter?.stateId || filter?.countryId
+            ? {
+                state: {
+                  ...(filter?.stateId ? { id: filter.stateId } : {}),
+                  ...(filter?.countryId ? { country: { id: filter.countryId } } : {}),
+                },
+              }
+            : {}),
+        },
+      } as Prisma.AddressWhereInput;
     }
 
     const schools = await prisma.school.findMany({

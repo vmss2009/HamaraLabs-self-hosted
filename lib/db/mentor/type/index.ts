@@ -26,7 +26,7 @@ export interface MentorUpdateInput {
   last_name?: string;
   email?: string;
   user_meta_data?: {
-    phone_number: string;
+    phone_number?: string;
   };
   school_ids?: string[];
 }

@@ -61,8 +61,7 @@ const DynamicFieldArray: React.FC<DynamicFieldArrayProps> = ({
     }
   };
 
-  const displayLabel = legend || label || 'Field';
-  const displayFieldLabel = fieldLabel || label || 'Item';
+  const displayLabel = legend || fieldLabel || label || 'Field';
 
   return (
     <div className={`space-y-4 text-black ${className}`}>

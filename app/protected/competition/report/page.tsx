@@ -8,12 +8,12 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
-import Alert from "@mui/material/Alert";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import Alert from "@/components/Alert";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
 import DetailViewer from "@/components/DetailViewer";
 import AssignDialog from "@/components/DialogBox";
 import { Competition } from "@/lib/db/competition/type";
@@ -74,7 +74,7 @@ export default function CompetitionReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<Competition>) => {
     if (!params || !params.row) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
@@ -89,7 +89,7 @@ export default function CompetitionReport() {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString();
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
@@ -148,6 +148,7 @@ export default function CompetitionReport() {
 
         return [
           <Button
+            key="assign"
             variant="default"
             color="primary"
             size="sm"
@@ -165,7 +166,7 @@ export default function CompetitionReport() {
           />,
           <GridActionsCellItem
             key="delete"
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"

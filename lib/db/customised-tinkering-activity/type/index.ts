@@ -63,7 +63,7 @@ export const customisedTinkeringActivitySchema = z.object({
 });
 
 export interface TinkeringActivityGenerationInput {
-  previousActivities: any[];
+  previousActivities: Array<Record<string, unknown>>;
   prompt: string;
 }
 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   getStudentById,
   updateStudent,
@@ -6,25 +6,25 @@ import {
 } from "@/lib/db/student/crud";
 import { StudentCreateInput, studentSchema  } from "@/lib/db/student/type";
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const student = await getStudentById(params.id);
+    const { id } = await params;
+    const student = await getStudentById(id);
 
     if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+      return failure("Student not found", 404);
     }
 
-    return NextResponse.json(student);
+    return success(student);
   } catch (error) {
     console.error("Error fetching student:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch student" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch student", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PUT(request: Request, { params }: any) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const data = await request.json();
 
@@ -33,13 +33,16 @@ export async function PUT(request: Request, { params }: any) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
     const schoolId = validatedData.schoolId;
     if (!schoolId) {
-      return NextResponse.json({ error: "Invalid school ID" }, { status: 400 });
+      return failure("Invalid school ID", 400, { code: "INVALID_ID" });
     }
 
     const studentInput: StudentCreateInput = {
@@ -54,26 +57,26 @@ export async function PUT(request: Request, { params }: any) {
       schoolId: schoolId,
     };
 
-    const student = await updateStudent(params.id, studentInput);
-    return NextResponse.json(student);
+    const { id } = await params;
+    const student = await updateStudent(id, studentInput);
+    return success(student);
   } catch (error) {
     console.error("Error updating student:", error);
-    return NextResponse.json(
-      { error: "Failed to update student" },
-      { status: 500 }
-    );
+    return failure("Failed to update student", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await deleteStudent(params.id);
-    return NextResponse.json({ message: "Student deleted successfully" });
+    const { id } = await params;
+    await deleteStudent(id);
+    return success({ message: "Student deleted successfully" });
   } catch (error) {
     console.error("Error deleting student:", error);
-    return NextResponse.json(
-      { error: "Failed to delete student" },
-      { status: 500 }
-    );
+    return failure("Failed to delete student", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -1,11 +1,13 @@
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { Button } from "@/components/Button";
 
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { DeleteIcon } from "@/components/Icons";
+
+type SnapshotItem = Record<string, unknown>;
 
 export const getCourseColumns = (
-  handleModifyStatus: (row: any, type: string) => void,
-  handleDeleteCourse: (row: any) => void
+  handleModifyStatus: (row: SnapshotItem, type: string) => void,
+  handleDeleteCourse: (row: SnapshotItem) => void
 ): GridColDef[] => [
   {
     field: "id",
@@ -142,15 +144,7 @@ export const getCourseColumns = (
         <GridActionsCellItem
           key="delete"
           icon={
-            <DeleteOutlineIcon
-              sx={{
-                color: "#ef4444",
-                transition: "color 0.2s ease-in-out",
-                "&:hover": {
-                  color: "#dc2626",
-                },
-              }}
-            />
+<DeleteIcon className="text-red-600 hover:text-red-700 transition-colors" />
           }
           label="Delete"
           onClick={(e) => {

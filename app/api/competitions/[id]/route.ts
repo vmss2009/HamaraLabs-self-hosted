@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   getCompetitionById,
   updateCompetition,
@@ -6,81 +6,61 @@ import {
 } from "@/lib/db/competition/crud";
 import { competitionSchema } from "@/lib/db/competition/type";
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = params.id as string;
+    const id = params.id;
     if (!id) {
-      return NextResponse.json(
-        { error: "Invalid competition ID" },
-        { status: 400 }
-      );
+      return failure("Invalid competition ID", 400, { code: "INVALID_ID" });
     }
 
     const competition = await getCompetitionById(id);
 
     if (!competition) {
-      return NextResponse.json(
-        { error: "Competition not found" },
-        { status: 404 }
-      );
+      return failure("Competition not found", 404);
     }
 
-    return NextResponse.json(competition);
+    return success(competition);
   } catch (error) {
     console.error("Error fetching competition:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch competition" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch competition", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = params.id as string;
+    const id = params.id;
     if (!id) {
-      return NextResponse.json(
-        { error: "Invalid competition ID" },
-        { status: 400 }
-      );
+      return failure("Invalid competition ID", 400, { code: "INVALID_ID" });
     }
 
     const competition = await getCompetitionById(id);
     if (!competition) {
-      return NextResponse.json(
-        { error: "Competition not found" },
-        { status: 404 }
-      );
+      return failure("Competition not found", 404);
     }
 
     await deleteCompetition(id);
 
-    return NextResponse.json({ message: "Competition deleted successfully" });
+    return success({ message: "Competition deleted successfully" });
   } catch (error) {
     console.error("Error deleting competition:", error);
-    return NextResponse.json(
-      { error: "Failed to delete competition" },
-      { status: 500 }
-    );
+    return failure("Failed to delete competition", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PUT(request: Request, { params }: any) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = params.id as string;
+    const id = params.id;
     if (!id) {
-      return NextResponse.json(
-        { error: "Invalid competition ID" },
-        { status: 400 }
-      );
+      return failure("Invalid competition ID", 400, { code: "INVALID_ID" });
     }
 
     const competition = await getCompetitionById(id);
     if (!competition) {
-      return NextResponse.json(
-        { error: "Competition not found" },
-        { status: 404 }
-      );
+      return failure("Competition not found", 404);
     }
 
     const body = await request.json();
@@ -97,45 +77,44 @@ export async function PUT(request: Request, { params }: any) {
       requirements,
       payment,
       fee,
-    } = body;
+    } = body as Record<string, unknown>;
 
     const competitionData = {
-      name,
-      description,
-      organised_by: organisedBy,
-      application_start_date: new Date(applicationStartDate),
-      application_end_date: new Date(applicationEndDate),
-      competition_start_date: new Date(competitionStartDate),
-      competition_end_date: new Date(competitionEndDate),
-      eligibility: Array.isArray(eligibility) ? eligibility : [],
-      reference_links: Array.isArray(referenceLinks) ? referenceLinks : [],
-      requirements: Array.isArray(requirements) ? requirements : [],
-      payment,
-      fee: payment === "paid" ? fee : null,
+      name: name as string,
+      description: description as string,
+      organised_by: organisedBy as string,
+      application_start_date: new Date(String(applicationStartDate)),
+      application_end_date: new Date(String(applicationEndDate)),
+      competition_start_date: new Date(String(competitionStartDate)),
+      competition_end_date: new Date(String(competitionEndDate)),
+      eligibility: Array.isArray(eligibility) ? (eligibility as string[]) : [],
+      reference_links: Array.isArray(referenceLinks)
+        ? (referenceLinks as string[])
+        : [],
+      requirements: Array.isArray(requirements)
+        ? (requirements as string[])
+        : [],
+      payment: payment as string,
+      fee: (payment as string) === "paid" ? (fee as string) : null,
     };
 
     const result = competitionSchema.safeParse(competitionData);
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.errors[0]?.message ?? "Invalid data" },
-        { status: 400 }
-      );
+      return failure(result.error.errors[0]?.message ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const updatedCompetition = await updateCompetition(id, result.data);
 
-    return NextResponse.json(updatedCompetition);
+    return success(updatedCompetition);
   } catch (error) {
     console.error("Error updating competition:", error);
 
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update competition",
-      },
-      { status: 400 }
+    return failure(
+      error instanceof Error ? error.message : "Failed to update competition",
+      400
     );
   }
 }

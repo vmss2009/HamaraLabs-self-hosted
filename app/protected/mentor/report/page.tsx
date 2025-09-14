@@ -8,15 +8,12 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
+import Alert from "@/components/Alert";
 
 interface Mentor {
   id: string;
@@ -84,7 +81,7 @@ export default function MentorReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<Mentor>) => {
     if (!params || !params.row) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
@@ -94,26 +91,6 @@ export default function MentorReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.subtopic_name) return value.subtopic_name;
-      if (value.topic_name) return value.topic_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const columns: GridColDef[] = [
     {
@@ -140,7 +117,9 @@ export default function MentorReport() {
       width: 200,
       renderCell: (params) => (
         <div className="truncate">
-          {params.value?.map((school: any) => school.name).join(", ") || "N/A"}
+          {(params.value as Array<{ name: string }> | undefined)
+            ?.map((school) => school.name)
+            .join(", ") || "N/A"}
         </div>
       ),
     },
@@ -160,7 +139,8 @@ export default function MentorReport() {
             }
           />
           <GridActionsCellItem
-            icon={<DeleteOutlineIcon />}
+            key="delete"
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"

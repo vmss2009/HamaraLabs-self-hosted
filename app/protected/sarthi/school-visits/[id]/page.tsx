@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import SelectField from "@/components/SelectField";
+import SearchableSelect from "@/components/SearchableSelect";
 import { Input } from "@/components/Input";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
 import { SchoolWithAddress } from "@/lib/db/school/type";
@@ -67,15 +68,15 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
           visit_date: new Date(data.visit_date).toISOString().split('T')[0],
           poc_id: data.poc_id || "",
           other_poc: data.other_poc || "",
-          uc_submissions: (data.details as Record<string, any>)?.["No of UCs submitted"] || "",
-          planned_showcase_date: (data.details as Record<string, any>)?.["Planned showcase date"] || "",
+          uc_submissions: (data.details as Record<string, unknown>)?.["No of UCs submitted"] as string || "",
+          planned_showcase_date: (data.details as Record<string, unknown>)?.["Planned showcase date"] as string || "",
           school_performance: data.school_performance || "",
         });
         setIsOtherPOC(!data.poc_id && !!data.other_poc);
 
-        const additionalDetails = Object.entries(data.details as Record<string, any>)
+        const additionalDetails = Object.entries(data.details as Record<string, unknown>)
           .filter(([key]) => key !== "No of UCs submitted" && key !== "Planned showcase date")
-          .map(([key, value]) => ({ key, value: value.toString() }));
+          .map(([key, value]) => ({ key, value: String(value) }));
         
         setDetails(additionalDetails.length > 0 ? additionalDetails : [{ key: "", value: "" }]);
       } catch (error) {
@@ -217,17 +218,16 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
           <FormSection title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
               <div className="w-full md:col-span-2">
-                <SelectField
-                  name="school"
+                <SearchableSelect<string>
                   label="School"
-                  value={formData.school_id}
-                  onChange={handleSchoolChange}
-                  options={schools.map(school => ({
-                    value: school.id,
-                    label: school.name
-                  }))}
-                  placeholder="Select a school"
-                  required
+                  options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
+                  value={formData.school_id || null}
+                  onChange={(val) => {
+                    const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                    setSelectedSchool(v);
+                    setFormData((prev) => ({ ...prev, school_id: v, poc_id: "" }));
+                    setSchoolUsers([]);
+                  }}
                 />
               </div>
 
@@ -243,20 +243,25 @@ export default function EditSchoolVisitForm({ params }: { params: Promise<{ id: 
               </div>
 
               <div className="w-full">
-                <SelectField
-                  name="poc"
+                <SearchableSelect<string>
                   label="Point of Contact"
-                  value={formData.poc_id}
-                  onChange={handlePOCChange}
                   options={[
-                    ...schoolUsers.map(user => ({
-                      value: user.id,
-                      label: `${user.first_name} ${user.last_name}`
+                    ...schoolUsers.map((u) => ({
+                      value: String(u.id),
+                      label: `${u.first_name} ${u.last_name}`,
                     })),
-                    { value: "other", label: "Other" }
+                    { value: "other", label: "Other" },
                   ]}
-                  placeholder="Select POC"
-                  required
+                  value={formData.poc_id || null}
+                  onChange={(val) => {
+                    const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                    setIsOtherPOC(v === "other");
+                    setFormData((prev) => ({
+                      ...prev,
+                      poc_id: v,
+                      other_poc: v === "other" ? "" : prev.other_poc,
+                    }));
+                  }}
                 />
               </div>
 

@@ -9,10 +9,10 @@ interface SelectFieldProps {
   options: SelectOption[];
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   value?: string | number;
-  placeholder?: string;
   required?: boolean;
   className?: string;
   error?: string;
+  placeholder?: string;
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({
@@ -21,13 +21,13 @@ const SelectField: React.FC<SelectFieldProps> = ({
   options,
   onChange,
   value,
-  placeholder = "Select an option",
   required = false,
   className = "",
   error,
+  placeholder,
 }) => {
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full ${className}`} data-placeholder={placeholder}>
       <Select
         name={name}
         label={label}

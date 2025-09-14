@@ -8,12 +8,13 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
+import ReportShell from "@/components/ReportShell";
 import DetailViewer from "@/components/DetailViewer";
-import Alert from "@mui/material/Alert";
+import Alert from "@/components/Alert";
 import { Student } from "@/lib/db/student/type";
 
 export default function StudentReport() {
@@ -22,7 +23,7 @@ export default function StudentReport() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<Student | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -69,7 +70,7 @@ export default function StudentReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<Student>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -78,17 +79,6 @@ export default function StudentReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) return value.join(" | ");
-    if (typeof value === "object") {
-      if (value.name) return value.name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const columns: GridColDef[] = [
     {
@@ -105,7 +95,10 @@ export default function StudentReport() {
       field: "school",
       headerName: "School",
       width: 200,
-      valueGetter: (params: any) => params.name || "N/A",
+      valueGetter: (params) => {
+        const anyParams = params as any;
+        return anyParams?.name ?? "N/A";
+      },
     },
     { field: "class", headerName: "Class", width: 100 },
     { field: "section", headerName: "Section", width: 100 },
@@ -127,7 +120,7 @@ export default function StudentReport() {
         />,
         <GridActionsCellItem
           key="delete"
-          icon={<DeleteOutlineIcon />}
+          icon={<DeleteIcon />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
           color="error"
@@ -137,8 +130,8 @@ export default function StudentReport() {
   ];
 
   return (
-    <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20">
+    <ReportShell>
+      <div className="w-full">
         {error && (
           <Alert
             severity="error"
@@ -224,6 +217,6 @@ export default function StudentReport() {
           ]}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

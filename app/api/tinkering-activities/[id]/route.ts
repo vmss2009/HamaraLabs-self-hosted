@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   getTinkeringActivityById,
   updateTinkeringActivity,
@@ -6,79 +6,78 @@ import {
 } from "@/lib/db/tinkering-activity/crud";
 import { tinkeringActivitySchema } from "@/lib/db/tinkering-activity/type";
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
 
     if (!id) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+      return failure("Invalid ID format", 400, { code: "INVALID_ID" });
     }
 
     const activity = await getTinkeringActivityById(id);
 
     if (!activity) {
-      return NextResponse.json(
-        { error: "Tinkering activity not found" },
-        { status: 404 }
-      );
+      return failure("Tinkering activity not found", 404);
     }
 
-    return NextResponse.json(activity);
+    return success(activity);
   } catch (error) {
     console.error("Error fetching tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PUT(request: Request, { params }: any) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
     const data = await request.json();
 
     if (!id) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+      return failure("Invalid ID format", 400, { code: "INVALID_ID" });
     }
     const result = tinkeringActivitySchema.safeParse(data);
 
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
 
-    const activity = await updateTinkeringActivity(id, validatedData);
-    return NextResponse.json(activity);
+    const payload = { ...validatedData, type: "default" } as const;
+
+    const activity = await updateTinkeringActivity(id, payload);
+    return success(activity);
   } catch (error) {
     console.error("Error updating tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to update tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to update tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
 
     if (!id) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+      return failure("Invalid ID format", 400, { code: "INVALID_ID" });
     }
 
     await deleteTinkeringActivity(id);
-    return NextResponse.json({
+    return success({
       message: "Tinkering activity deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to delete tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to delete tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

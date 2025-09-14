@@ -1,13 +1,16 @@
 import React from "react";
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { DeleteIcon } from "@/components/Icons";
 import { Button } from "@/components/Button";
 
+type SnapshotItem = Record<string, unknown>;
+
 type ModifyStatusHandler = (
-  item: any,
+  item: SnapshotItem,
   type: "tinkering" | "competition" | "courses"
 ) => void;
-type DeleteCompetitionHandler = (competition: any) => void;
+
+type DeleteCompetitionHandler = (competition: SnapshotItem) => void;
 
 export function getCompetitionColumns(
   handleModifyStatus: ModifyStatusHandler,
@@ -124,17 +127,7 @@ export function getCompetitionColumns(
 
           <GridActionsCellItem
             key="delete"
-            icon={
-              <DeleteOutlineIcon
-                sx={{
-                  color: "#ef4444",
-                  transition: "color 0.2s ease-in-out",
-                  "&:hover": {
-                    color: "#dc2626",
-                  },
-                }}
-              />
-            }
+icon={<DeleteIcon className="text-red-600 hover:text-red-700 transition-colors" />}
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { generateCustomisedTinkeringActivity } from "@/lib/db/customised-tinkering-activity/crud";
 import { DetailedTAGenerationInput } from "@/lib/db/customised-tinkering-activity/type";
 
@@ -7,24 +8,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     
     if (!body.activityIntroduction || typeof body.activityIntroduction !== "string") {
-      return NextResponse.json(
-        { error: "activityIntroduction is required and must be a string" },
-        { status: 400 }
-      );
+      return failure("activityIntroduction is required and must be a string", 400, { code: "VALIDATION_ERROR" });
     }
 
     if (!body.aspiration || typeof body.aspiration !== "string") {
-      return NextResponse.json(
-        { error: "aspiration is required and must be a string" },
-        { status: 400 }
-      );
+      return failure("aspiration is required and must be a string", 400, { code: "VALIDATION_ERROR" });
     }
 
     if (!body.comments || typeof body.comments !== "string") {
-      return NextResponse.json(
-        { error: "comments is required and must be a string" },
-        { status: 400 }
-      );
+      return failure("comments is required and must be a string", 400, { code: "VALIDATION_ERROR" });
     }
 
     const resources = body.resources || "";
@@ -38,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     const detailedTA = await generateCustomisedTinkeringActivity(input);
 
-    return NextResponse.json({
+    return success({
       success: true,
       data: detailedTA,
     });
@@ -46,12 +38,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error generating detailed tinkering activity:", error);
     
-    return NextResponse.json(
-      { 
-        error: "Failed to generate detailed tinkering activity",
-        details: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
-    );
+    return failure("Failed to generate detailed tinkering activity", 500, {
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

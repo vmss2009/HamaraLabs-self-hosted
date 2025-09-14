@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
-import { StudentFilter } from "../type";
+import type { Prisma } from "@prisma/client";
+import { StudentCreateInput, StudentFilter } from "../type";
 
-export async function createStudent(data: any) {
+export async function createStudent(data: StudentCreateInput) {
   try {
     const validatedData = data;
 
@@ -28,7 +29,7 @@ export async function createStudent(data: any) {
 
 export async function getStudents(filter?: StudentFilter) {
   try {
-    const where: any = {};
+    const where: Prisma.StudentWhereInput = {};
 
     if (filter?.first_name) {
       where.first_name = { contains: filter.first_name, mode: "insensitive" };
@@ -90,7 +91,7 @@ export async function getStudentById(id: string) {
   }
 }
 
-export async function updateStudent(id: string, data: any) {
+export async function updateStudent(id: string, data: StudentCreateInput) {
   try {
     const validatedData = data;
 

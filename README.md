@@ -97,6 +97,44 @@ A sample list of concerns from End-user organization are depicted here:
   connect form.
 
 
+## API responses and error handling
+
+This project uses a small helper to standardize API responses.
+
+- success<T>(data: T, status = 200)
+- failure(error: string, status = 400, opts?: { code?: string; details?: unknown })
+
+Usage example in a route handler:
+
+```ts path=null start=null
+import { failure, success } from "@/lib/api/http";
+import { z } from "zod";
+
+const schema = z.object({ id: z.string().uuid() });
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const result = schema.safeParse(body);
+    if (!result.success) {
+      return failure("Invalid request", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
+    }
+    const created = await createSomething(result.data);
+    return success(created, 201);
+  } catch (err) {
+    return failure("Internal Server Error", 500, {
+      details: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+```
+
+- For validation, prefer Zod schemas and use result.data to propagate typed, validated inputs.
+- On error, include a machine-readable code when helpful (e.g., VALIDATION_ERROR, INVALID_ID, MISSING_PARAM).
+
 ## Tech stack
 
 - Next JS (App router)

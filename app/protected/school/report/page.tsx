@@ -9,11 +9,13 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
   GridActionsCellItem,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { EditIcon, DeleteIcon } from "@/components/Icons";
 import DetailViewer from "@/components/DetailViewer";
+import Alert from "@/components/Alert";
+import ReportShell from "@/components/ReportShell";
 
 interface School {
   id: number;
@@ -88,7 +90,7 @@ export default function Page() {
       ATL_establishment_year: false,
     });
 
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<School | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const columns: GridColDef[] = [
@@ -173,7 +175,7 @@ export default function Page() {
         />,
         <GridActionsCellItem
           key="delete"
-          icon={<DeleteOutlineIcon />}
+          icon={<DeleteIcon />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
           color="error"
@@ -197,13 +199,13 @@ export default function Page() {
         const country = state.country || {};
 
         const principal = school.users?.find(
-          (user: any) => user.id === school.principal_id
+          (user: { id: string }) => user.id === school.principal_id
         );
         const correspondent = school.users?.find(
-          (user: any) => user.id === school.correspondent_id
+          (user: { id: string }) => user.id === school.correspondent_id
         );
         const in_charge = school.users?.find(
-          (user: any) => user.id === school.in_charge_id
+          (user: { id: string }) => user.id === school.in_charge_id
         );
 
         return {
@@ -243,7 +245,7 @@ export default function Page() {
     fetchSchools();
   }, []);
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<School>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -272,31 +274,10 @@ export default function Page() {
     }
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.country_name) return value.country_name;
-      if (value.state_name) return value.state_name;
-      if (value.city_name) return value.city_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   return (
-    <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20">
+    <ReportShell>
+      <div className="w-full">
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={schools}
@@ -333,6 +314,12 @@ export default function Page() {
           />
         </div>
 
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
@@ -356,14 +343,6 @@ export default function Page() {
             {
               label: "Address",
               type: "address",
-              fields: [
-                { label: "Address Line 1", field: "address.address_line1" },
-                { label: "Address Line 2", field: "address.address_line2" },
-                { label: "Pincode", field: "address.pincode" },
-                { label: "City", field: "city" },
-                { label: "State", field: "state" },
-                { label: "Country", field: "country" },
-              ],
             },
             {
               label: "Principal Details",
@@ -399,6 +378,6 @@ export default function Page() {
           ]}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

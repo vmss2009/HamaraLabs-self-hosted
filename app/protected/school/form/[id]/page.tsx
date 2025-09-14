@@ -87,13 +87,13 @@ export default function EditSchoolForm({
         setSelectedCity(data.address.city.id.toString());
 
         const principal = data.users?.find(
-          (user: any) => user.id === data.principal_id
+          (user: { id: string }) => user.id === data.principal_id
         );
         const correspondent = data.users?.find(
-          (user: any) => user.id === data.correspondent_id
+          (user: { id: string }) => user.id === data.correspondent_id
         );
         const in_charge = data.users?.find(
-          (user: any) => user.id === data.in_charge_id
+          (user: { id: string }) => user.id === data.in_charge_id
         );
 
         if (
