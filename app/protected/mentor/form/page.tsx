@@ -16,7 +16,7 @@ export default function MentorForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -47,6 +47,14 @@ export default function MentorForm() {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
+    setFormSubmitted(true);
+
+    // Validate schools selection
+    if (selectedSchools.length === 0) {
+      setError("Please select at least one school");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const mentorData = {
@@ -183,6 +191,12 @@ export default function MentorForm() {
                     placeholder="Select schools"
                     variant="outlined"
                     fullWidth
+                    error={formSubmitted && selectedSchools.length === 0}
+                    helperText={
+                      formSubmitted && selectedSchools.length === 0
+                        ? "Please select at least one school"
+                        : undefined
+                    }
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
