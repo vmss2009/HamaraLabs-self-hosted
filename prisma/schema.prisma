@@ -60,6 +60,7 @@ model School {
   id                     String        @id @default(uuid())
   created_at             DateTime      @default(now())
   name                   String
+  udise_code             String?
   is_ATL                 Boolean
   syllabus               String[]
   website_url            String?

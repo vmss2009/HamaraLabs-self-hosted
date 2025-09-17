@@ -11,6 +11,7 @@ export interface UserInput {
 
 export interface SchoolCreateInput {
   name: string;
+  udise_code?: string;
   is_ATL: boolean;
   ATL_establishment_year?: number | null;
   address_id: number;
@@ -27,6 +28,7 @@ export interface SchoolWithAddress {
   id: string;
   created_at: Date;
   name: string;
+  udise_code: string | null;
   is_ATL: boolean;
   ATL_establishment_year: number | null;
   address_id: number;
@@ -77,6 +79,7 @@ export interface SchoolFilter {
 
 export interface SchoolUpdateInput {
   name: string;
+  udise_code?: string;
   is_ATL: boolean;
   ATL_establishment_year?: number | null;
   syllabus: string[];
@@ -135,6 +138,7 @@ const addressSchema = z.object({
 
 export const schoolSchema = z.object({
   name: z.string().min(1),
+  udise_code: z.string().optional(),
   is_ATL: z.boolean(),
   ATL_establishment_year: z.number().int().optional(),
   address: addressSchema,

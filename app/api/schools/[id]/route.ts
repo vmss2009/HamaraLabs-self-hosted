@@ -55,6 +55,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const validatedData: SchoolUpdateInput = {
       name: parsed.name,
+      udise_code: parsed.udise_code,
       is_ATL: parsed.is_ATL,
       ATL_establishment_year: parsed.is_ATL
         ? parsed.ATL_establishment_year ?? null

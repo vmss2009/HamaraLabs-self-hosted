@@ -100,6 +100,7 @@ export default function SchoolDetailViewer({
   const columns: Column[] = [
     { label: "S.No", field: "index" },
     { label: "Name", field: "name" },
+    { label: "UDISE Code", field: "udise_code" },
     { label: "Is ATL", field: "is_ATL" },
     { label: "ATL Establishment Year", field: "ATL_establishment_year" },
     { label: "Paid Subscription", field: "paid_subscription" },

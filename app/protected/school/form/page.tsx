@@ -174,6 +174,7 @@ export default function SchoolForm() {
 
       const schoolData = {
         name: formData.get("name"),
+        udise_code: formData.get("udiseCode") || undefined,
         is_ATL: isATL === "Yes",
         ATL_establishment_year:
           isATL === "Yes"
@@ -324,6 +325,12 @@ export default function SchoolForm() {
                       label: "School Name",
                       required: true,
                       placeholder: "Enter school name",
+                    },
+                    {
+                      name: "udiseCode",
+                      label: "UDISE Code",
+                      required: false,
+                      placeholder: "Enter UDISE code (optional)",
                     },
                   ]}
                 />

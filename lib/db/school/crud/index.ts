@@ -4,6 +4,7 @@ import {
   SchoolFilter,
   SchoolUpdateInput,
   SchoolWithAddress,
+  UserInput,
 } from "../type";
 import { v4 as uuidv4 } from "uuid";
 import type { Prisma } from "@prisma/client";
@@ -57,6 +58,7 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
     const school = await prisma.school.create({
       data: {
         name: data.name,
+        udise_code: data.udise_code,
         is_ATL: data.is_ATL,
         ATL_establishment_year: data.ATL_establishment_year,
         address_id: data.address_id,
@@ -327,6 +329,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       where: { id },
       data: {
         name: data.name,
+        udise_code: data.udise_code,
         is_ATL: data.is_ATL,
         ATL_establishment_year: data.ATL_establishment_year,
         syllabus: data.syllabus,

@@ -154,12 +154,14 @@ export default function EditSchoolForm({
         // Set default form values
         setTimeout(() => {
           const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+          const udiseCodeInput = document.querySelector('input[name="udiseCode"]') as HTMLInputElement;
           const addressLine1Input = document.querySelector('input[name="addressLine1"]') as HTMLInputElement;
           const addressLine2Input = document.querySelector('input[name="addressLine2"]') as HTMLInputElement;
           const pincodeInput = document.querySelector('input[name="pincode"]') as HTMLInputElement;
           const websiteInput = document.querySelector('input[name="websiteURL"]') as HTMLInputElement;
           
           if (nameInput) nameInput.value = data.name;
+          if (udiseCodeInput) udiseCodeInput.value = data.udise_code || '';
           if (addressLine1Input) addressLine1Input.value = data.address.address_line1 || '';
           if (addressLine2Input) addressLine2Input.value = data.address.address_line2 || '';
           if (pincodeInput) pincodeInput.value = data.address.pincode || '';
@@ -316,6 +318,7 @@ export default function EditSchoolForm({
 
       const schoolData = {
         name: formData.get("name"),
+        udise_code: formData.get("udiseCode") || undefined,
         is_ATL: isATL === "Yes",
         ATL_establishment_year:
           isATL === "Yes"
@@ -460,6 +463,12 @@ export default function EditSchoolForm({
                       label: "School Name",
                       required: true,
                       placeholder: "Enter school name",
+                    },
+                    {
+                      name: "udiseCode",
+                      label: "UDISE Code",
+                      required: false,
+                      placeholder: "Enter UDISE code (optional)",
                     },
                   ]}
                 />

@@ -54,6 +54,7 @@ export async function POST(request: Request) {
 
     const school = await createSchool({
       name: validatedData.name,
+      udise_code: validatedData.udise_code,
       is_ATL: validatedData.is_ATL,
       ATL_establishment_year: validatedData.ATL_establishment_year,
       address_id: address.id,

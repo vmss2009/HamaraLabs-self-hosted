@@ -33,6 +33,7 @@ interface UserRole {
 interface School {
   id: number;
   name: string;
+  udise_code?: string | null;
   is_ATL: boolean;
   ATL_establishment_year: number | null;
   paid_subscription: boolean;
@@ -61,6 +62,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
+      udise_code: false,
       syllabus: false,
       social_links: false,
       addressLine1: false,
@@ -85,6 +87,7 @@ export default function Page() {
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
     { field: "name", headerName: "Name", width: 200 },
+    { field: "udise_code", headerName: "UDISE Code", width: 150 },
     { field: "is_ATL", headerName: "Is ATL ?", width: 200 },
     {
       field: "ATL_establishment_year",
