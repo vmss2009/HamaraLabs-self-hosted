@@ -110,18 +110,15 @@ export default function Page() {
         if (principals.length === 0) {
           return <span className="text-gray-400 italic">None</span>;
         }
+        const firstNames = principals.map((principal: any) => principal.name.split(' ')[0]);
+        const fullNamesList = principals.map((principal: any) => principal.name).join(', ');
+        const displayText = firstNames.join(', ');
+        
         return (
           <div className="py-2">
-            {principals.map((principal: any, index: number) => (
-              <div key={index} className="mb-1 last:mb-0">
-                <div className="font-medium text-sm text-blue-600">
-                  {principal.name}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {principal.email}
-                </div>
-              </div>
-            ))}
+            <div className="font-medium text-sm text-blue-600 truncate" title={fullNamesList}>
+              {displayText}
+            </div>
           </div>
         );
       }
@@ -135,18 +132,15 @@ export default function Page() {
         if (correspondents.length === 0) {
           return <span className="text-gray-400 italic">None</span>;
         }
+        const firstNames = correspondents.map((correspondent: any) => correspondent.name.split(' ')[0]);
+        const fullNamesList = correspondents.map((correspondent: any) => correspondent.name).join(', ');
+        const displayText = firstNames.join(', ');
+        
         return (
           <div className="py-2">
-            {correspondents.map((correspondent: any, index: number) => (
-              <div key={index} className="mb-1 last:mb-0">
-                <div className="font-medium text-sm text-green-600">
-                  {correspondent.name}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {correspondent.email}
-                </div>
-              </div>
-            ))}
+            <div className="font-medium text-sm text-green-600 truncate" title={fullNamesList}>
+              {displayText}
+            </div>
           </div>
         );
       }
@@ -160,18 +154,15 @@ export default function Page() {
         if (inCharges.length === 0) {
           return <span className="text-gray-400 italic">None</span>;
         }
+        const firstNames = inCharges.map((inCharge: any) => inCharge.name.split(' ')[0]);
+        const fullNamesList = inCharges.map((inCharge: any) => inCharge.name).join(', ');
+        const displayText = firstNames.join(', ');
+        
         return (
           <div className="py-2">
-            {inCharges.map((inCharge: any, index: number) => (
-              <div key={index} className="mb-1 last:mb-0">
-                <div className="font-medium text-sm text-purple-600">
-                  {inCharge.name}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {inCharge.email}
-                </div>
-              </div>
-            ))}
+            <div className="font-medium text-sm text-purple-600 truncate" title={fullNamesList}>
+              {displayText}
+            </div>
           </div>
         );
       }
