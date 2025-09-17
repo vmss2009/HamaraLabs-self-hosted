@@ -64,11 +64,9 @@ export const updateUserMetadata = async (id: string, userMetaData: UserMeta) => 
 export async function getUsersBySchool(school_id: string): Promise<User[]> {
   return prisma.user.findMany({
     where: {
-      schools: {
-        some: {
-          id: school_id
-        }
-      }
+            schools: {
+                has: school_id,
+            },
     }
   });
 }
@@ -107,39 +105,44 @@ export async function deleteUser(id: string): Promise<User> {
 
 export async function getSchoolKeyUsers(schoolId: string) {
     try {
-        const school = await prisma.school.findUnique({
-            where: { id: schoolId },
-            select: {
-                in_charge_id: true,
-                correspondent_id: true,
-                principal_id: true
-            }
-        });
-
-        if (!school) {
-            throw new Error("School not found");
-        }
-
-        const userIds = [
-            school.in_charge_id,
-            school.correspondent_id,
-            school.principal_id
-        ].filter((id): id is string => id !== null);
-
+        // Fetch all users associated with this school
         const users = await prisma.user.findMany({
             where: {
-                id: {
-                    in: userIds
-                }
-            }
+                schools: { has: schoolId },
+            },
         });
 
-        return users.map(user => ({
-            ...user,
-            role: user.id === school.in_charge_id ? 'Incharge' :
-                  user.id === school.correspondent_id ? 'Correspondent' :
-                  user.id === school.principal_id ? 'Principal' : ''
-        }));
+        // Determine their primary role for this school from rolesBySchool in user_meta_data
+        const priority = ["INCHARGE", "PRINCIPAL", "CORRESPONDENT"] as const;
+
+        const result = users.map((user) => {
+            const meta: any = user.user_meta_data ?? {};
+            const rolesBySchool = meta?.rolesBySchool ?? {};
+            const raw = rolesBySchool?.[schoolId] ?? [];
+            const roles: string[] = Array.isArray(raw) ? raw : [raw];
+
+            // Normalize to uppercase for comparison
+            const normalized = roles
+                .filter(Boolean)
+                .map((r) => String(r).toUpperCase());
+
+            const picked = priority.find((p) => normalized.includes(p));
+
+            const roleLabel = picked === "INCHARGE"
+                ? "Incharge"
+                : picked === "PRINCIPAL"
+                ? "Principal"
+                : picked === "CORRESPONDENT"
+                ? "Correspondent"
+                : "";
+
+            return {
+                ...user,
+                role: roleLabel,
+            } as User & { role: string };
+        });
+
+        return result;
     } catch (error) {
         console.error("Error fetching school key users:", error);
         throw error;

@@ -1,10 +1,6 @@
 import { failure, success } from "@/lib/api/http";
 import { NextRequest } from "next/server";
-import {
-  getSchoolById,
-  updateSchool,
-  deleteSchool,
-} from "@/lib/db/school/crud";
+import { getSchoolById, updateSchool, deleteSchool } from "@/lib/db/school/crud";
 import { deleteAddress } from "@/lib/db/address/crud";
 import { SchoolUpdateInput, schoolSchema } from "@/lib/db/school/type";
 

@@ -100,47 +100,32 @@ export default function EditSchoolForm({
         setCities(citiesData);
         setSelectedCity(data.address.city.id.toString());
 
-        // Extract users by role from user_roles
-        const userRoles = data.user_roles || [];
-        
-        interface UserRole {
-          role: 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
-          user: {
-            email: string;
-            first_name: string;
-            last_name: string;
-            user_meta_data?: {
-              phone_number?: string;
-            };
+        // Fetch users and classify by rolesBySchool metadata
+        const usersResp = await fetch(`/api/schools/${resolvedParams.id}/users`);
+        const users = usersResp.ok ? await usersResp.json() : [];
+
+        const schoolId = String(resolvedParams.id);
+        const inChargeUsers: UserData[] = [];
+        const principalUsers: UserData[] = [];
+        const correspondentUsers: UserData[] = [];
+
+        users.forEach((user: any) => {
+          const entry: UserData = {
+            email: user.email,
+            first_name: user.first_name || "",
+            last_name: user.last_name || "",
+            phone_number: user.user_meta_data?.phone_number || "",
           };
-        }
-        
-        const inChargeUsers = userRoles
-          .filter((role: UserRole) => role.role === 'INCHARGE')
-          .map((role: UserRole) => ({
-            email: role.user.email,
-            first_name: role.user.first_name,
-            last_name: role.user.last_name,
-            phone_number: role.user.user_meta_data?.phone_number || "",
-          }));
-        
-        const principalUsers = userRoles
-          .filter((role: UserRole) => role.role === 'PRINCIPAL')
-          .map((role: UserRole) => ({
-            email: role.user.email,
-            first_name: role.user.first_name,
-            last_name: role.user.last_name,
-            phone_number: role.user.user_meta_data?.phone_number || "",
-          }));
-        
-        const correspondentUsers = userRoles
-          .filter((role: UserRole) => role.role === 'CORRESPONDENT')
-          .map((role: UserRole) => ({
-            email: role.user.email,
-            first_name: role.user.first_name,
-            last_name: role.user.last_name,
-            phone_number: role.user.user_meta_data?.phone_number || "",
-          }));
+          const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
+          const roles = rolesBySchool[schoolId] || [];
+          const arr = Array.isArray(roles) ? roles : [roles];
+          arr.forEach((r: string) => {
+            const role = r?.toUpperCase?.();
+            if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargeUsers.push(entry);
+            else if (role === 'PRINCIPAL') principalUsers.push(entry);
+            else if (role === 'CORRESPONDENT') correspondentUsers.push(entry);
+          });
+        });
 
         setInCharges(inChargeUsers.length > 0 ? inChargeUsers : [{
           email: "",

@@ -31,7 +31,7 @@ interface UserRole {
 }
 
 interface School {
-  id: number;
+  id: string;
   name: string;
   udise_code?: string | null;
   is_ATL: boolean;
@@ -208,21 +208,40 @@ export default function Page() {
             const usersResponse = await fetch(`/api/schools/${school.id}/users`);
             const users = usersResponse.ok ? await usersResponse.json() : [];
             
-            const address = school.address || {};
-            const city = address.city || {};
-            const state = city.state || {};
-            const country = state.country || {};
+            const sc: any = school as any;
+            const address: any = sc.address || {};
+            const city: any = address.city || {};
+            const state: any = city.state || {};
+            const country: any = state.country || {};
+            const schoolId = String(sc.id);
 
-            // For now, we'll show all users as "Staff" since we removed role distinction
-            // In the future, we could use user_meta_data to determine roles
-            const usersList = users.map((user: any) => ({
-              name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-              email: user.email,
-              phone: user.user_meta_data?.phone_number || 'N/A'
-            }));
+            // Split users by role for this school using user_meta_data.rolesBySchool
+            const principalsList: any[] = [];
+            const correspondentsList: any[] = [];
+            const inChargesList: any[] = [];
+            const usersList: any[] = [];
 
-            // Keep legacy string format for DetailViewer compatibility
-            const staffDisplay = usersList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
+            users.forEach((user: any) => {
+              const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+              const email = user.email;
+              const phone = user.user_meta_data?.phone_number || 'N/A';
+              const entry = { name, email, phone };
+              usersList.push(entry);
+
+              const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
+              const roles = rolesBySchool[schoolId] || [];
+              const arr = Array.isArray(roles) ? roles : [roles];
+              arr.forEach((r: string) => {
+                const role = r?.toUpperCase?.();
+                if (role === 'PRINCIPAL') principalsList.push(entry);
+                else if (role === 'CORRESPONDENT') correspondentsList.push(entry);
+                else if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargesList.push(entry);
+              });
+            });
+
+            const principalsDisplay = principalsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
+            const correspondentsDisplay = correspondentsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
+            const inChargesDisplay = inChargesList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
 
             return {
               ...school,
@@ -232,21 +251,22 @@ export default function Page() {
               state: state.state_name || "N/A",
               country: country.country_name || "N/A",
               pincode: address.pincode || "N/A",
-              principals: staffDisplay, // Simplified to show all staff
-              correspondents: staffDisplay,
-              inCharges: staffDisplay,
-              principalsList: usersList,
-              correspondentsList: usersList,
-              inChargesList: usersList,
+              principals: principalsDisplay,
+              correspondents: correspondentsDisplay,
+              inCharges: inChargesDisplay,
+              principalsList,
+              correspondentsList,
+              inChargesList,
               usersList,
             };
           } catch (error) {
             console.error(`Error fetching users for school ${school.id}:`, error);
             // Return school without users if fetch fails
-            const address = school.address || {};
-            const city = address.city || {};
-            const state = city.state || {};
-            const country = state.country || {};
+            const sc: any = school as any;
+            const address: any = sc.address || {};
+            const city: any = address.city || {};
+            const state: any = city.state || {};
+            const country: any = state.country || {};
             
             return {
               ...school,
