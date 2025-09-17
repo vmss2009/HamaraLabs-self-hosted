@@ -31,6 +31,7 @@ import {
   IconSend,
   IconCheck,
   IconX,
+  IconChevronDown,
 } from "./Icons";
 
 function useEditorState<T>({ editor, selector }: { editor: Editor; selector: (ctx: { editor: Editor }) => T; }): T {
@@ -268,8 +269,16 @@ export function MenuBar({ editor, onAttach, isUploading, onToggleRecording, isRe
           </Popover.Root>
 
           <button title="Attach files" aria-label="Attach files" className="p-2 rounded border" onClick={onAttach}><IconPaperclip className="h-4 w-4" /></button>
+          <button
+            title="Line break"
+            aria-label="Line break"
+            className="p-2 rounded border"
+            onClick={() => editor.chain().focus().setHardBreak().run()}
+          >
+            <IconReturn className="h-4 w-4" />
+          </button>
           <button title={isRecording ? 'Stop' : 'Record audio'} aria-label="Record" className="p-2 rounded border" onClick={onToggleRecording}>{isRecording ? <IconStop className="h-4 w-4" /> : <IconMic className="h-4 w-4" />}</button>
-          {showJumpToLatest && <button title="Jump to latest" className="ml-auto p-2 rounded border" onClick={onJumpToLatest}><IconReturn className="h-4 w-4" /></button>}
+          {showJumpToLatest && <button title="Jump to latest" className="ml-auto p-2 rounded border" onClick={onJumpToLatest}><IconChevronDown className="h-4 w-4" /></button>}
         </div>
         {showSend && (
           <div className="ml-2 flex items-center gap-2">
@@ -279,7 +288,7 @@ export function MenuBar({ editor, onAttach, isUploading, onToggleRecording, isRe
                 <button className="px-2 py-1 text-[11px] rounded bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed" onClick={onSaveEdit} disabled={!canSaveEdit}><IconCheck className="h-4 w-4 inline" /> Save</button>
               </>
             ) : (
-              <button className="px-2 py-1 text-[11px] rounded bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed" onClick={onSend} disabled={!canSend}><IconSend className="h-4 w-4 inline" /> Send</button>
+              <button className="px-2 py-1 text-[11px] rounded bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed" onClick={onSend} disabled={!canSend}><IconSend className="h-4 w-4 inline" /></button>
             )}
           </div>
         )}
