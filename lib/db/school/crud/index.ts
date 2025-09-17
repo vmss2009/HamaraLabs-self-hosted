@@ -404,7 +404,38 @@ export async function getSchoolUsers(schoolId: string) {
 }
 
 export async function deleteSchool(id: string) {
-  return prisma.school.delete({
-    where: { id },
+  // 1) Find users associated with this school
+  const users = await prisma.user.findMany({
+    where: { schools: { has: id } },
+    select: { id: true, schools: true, user_meta_data: true, email: true },
   });
+
+  // 2) For each user, remove the school from schools[] and strip rolesBySchool[id]
+  await Promise.all(
+    users.map(async (user) => {
+      const updatedSchools = user.schools.filter((sid) => sid !== id);
+
+      const currentMeta = (user.user_meta_data ?? {}) as Record<string, any>;
+      const rolesBySchool: Record<string, string[] | string> = {
+        ...(currentMeta.rolesBySchool ?? {}),
+      };
+      if (rolesBySchool[id]) {
+        delete rolesBySchool[id];
+      }
+      const newMeta = { ...currentMeta, rolesBySchool };
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { schools: updatedSchools, user_meta_data: newMeta },
+      });
+
+      // If user has no schools left, consider them orphaned and delete
+      if (updatedSchools.length === 0) {
+        await cleanupOrphanedUser(user.id);
+      }
+    })
+  );
+
+  // 3) Delete the school
+  return prisma.school.delete({ where: { id } });
 }
