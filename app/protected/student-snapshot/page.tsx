@@ -1076,7 +1076,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     <div className="bg-slate-400 h-screen  w-screen ">
       <div className=" p-6 ">
         {error && (
-<Alert
+          <Alert
             type="error"
             className="mb-4"
           >
@@ -1099,7 +1099,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           </Button>
         </div>
 
-        <div className="mt-4 flex items-start space-x-4 mb-6">
+  <div className="mt-4 flex items-start space-x-4 mb-6 w-[calc(100vw-6rem)] mx-auto">
           {/* Cluster and Hub Dropdowns (Visible in Cluster View) */}
           {currentView === "cluster" && (
             <>
@@ -1220,7 +1220,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           </div>
         </div>
 
-        <div className="mb-6">
+  <div className="mb-6 w-[calc(100vw-6rem)] mx-auto">
           <div>
             <div className="flex space-x-4">
               <Button
