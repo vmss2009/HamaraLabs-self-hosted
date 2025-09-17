@@ -7,9 +7,10 @@ import {
 } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    if (params.id === "list") {
+    const { id } = await params;
+    if (id === "list") {
       const { searchParams } = new URL(request.url);
       const student_id = searchParams.get("student_id");
 
@@ -23,7 +24,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return success(customisedCourses);
     }
 
-    const customisedCourse = await getCustomisedCourseById(params.id);
+    const customisedCourse = await getCustomisedCourseById(id);
 
     if (!customisedCourse) {
       return failure("Customised course not found", 404);
@@ -38,9 +39,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
 
     if (!data.course_id || !data.student_id) {
@@ -61,9 +62,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await deleteCustomisedCourse(id);
 
     return success({
@@ -77,9 +78,9 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await request.json();
 
     if (!body.status || !Array.isArray(body.status)) {

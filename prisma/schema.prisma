@@ -19,6 +19,9 @@ model User {
   school_visits  SchoolVisit[] @relation("VisitPOC")
   students       Student[]
   mentors        Mentor[]
+  // Chat relations
+  chatRooms      ChatRoom[]    @relation("ChatRoomMembers")
+  messages       Message[]
 }
 
 model Country {
@@ -262,4 +265,47 @@ model SchoolVisit {
   other_poc          String?
   point_of_contact   User?    @relation("VisitPOC", fields: [poc_id], references: [id])
   school             School   @relation(fields: [school_id], references: [id])
+}
+
+// Chat models
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  CALL
+}
+
+model ChatRoom {
+  id            String     @id @default(cuid())
+  name          String
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastMessageAt DateTime?  @default(now())
+  members       User[]     @relation("ChatRoomMembers")
+  messages      Message[]
+}
+
+model Message {
+  id         String       @id @default(cuid())
+  chatRoom   ChatRoom     @relation(fields: [chatRoomId], references: [id])
+  chatRoomId String
+  sender     User         @relation(fields: [senderId], references: [id])
+  senderId   String
+  content    String?
+  type       MessageType  @default(TEXT)
+  attachments Attachment[]
+  createdAt  DateTime     @default(now())
+  @@index([chatRoomId, createdAt])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  url        String
+  type       String
+  filename   String?
+  size       Int?
+  createdAt  DateTime @default(now())
+  message    Message  @relation(fields: [messageId], references: [id])
+  messageId  String
+  @@index([messageId])
 }

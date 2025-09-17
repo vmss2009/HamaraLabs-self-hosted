@@ -2,9 +2,10 @@ import { failure, success } from "@/lib/api/http";
 import { getSchoolVisitById, updateSchoolVisit, deleteSchoolVisit } from "@/lib/db/school-visits/crud";
 import { SchoolVisitUpdateInput, schoolVisitSchema } from "@/lib/db/school-visits/type";
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const visit = await getSchoolVisitById(params.id);
+        const { id } = await params;
+        const visit = await getSchoolVisitById(id);
         
         if (!visit) {
             return failure("School visit not found", 404);
@@ -19,10 +20,11 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 
     try {
-        const visit = await getSchoolVisitById(params.id);
+        const { id } = await params;
+        const visit = await getSchoolVisitById(id);
         
         if (!visit) {
             return failure("School visit not found", 404);
@@ -48,7 +50,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
             details: body.details,
         };
 
-        const updatedVisit = await updateSchoolVisit(params.id, updatedData);
+        const updatedVisit = await updateSchoolVisit(id, updatedData);
 
         return success(updatedVisit);
     } catch (error) {
@@ -59,15 +61,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const visit = await getSchoolVisitById(params.id);
+        const { id } = await params;
+        const visit = await getSchoolVisitById(id);
         
         if (!visit) {
             return failure("School visit not found", 404);
         }
         
-        await deleteSchoolVisit(params.id);
+        await deleteSchoolVisit(id);
         return success({ message: "School visit deleted successfully" });
     } catch (error) {
         console.error("Error deleting school visit:", error);
