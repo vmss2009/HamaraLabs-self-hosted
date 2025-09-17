@@ -3,56 +3,127 @@ import type { Prisma } from "@prisma/client";
 import { StudentCreateInput, StudentFilter } from "../type";
 import { v4 as uuidv4 } from "uuid";
 
+type StudentRole = 'STUDENT';
+
+async function cleanupOrphanedUser(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { students: true, mentors: true, school_visits: true },
+    });
+
+    if (!user) return;
+
+    if (
+      user.schools.length === 0 &&
+      user.students.length === 0 &&
+      user.mentors.length === 0 &&
+      user.school_visits.length === 0
+    ) {
+      await prisma.user.delete({ where: { id: userId } });
+    }
+  } catch (error) {
+    console.error(`Error cleaning up user ${userId}:`, error);
+  }
+}
+
+function addRoleForSchool(meta: any, schoolId: string, role: StudentRole) {
+  const currentMeta = (meta ?? {}) as Record<string, any>;
+  const rolesBySchool: Record<string, string[] | string> = {
+    ...(currentMeta.rolesBySchool ?? {}),
+  };
+  const existing = rolesBySchool[schoolId];
+  let updatedForSchool: string[];
+  if (!existing) {
+    updatedForSchool = [role];
+  } else if (Array.isArray(existing)) {
+    updatedForSchool = Array.from(new Set([...existing, role]));
+  } else {
+    updatedForSchool = Array.from(new Set([existing, role]));
+  }
+  rolesBySchool[schoolId] = updatedForSchool;
+  return { ...currentMeta, rolesBySchool };
+}
+
+function removeRoleForSchool(meta: any, schoolId: string, role: StudentRole) {
+  const currentMeta = (meta ?? {}) as Record<string, any>;
+  const rolesBySchool: Record<string, string[] | string> = {
+    ...(currentMeta.rolesBySchool ?? {}),
+  };
+  const existing = rolesBySchool[schoolId];
+  if (!existing) return currentMeta;
+  const arr = Array.isArray(existing) ? existing : [existing];
+  const filtered = arr.filter((r) => String(r).toUpperCase() !== role);
+  if (filtered.length === 0) {
+    delete rolesBySchool[schoolId];
+  } else {
+    rolesBySchool[schoolId] = filtered;
+  }
+  return { ...currentMeta, rolesBySchool };
+}
+
+async function ensureUserForStudent(
+  email: string,
+  first_name: string,
+  last_name: string,
+  schoolId: string
+) {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    const updatedSchools = existingUser.schools.includes(schoolId)
+      ? existingUser.schools
+      : [...existingUser.schools, schoolId];
+    const newMeta = addRoleForSchool(existingUser.user_meta_data, schoolId, 'STUDENT');
+    const updated = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        first_name,
+        last_name,
+        schools: updatedSchools,
+        user_meta_data: newMeta,
+      },
+    });
+    return updated.id;
+  } else {
+    const created = await prisma.user.create({
+      data: {
+        id: uuidv4(),
+        email,
+        first_name,
+        last_name,
+        schools: [schoolId],
+        user_meta_data: addRoleForSchool({}, schoolId, 'STUDENT'),
+      },
+    });
+    return created.id;
+  }
+}
+
+async function removeStudentAccessFromUser(userId: string, schoolId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return;
+  const updatedSchools = user.schools.filter((s) => s !== schoolId);
+  const newMeta = removeRoleForSchool(user.user_meta_data, schoolId, 'STUDENT');
+  await prisma.user.update({
+    where: { id: userId },
+    data: { schools: updatedSchools, user_meta_data: newMeta },
+  });
+  await cleanupOrphanedUser(userId);
+}
+
 export async function createStudent(data: StudentCreateInput) {
   try {
     const validatedData = data;
     let userId: string | undefined = undefined;
 
-    // Create a User record if email is provided
+    // Create or link a User if email is provided, and grant STUDENT role for the school
     if (validatedData.email && validatedData.email.trim() !== "") {
-      console.log(`Creating/updating user for student email: ${validatedData.email}, school: ${validatedData.schoolId}`);
-      
-      // Check if user with this email already exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email: validatedData.email },
-      });
-
-      if (existingUser) {
-        console.log(`Found existing user: ${existingUser.id}, current schools: ${existingUser.schools}`);
-        // Add school to existing user's schools array if not already present
-        const updatedSchools = existingUser.schools.includes(validatedData.schoolId) 
-          ? existingUser.schools 
-          : [...existingUser.schools, validatedData.schoolId];
-          
-        console.log(`Updated schools array for student: ${updatedSchools}`);
-          
-        // Update existing user with student information
-        const updatedUser = await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            first_name: validatedData.first_name,
-            last_name: validatedData.last_name,
-            schools: updatedSchools,
-            user_meta_data: {},
-          },
-        });
-        userId = updatedUser.id;
-      } else {
-        console.log(`Creating new user for student email: ${validatedData.email}`);
-        // Create new user
-        const newUser = await prisma.user.create({
-          data: {
-            id: uuidv4(),
-            email: validatedData.email,
-            first_name: validatedData.first_name,
-            last_name: validatedData.last_name,
-            schools: [validatedData.schoolId],
-            user_meta_data: {},
-          },
-        });
-        console.log(`Created new user: ${newUser.id} with schools: ${newUser.schools}`);
-        userId = newUser.id;
-      }
+      userId = await ensureUserForStudent(
+        validatedData.email,
+        validatedData.first_name,
+        validatedData.last_name,
+        validatedData.schoolId
+      );
     }
 
     const student = await prisma.student.create({
@@ -163,68 +234,61 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
 
     let userId: string | undefined = currentStudent.user_id || undefined;
 
-    // Handle User record updates
-    if (validatedData.email && validatedData.email.trim() !== "") {
-      if (currentStudent.user_id) {
-        // Add new school to existing user's schools array if not already present
-        const currentSchools = currentStudent.user?.schools || [];
-        const updatedSchools = currentSchools.includes(validatedData.schoolId) 
-          ? currentSchools 
-          : [...currentSchools, validatedData.schoolId];
-          
-        // Update existing linked user
-        await prisma.user.update({
-          where: { id: currentStudent.user_id },
-          data: {
-            email: validatedData.email,
-            first_name: validatedData.first_name,
-            last_name: validatedData.last_name,
-            schools: updatedSchools,
-            user_meta_data: {},
-          },
-        });
-      } else {
-        // Check if user with new email already exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email: validatedData.email },
-        });
+    const oldEmail = currentStudent.email || undefined;
+    const newEmail = validatedData.email || undefined;
+    const oldSchoolId = currentStudent.school_id;
+    const newSchoolId = validatedData.schoolId;
 
-        if (existingUser) {
-          // Add school to existing user's schools array if not already present
-          const updatedSchools = existingUser.schools.includes(validatedData.schoolId) 
-            ? existingUser.schools 
-            : [...existingUser.schools, validatedData.schoolId];
-            
-          // Link to existing user and update their info
-          const updatedUser = await prisma.user.update({
-            where: { id: existingUser.id },
-            data: {
-              first_name: validatedData.first_name,
-              last_name: validatedData.last_name,
-              schools: updatedSchools,
-              user_meta_data: {},
-            },
-          });
-          userId = updatedUser.id;
-        } else {
-          // Create new user
-          const newUser = await prisma.user.create({
-            data: {
-              id: uuidv4(),
-              email: validatedData.email,
-              first_name: validatedData.first_name,
-              last_name: validatedData.last_name,
-              schools: [validatedData.schoolId],
-              user_meta_data: {},
-            },
-          });
-          userId = newUser.id;
-        }
+    // Case 1: email changed
+    if (newEmail !== oldEmail) {
+      // Remove access from old user if present
+      if (currentStudent.user_id) {
+        await removeStudentAccessFromUser(currentStudent.user_id, oldSchoolId);
       }
-    } else if (currentStudent.user_id) {
-      // Email was removed - we could either keep the user or unlink
-      // For now, let's unlink but keep the user record
-      userId = undefined;
+
+      // Link/create new user for new email (if provided)
+      if (newEmail && newEmail.trim() !== "") {
+        userId = await ensureUserForStudent(
+          newEmail,
+          validatedData.first_name,
+          validatedData.last_name,
+          newSchoolId
+        );
+      } else {
+        userId = undefined;
+      }
+    } else {
+      // Email unchanged
+      if (currentStudent.user_id) {
+        // If school changed, move role association from old school to new school
+        if (oldSchoolId !== newSchoolId) {
+          // Remove from old school
+          await removeStudentAccessFromUser(currentStudent.user_id, oldSchoolId);
+          // Add to new school
+          userId = await ensureUserForStudent(
+            currentStudent.user!.email,
+            validatedData.first_name,
+            validatedData.last_name,
+            newSchoolId
+          );
+        } else {
+          // Just update user's name if needed and ensure role present
+          await ensureUserForStudent(
+            currentStudent.user!.email,
+            validatedData.first_name,
+            validatedData.last_name,
+            newSchoolId
+          );
+        }
+      } else if (newEmail && newEmail.trim() !== "") {
+        // No linked user previously but now we have an email
+        userId = await ensureUserForStudent(
+          newEmail,
+          validatedData.first_name,
+          validatedData.last_name,
+          newSchoolId
+        );
+      }
     }
 
     const updatedStudent = await prisma.student.update({
@@ -266,15 +330,13 @@ export async function deleteStudent(id: string) {
       throw new Error("Student not found");
     }
 
-    // Delete the student
-    await prisma.student.delete({
-      where: { id },
-    });
+    // Remove student access from user if present
+    if (student.user_id) {
+      await removeStudentAccessFromUser(student.user_id, student.school_id);
+    }
 
-    // Optional: If the user was created specifically for this student
-    // and has no other roles/relationships, you might want to delete the user too
-    // For now, we'll keep the user record but could add logic here to clean up
-    // orphaned user records if needed
+    // Delete the student
+    await prisma.student.delete({ where: { id } });
     
   } catch (error) {
     console.error(`Error deleting student with id ${id}:`, error);
