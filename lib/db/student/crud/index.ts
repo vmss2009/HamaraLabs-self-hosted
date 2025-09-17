@@ -1,10 +1,58 @@
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
 import { StudentCreateInput, StudentFilter } from "../type";
+import { v4 as uuidv4 } from "uuid";
 
 export async function createStudent(data: StudentCreateInput) {
   try {
     const validatedData = data;
+    let userId: string | undefined = undefined;
+
+    // Create a User record if email is provided
+    if (validatedData.email && validatedData.email.trim() !== "") {
+      // Check if user with this email already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email: validatedData.email },
+      });
+
+      if (existingUser) {
+        // Update existing user with student information
+        const updatedUser = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            first_name: validatedData.first_name,
+            last_name: validatedData.last_name,
+            user_meta_data: {
+              student: true,
+              class: validatedData.class,
+              section: validatedData.section,
+              gender: validatedData.gender,
+              aspiration: validatedData.aspiration,
+              ...((existingUser.user_meta_data as object) || {}),
+            },
+          },
+        });
+        userId = updatedUser.id;
+      } else {
+        // Create new user
+        const newUser = await prisma.user.create({
+          data: {
+            id: uuidv4(),
+            email: validatedData.email,
+            first_name: validatedData.first_name,
+            last_name: validatedData.last_name,
+            user_meta_data: {
+              student: true,
+              class: validatedData.class,
+              section: validatedData.section,
+              gender: validatedData.gender,
+              aspiration: validatedData.aspiration,
+            },
+          },
+        });
+        userId = newUser.id;
+      }
+    }
 
     const student = await prisma.student.create({
       data: {
@@ -17,6 +65,11 @@ export async function createStudent(data: StudentCreateInput) {
         section: validatedData.section,
         comments: validatedData.comments,
         school_id: validatedData.schoolId,
+        user_id: userId,
+      },
+      include: {
+        user: true,
+        school: true,
       },
     });
 
@@ -58,6 +111,7 @@ export async function getStudents(filter?: StudentFilter) {
     const students = await prisma.student.findMany({
       where,
       include: {
+        user: true,
         school: {
           select: {
             id: true,
@@ -80,6 +134,7 @@ export async function getStudentById(id: string) {
     const student = await prisma.student.findUnique({
       where: { id },
       include: {
+        user: true,
         school: true,
       },
     });
@@ -95,6 +150,88 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
   try {
     const validatedData = data;
 
+    // Get current student to check if they have a user_id
+    const currentStudent = await prisma.student.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+
+    if (!currentStudent) {
+      throw new Error("Student not found");
+    }
+
+    let userId: string | undefined = currentStudent.user_id || undefined;
+
+    // Handle User record updates
+    if (validatedData.email && validatedData.email.trim() !== "") {
+      if (currentStudent.user_id) {
+        // Update existing linked user
+        await prisma.user.update({
+          where: { id: currentStudent.user_id },
+          data: {
+            email: validatedData.email,
+            first_name: validatedData.first_name,
+            last_name: validatedData.last_name,
+            user_meta_data: {
+              student: true,
+              class: validatedData.class,
+              section: validatedData.section,
+              gender: validatedData.gender,
+              aspiration: validatedData.aspiration,
+              ...((currentStudent.user?.user_meta_data as object) || {}),
+            },
+          },
+        });
+      } else {
+        // Check if user with new email already exists
+        const existingUser = await prisma.user.findUnique({
+          where: { email: validatedData.email },
+        });
+
+        if (existingUser) {
+          // Link to existing user and update their info
+          const updatedUser = await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              first_name: validatedData.first_name,
+              last_name: validatedData.last_name,
+              user_meta_data: {
+                student: true,
+                class: validatedData.class,
+                section: validatedData.section,
+                gender: validatedData.gender,
+                aspiration: validatedData.aspiration,
+                ...((existingUser.user_meta_data as object) || {}),
+              },
+            },
+          });
+          userId = updatedUser.id;
+        } else {
+          // Create new user
+          const newUser = await prisma.user.create({
+            data: {
+              id: uuidv4(),
+              email: validatedData.email,
+              first_name: validatedData.first_name,
+              last_name: validatedData.last_name,
+              user_meta_data: {
+                student: true,
+                class: validatedData.class,
+                section: validatedData.section,
+                gender: validatedData.gender,
+                aspiration: validatedData.aspiration,
+              },
+            },
+          });
+          userId = newUser.id;
+        }
+      }
+    } else if (currentStudent.user_id) {
+      // Email was removed - we could either keep the user or unlink
+      // For now, let's unlink but keep the user record
+      userId = undefined;
+    }
+
     const updatedStudent = await prisma.student.update({
       where: { id },
       data: {
@@ -107,8 +244,10 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
         section: validatedData.section,
         comments: validatedData.comments,
         school_id: validatedData.schoolId,
+        user_id: userId,
       },
       include: {
+        user: true,
         school: true,
       },
     });
@@ -122,9 +261,26 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
 
 export async function deleteStudent(id: string) {
   try {
+    // Get student info before deletion to check if they have a linked user
+    const student = await prisma.student.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+    // Delete the student
     await prisma.student.delete({
       where: { id },
     });
+
+    // Optional: If the user was created specifically for this student
+    // and has no other roles/relationships, you might want to delete the user too
+    // For now, we'll keep the user record but could add logic here to clean up
+    // orphaned user records if needed
+    
   } catch (error) {
     console.error(`Error deleting student with id ${id}:`, error);
     throw error;

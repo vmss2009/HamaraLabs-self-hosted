@@ -142,6 +142,8 @@ export default function StudentForm() {
                   label: "Email",
                   type: "email",
                   required: true,
+                  placeholder: "student@example.com",
+                  helperText: "A user account will be created with this email address",
                 },
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },

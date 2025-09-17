@@ -300,6 +300,12 @@ export default function Page() {
   return (
     <ReportShell>
       <div className="w-full">
+        {error && (
+          <Alert severity="error" className="mx-10 mb-4">
+            {error}
+          </Alert>
+        )}
+        
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={schools}
@@ -335,12 +341,6 @@ export default function Page() {
             }}
           />
         </div>
-
-        {error && (
-          <Alert severity="error" className="mb-4">
-            {error}
-          </Alert>
-        )}
 
         <SchoolDetailViewer
           drawerOpen={drawerOpen}

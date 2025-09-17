@@ -90,6 +90,25 @@ export default function StudentReport() {
     { field: "first_name", headerName: "First Name", width: 150 },
     { field: "last_name", headerName: "Last Name", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
+    {
+      field: "user_account",
+      headerName: "User Account",
+      width: 120,
+      renderCell: (params) => {
+        const hasUser = params.row.user_id ? true : false;
+        return (
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              hasUser
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {hasUser ? "✓ Linked" : "No Account"}
+          </span>
+        );
+      },
+    },
     { field: "gender", headerName: "Gender", width: 100 },
     {
       field: "school",
@@ -132,6 +151,18 @@ export default function StudentReport() {
   return (
     <ReportShell>
       <div className="w-full">
+        {error && (
+          <Alert severity="error" className="mx-10 mb-4">
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" className="mx-10 mb-4">
+            {success}
+          </Alert>
+        )}
+        
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={students}
@@ -164,18 +195,6 @@ export default function StudentReport() {
           />
         </div>
 
-        {error && (
-          <Alert severity="error" className="mb-4">
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" className="mb-4">
-            {success}
-          </Alert>
-        )}
-
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
@@ -183,6 +202,9 @@ export default function StudentReport() {
             ...selectedRow,
             index:
               students.findIndex((student) => student.id === selectedRow?.id) + 1,
+            user_account_status: selectedRow.user_id 
+              ? `✅ Linked to User Account (ID: ${selectedRow.user_id})`
+              : "❌ No User Account Created",
           } : null}
           formtype="Student"
           columns={[
@@ -190,6 +212,7 @@ export default function StudentReport() {
             { label: "First Name", field: "first_name" },
             { label: "Last Name", field: "last_name" },
             { label: "Email", field: "email" },
+            { label: "User Account Status", field: "user_account_status", type: "custom" },
             { label: "Gender", field: "gender" },
             { label: "School", field: "school.name" },
             { label: "Class", field: "class" },

@@ -154,6 +154,18 @@ export default function MentorReport() {
   return (
     <ReportShell>
       <div className="w-full">
+        {error && (
+          <Alert severity="error" className="mx-10 mb-4">
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" className="mx-10 mb-4">
+            {success}
+          </Alert>
+        )}
+        
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={mentors}
@@ -185,18 +197,6 @@ export default function MentorReport() {
             }}
           />
         </div>
-
-        {error && (
-          <Alert severity="error" className="mb-4">
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" className="mb-4">
-            {success}
-          </Alert>
-        )}
 
         <DetailViewer
           drawerOpen={drawerOpen}

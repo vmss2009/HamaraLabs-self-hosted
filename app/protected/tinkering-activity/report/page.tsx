@@ -264,6 +264,29 @@ export default function TinkeringActivityReport() {
   return (
     <ReportShell>
       <div className="w-full">
+        {missingRelationships && (
+          <Alert severity="warning" className="mx-10 mb-4">
+            <div className="font-medium">Incomplete Data</div>
+            <div className="text-sm mt-1">
+              Some tinkering activities don&apos;t have proper subject, topic, or
+              subtopic associations. Please ensure you select the proper
+              Subject, Topic, and Subtopic when creating activities.
+            </div>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert severity="error" className="mx-10 mb-4">
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" className="mx-10 mb-4">
+            {success}
+          </Alert>
+        )}
+        
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={activities}
@@ -302,29 +325,6 @@ export default function TinkeringActivityReport() {
             }}
           />
         </div>
-
-        {missingRelationships && (
-          <Alert severity="warning" className="mb-4">
-            <div className="font-medium">Incomplete Data</div>
-            <div className="text-sm mt-1">
-              Some tinkering activities don&apos;t have proper subject, topic, or
-              subtopic associations. Please ensure you select the proper
-              Subject, Topic, and Subtopic when creating activities.
-            </div>
-          </Alert>
-        )}
-
-        {error && (
-          <Alert severity="error" className="mb-4">
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" className="mb-4">
-            {success}
-          </Alert>
-        )}
 
         <DetailViewer
           drawerOpen={drawerOpen}
