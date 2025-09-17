@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   DataGrid,
@@ -89,6 +89,15 @@ interface TinkeringActivitySelection extends SnapshotItem {
 function StudentSnapshot() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Prevent state updates before mount or after unmount
+  const isMounted = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const [schools, setSchools] = useState<School[]>([]);
   const [currentView, setCurrentView] = useState<"cluster" | "school">(
@@ -226,17 +235,18 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           throw new Error("Failed to fetch clusters");
         }
         const clustersData = await clustersResponse.json();
-        setClusters(clustersData);
+        if (isMounted.current) setClusters(clustersData);
 
         const schoolsResponse = await fetch("/api/schools");
         if (!schoolsResponse.ok) {
           throw new Error("Failed to fetch schools");
         }
         const schoolsData = await schoolsResponse.json();
-        setSchools(schoolsData);
+        if (isMounted.current) setSchools(schoolsData);
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        setError("Failed to load initial data. Please try again later.");
+        if (isMounted.current)
+          setError("Failed to load initial data. Please try again later.");
       }
     };
 
@@ -265,9 +275,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   }, [selectedCluster, clusters, currentView]);
 
-  useEffect(() => {
-    fetchSchools();
-  }, []);
+  // Removed duplicate initial fetchSchools to avoid double fetch on mount
 
   useEffect(() => {
     if (clusters.length > 0 && selectedCluster && !hubs.length) {
@@ -421,10 +429,10 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         throw new Error("Failed to fetch schools");
       }
       const data = await response.json();
-      setSchools(data);
+      if (isMounted.current) setSchools(data);
     } catch (error) {
       console.error("Error fetching schools:", error);
-      setError("Failed to load schools");
+      if (isMounted.current) setError("Failed to load schools");
     }
   };
 
@@ -435,16 +443,16 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         throw new Error("Failed to fetch students");
       }
       const data = await response.json();
-      setStudents(data);
+      if (isMounted.current) setStudents(data);
     } catch (error) {
       console.error("Error fetching students:", error);
-      setError("Failed to load students");
+      if (isMounted.current) setError("Failed to load students");
     }
   };
 
   const fetchTinkeringActivities = useCallback(async () => {
     try {
-      setLoading(true);
+      if (isMounted.current) setLoading(true);
       const response = await fetch(
         `/api/customised-tinkering-activities/list?student_id=${selectedStudent}`
       );
@@ -452,18 +460,18 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         throw new Error("Failed to fetch tinkering activities");
       }
       const data = await response.json();
-      setTinkeringActivities(data);
+      if (isMounted.current) setTinkeringActivities(data);
     } catch (error) {
       console.error("Error fetching tinkering activities:", error);
-      setError("Failed to load tinkering activities");
+      if (isMounted.current) setError("Failed to load tinkering activities");
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [selectedStudent]);
 
   const fetchCompetitions = useCallback(async () => {
     try {
-      setLoading(true);
+      if (isMounted.current) setLoading(true);
       const response = await fetch(
         `/api/customised-competitions/list?student_id=${selectedStudent}`
       );
@@ -471,18 +479,18 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         throw new Error("Failed to fetch competitions");
       }
       const customisedCompetitions = await response.json();
-      setCompetitions(customisedCompetitions);
+      if (isMounted.current) setCompetitions(customisedCompetitions);
     } catch (error) {
       console.error("Error fetching competitions:", error);
-      setError("Failed to load competitions");
+      if (isMounted.current) setError("Failed to load competitions");
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [selectedStudent]);
 
   const fetchCourses = useCallback(async () => {
     try {
-      setLoading(true);
+      if (isMounted.current) setLoading(true);
       const response = await fetch(
         `/api/customised-courses/list?student_id=${selectedStudent}`
       );
@@ -490,12 +498,12 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         throw new Error("Failed to fetch courses");
       }
       const customisedCourses = await response.json();
-      setCourses(customisedCourses);
+      if (isMounted.current) setCourses(customisedCourses);
     } catch (error) {
       console.error("Error fetching courses:", error);
-      setError("Failed to load courses");
+      if (isMounted.current) setError("Failed to load courses");
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [selectedStudent]);
 

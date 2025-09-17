@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import AuthentikProvider from "next-auth/providers/authentik";
-import { ensureUserExists } from "../db/auth/user";
+import { getUserByEmail } from "../db/auth/user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -25,14 +25,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user }) {
+      // Only allow sign-in if the user's email exists in our DB
+      const email = user?.email;
+      if (!email) return "/sign-in?error=not_allowed";
+
+      const dbUser = await getUserByEmail(email);
+      if (!dbUser) {
+        // Deny sign-in and redirect back with an error message
+        return "/sign-in?error=not_allowed";
+      }
+
+      // Attach our internal user id for downstream callbacks
+      (user as any).id = dbUser.id;
+      return true;
+    },
     async jwt({ token, user, profile }) {
       if (user) {
-        token.id = user.id;
-        token.sub = profile?.sub as string;
-        await ensureUserExists(profile?.sub as string, user.email as string, {
-          name: user.name,
-          email: user.email,
-        });
+        // Persist our internal user id and provider subject on first sign-in
+        (token as any).id = (user as any).id;
+        token.sub = (profile?.sub as string) ?? token.sub;
       }
       return token;
     },
