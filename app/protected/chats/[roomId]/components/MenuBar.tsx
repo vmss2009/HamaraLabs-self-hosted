@@ -269,9 +269,27 @@ export function MenuBar({ editor, onAttach, isUploading, onToggleRecording, isRe
             </Popover.Portal>
           </Popover.Root>
 
-          <button title="Attach files" aria-label="Attach files" className="p-2 rounded border" onClick={onAttach}><IconPaperclip className="h-4 w-4" /></button>
+          <span className="mx-2 text-slate-500 select-none">|</span>
+          <button
+            title="Attach files"
+            aria-label="Attach files"
+            disabled={(attachmentsCount ?? 0) >= (maxFiles ?? 5)}
+            className={clsx("p-2 rounded border", (attachmentsCount ?? 0) >= (maxFiles ?? 5) && "opacity-40 cursor-not-allowed")}
+            onClick={onAttach}
+          >
+            <IconPaperclip className="h-4 w-4" />
+          </button>
           <button title={isRecording ? 'Stop' : 'Record audio'} aria-label="Record" className="p-2 rounded border" onClick={onToggleRecording}>{isRecording ? <IconStop className="h-4 w-4" /> : <IconMic className="h-4 w-4" />}</button>
-          {showJumpToLatest && <button title="Jump to latest" className="ml-auto p-2 rounded border" onClick={onJumpToLatest}><IconChevronDown className="h-4 w-4" /></button>}
+          <span className="ml-2 text-[11px] text-slate-400">{(attachmentsCount ?? 0)} / {(maxFiles ?? 5)}</span>
+          {showJumpToLatest && (
+            <button
+              title="Jump to latest"
+              className="ml-auto px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white"
+              onClick={onJumpToLatest}
+            >
+              <IconChevronDown className="h-4 w-4" />
+            </button>
+          )}
         </div>
         {showSend && (
           <div className="ml-2 flex items-center gap-2">
@@ -281,7 +299,7 @@ export function MenuBar({ editor, onAttach, isUploading, onToggleRecording, isRe
                 <button className="px-2 py-1 text-[11px] rounded bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed" onClick={onSaveEdit} disabled={!canSaveEdit}><IconCheck className="h-4 w-4 inline" /> Save</button>
               </>
             ) : (
-              <button className="px-2 py-1 text-[11px] rounded bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed" onClick={onSend} disabled={!canSend}><IconSend className="h-4 w-4 inline" /></button>
+              <button className="px-3 py-1.5 text-[12px] rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-30 disabled:cursor-not-allowed" onClick={onSend} disabled={!canSend}><IconSend className="h-4 w-4 inline" /></button>
             )}
           </div>
         )}
