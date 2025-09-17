@@ -725,8 +725,14 @@ const removeFileAt = (idx: number) => {
                         )}
                       </div>
                       <div
-                        className="relative rounded-xl border border-slate-600/60 bg-slate-900/40"
+                        className="relative rounded-xl border border-slate-600/60 bg-slate-900/40 cursor-text"
                         style={{ height: composerHeight }}
+                        onMouseDown={(e) => {
+                          if (e.target === e.currentTarget) {
+                            e.preventDefault();
+                            try { editor?.commands.focus('end'); } catch {}
+                          }
+                        }}
                       >
                         <EditorContent
                           editor={editor}

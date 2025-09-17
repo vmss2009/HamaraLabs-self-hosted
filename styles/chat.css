@@ -105,3 +105,8 @@
 
 /* Utility to scale chat UI slightly for parity */
 body { zoom: 1.0; }
+
+/* Editor focus/outline adjustments and scroll behavior */
+.tiptap { outline: none; }
+.tiptap:focus, .tiptap:focus-visible { outline: none; box-shadow: none; }
+.resizable-editor { overflow-y: auto; overflow-x: hidden; min-height: 0; }

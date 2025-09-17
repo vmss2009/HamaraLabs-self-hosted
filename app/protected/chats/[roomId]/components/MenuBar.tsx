@@ -202,6 +202,7 @@ export function MenuBar({ editor, onAttach, isUploading, onToggleRecording, isRe
                   <button title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className="p-2 rounded border"><IconQuote className="h-4 w-4" /></button>
                   <button title="Code block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className="p-2 rounded border"><IconBraces className="h-4 w-4" /></button>
                   <button title="Horizontal rule" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="p-2 rounded border"><IconHR className="h-4 w-4" /></button>
+                  <button title="Line break" onClick={() => editor.chain().focus().setHardBreak().run()} className="p-2 rounded border"><IconReturn className="h-4 w-4" /></button>
                 </div>
                 <div className="flex gap-1">
                   <button title="Bullet list" onClick={() => editor.chain().focus().toggleBulletList().run()} className="p-2 rounded border"><IconListBullet className="h-4 w-4" /></button>
@@ -269,14 +270,6 @@ export function MenuBar({ editor, onAttach, isUploading, onToggleRecording, isRe
           </Popover.Root>
 
           <button title="Attach files" aria-label="Attach files" className="p-2 rounded border" onClick={onAttach}><IconPaperclip className="h-4 w-4" /></button>
-          <button
-            title="Line break"
-            aria-label="Line break"
-            className="p-2 rounded border"
-            onClick={() => editor.chain().focus().setHardBreak().run()}
-          >
-            <IconReturn className="h-4 w-4" />
-          </button>
           <button title={isRecording ? 'Stop' : 'Record audio'} aria-label="Record" className="p-2 rounded border" onClick={onToggleRecording}>{isRecording ? <IconStop className="h-4 w-4" /> : <IconMic className="h-4 w-4" />}</button>
           {showJumpToLatest && <button title="Jump to latest" className="ml-auto p-2 rounded border" onClick={onJumpToLatest}><IconChevronDown className="h-4 w-4" /></button>}
         </div>
