@@ -241,9 +241,16 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
 
     // Case 1: email changed
     if (newEmail !== oldEmail) {
-      // Remove access from old user if present
+      // Remove access from old user if present and then delete the old user
       if (currentStudent.user_id) {
         await removeStudentAccessFromUser(currentStudent.user_id, oldSchoolId);
+        // Attempt to delete the previous user record as requested
+        try {
+          await prisma.user.delete({ where: { id: currentStudent.user_id } });
+        } catch (err) {
+          // Ignore if deletion is not possible due to other references or already deleted
+          console.warn(`Could not delete previous user ${currentStudent.user_id}:`, err);
+        }
       }
 
       // Link/create new user for new email (if provided)
@@ -330,9 +337,22 @@ export async function deleteStudent(id: string) {
       throw new Error("Student not found");
     }
 
-    // Remove student access from user if present
+    // Remove student access from user if present and delete the user as requested
     if (student.user_id) {
-      await removeStudentAccessFromUser(student.user_id, student.school_id);
+      const userId = student.user_id;
+      // Remove per-school role and association first
+      await removeStudentAccessFromUser(userId, student.school_id);
+
+      // Detach any other optional relations that could block deletion
+      await prisma.mentor.updateMany({ where: { user_id: userId }, data: { user_id: null } });
+      await prisma.schoolVisit.updateMany({ where: { poc_id: userId }, data: { poc_id: null } });
+
+      // Attempt to delete the user
+      try {
+        await prisma.user.delete({ where: { id: userId } });
+      } catch (err) {
+        console.warn(`Could not delete user ${userId} during student deletion:`, err);
+      }
     }
 
     // Delete the student
