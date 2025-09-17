@@ -18,6 +18,7 @@ import Alert from "@/components/Alert";
 import AssignDialog from "@/components/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import DetailViewer from "@/components/DetailViewer";
+import ReportShell from "@/components/ReportShell";
 import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
@@ -261,56 +262,9 @@ export default function TinkeringActivityReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start h-screen bg-gray-500">
-      <div className="pt-20 ">
-        {missingRelationships && (
-          <Alert
-            severity="warning"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFF8E1",
-              border: "1px solid #FFE082",
-              padding: "10px 16px",
-            }}
-          >
-            <div className="font-medium">Incomplete Data</div>
-            <div className="text-sm mt-1">
-              Some tinkering activities don&apos;t have proper subject, topic, or
-              subtopic associations. Please ensure you select the proper
-              Subject, Topic, and Subtopic when creating activities.
-            </div>
-          </Alert>
-        )}
-        {error && (
-          <Alert
-            severity="error"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFEBEE",
-              border: "1px solid #FFCDD2",
-              padding: "10px 16px",
-            }}
-          >
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-7 mr-7"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
-            {success}
-          </Alert>
-        )}
-        <div className="flex justify-center items-center h-auto w-[calc(100vw-6rem)]  m-10 bg-white rounded-xl shadow-sm">
+    <ReportShell>
+      <div className="w-full">
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={activities}
             columns={columns}
@@ -318,14 +272,21 @@ export default function TinkeringActivityReport() {
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
-            pageSizeOptions={[5, 10, 25, 50]}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
             columnVisibilityModel={columnVisibilityModel}
             onColumnVisibilityModelChange={(newModel) =>
               setColumnVisibilityModel(newModel)
             }
-            autoHeight
             onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
@@ -339,26 +300,42 @@ export default function TinkeringActivityReport() {
                 color: "#1f2937",
               },
             }}
-            slots={{
-              toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
-                </GridToolbarContainer>
-              ),
-            }}
           />
         </div>
+
+        {missingRelationships && (
+          <Alert severity="warning" className="mb-4">
+            <div className="font-medium">Incomplete Data</div>
+            <div className="text-sm mt-1">
+              Some tinkering activities don&apos;t have proper subject, topic, or
+              subtopic associations. Please ensure you select the proper
+              Subject, Topic, and Subtopic when creating activities.
+            </div>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" className="mb-4">
+            {success}
+          </Alert>
+        )}
+
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               activities.findIndex(
                 (activity) => activity.id === selectedRow?.id
               ) + 1,
-          }}
+          } : null}
           formtype="TinkeringActivity"
           columns={[
             { label: "S.No", field: "index" },
@@ -367,7 +344,6 @@ export default function TinkeringActivityReport() {
             { label: "Topic", field: "topic_name" },
             { label: "Subtopic", field: "subtopic_name" },
             { label: "Introduction", field: "introduction" },
-
             { label: "Goals", field: "goals" },
             { label: "Materials", field: "materials" },
             { label: "Instructions", field: "instructions" },
@@ -377,6 +353,7 @@ export default function TinkeringActivityReport() {
             { label: "Resources", field: "resources" },
           ]}
         />
+        
         <AssignDialog
           open={assignDialogOpen}
           formtype="Tinkering-activity"
@@ -385,6 +362,6 @@ export default function TinkeringActivityReport() {
           setSuccess={setSuccess}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

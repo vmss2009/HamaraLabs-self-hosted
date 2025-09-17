@@ -8,7 +8,7 @@ import { Input } from "@/components/Input";
 import MultiSelect from "@/components/MultiSelect";
 
 type School = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -23,7 +23,7 @@ export default function MentorForm() {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [schools, setSchools] = useState<School[]>([]);
-  const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
+  const [selectedSchools, setSelectedSchools] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -172,8 +172,8 @@ export default function MentorForm() {
               <MultiSelect
                 label="Schools"
                 options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
-                selectedValues={selectedSchools.map(String)}
-                onChange={(vals) => setSelectedSchools(vals.map((v) => parseInt(v)))}
+                selectedValues={selectedSchools}
+                onChange={(vals) => setSelectedSchools(vals)}
                 searchable
               />
             </div>

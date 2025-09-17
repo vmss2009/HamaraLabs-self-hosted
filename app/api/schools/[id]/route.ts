@@ -66,9 +66,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         pincode: parsed.address.pincode,
         city_id: parsed.address.cityId,
       },
-      correspondent: parsed.correspondent,
-      principal: parsed.principal,
-      in_charge: parsed.in_charge,
+      correspondents: parsed.correspondents,
+      principals: parsed.principals,
+      in_charges: parsed.in_charges,
     };
 
     const updatedSchool = await updateSchool(id, validatedData);

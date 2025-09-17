@@ -5,11 +5,18 @@ import { use } from "react";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import TextFieldGroup from "@/components/TextFieldGroup";
-import SelectField from "@/components/SelectField";
 import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
 import DynamicFieldArray from "@/components/DynamicFieldArray";
+import MultipleUserInput from "@/components/MultipleUserInput";
 import { useRouter } from "next/navigation";
+
+interface UserData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
+}
 
 type Country = {
   id: number;
@@ -43,7 +50,14 @@ export default function EditSchoolForm({
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [sameAsPrincipal, setSameAsPrincipal] = useState<boolean>(false);
+  const [inCharges, setInCharges] = useState<UserData[]>([{
+    email: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+  }]);
+  const [principals, setPrincipals] = useState<UserData[]>([]);
+  const [correspondents, setCorrespondents] = useState<UserData[]>([]);
 
   const [isATL, setIsATL] = useState<string>("No");
   const [establishmentyear, setEstablishmentyear] = useState<string>("");
@@ -86,63 +100,71 @@ export default function EditSchoolForm({
         setCities(citiesData);
         setSelectedCity(data.address.city.id.toString());
 
-        const principal = data.users?.find(
-          (user: { id: string }) => user.id === data.principal_id
-        );
-        const correspondent = data.users?.find(
-          (user: { id: string }) => user.id === data.correspondent_id
-        );
-        const in_charge = data.users?.find(
-          (user: { id: string }) => user.id === data.in_charge_id
-        );
-
-        if (
-          principal?.email &&
-          correspondent?.email &&
-          principal.email === correspondent.email
-        ) {
-          setSameAsPrincipal(true);
+        // Extract users by role from user_roles
+        const userRoles = data.user_roles || [];
+        
+        interface UserRole {
+          role: 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
+          user: {
+            email: string;
+            first_name: string;
+            last_name: string;
+            user_meta_data?: {
+              phone_number?: string;
+            };
+          };
         }
+        
+        const inChargeUsers = userRoles
+          .filter((role: UserRole) => role.role === 'INCHARGE')
+          .map((role: UserRole) => ({
+            email: role.user.email,
+            first_name: role.user.first_name,
+            last_name: role.user.last_name,
+            phone_number: role.user.user_meta_data?.phone_number || "",
+          }));
+        
+        const principalUsers = userRoles
+          .filter((role: UserRole) => role.role === 'PRINCIPAL')
+          .map((role: UserRole) => ({
+            email: role.user.email,
+            first_name: role.user.first_name,
+            last_name: role.user.last_name,
+            phone_number: role.user.user_meta_data?.phone_number || "",
+          }));
+        
+        const correspondentUsers = userRoles
+          .filter((role: UserRole) => role.role === 'CORRESPONDENT')
+          .map((role: UserRole) => ({
+            email: role.user.email,
+            first_name: role.user.first_name,
+            last_name: role.user.last_name,
+            phone_number: role.user.user_meta_data?.phone_number || "",
+          }));
 
-        const form = document.querySelector("form") as HTMLFormElement;
-        if (form) {
-          const nameInput = form.querySelector(
-            'input[name="name"]'
-          ) as HTMLInputElement;
-          const websiteURLInput = form.querySelector(
-            'input[name="websiteURL"]'
-          ) as HTMLInputElement;
-
-          if (nameInput) {
-            nameInput.value = data.name;
-          }
-
-          if (websiteURLInput) {
-            websiteURLInput.value = data.website_url || "";
-          }
-
-          form.addressLine1.value = data.address.address_line1;
-          form.addressLine2.value = data.address.address_line2 || "";
-          form.pincode.value = data.address.pincode;
-
-          form.inChargeFirstName.value = in_charge?.first_name || "";
-          form.inChargeLastName.value = in_charge?.last_name || "";
-          form.inChargeEmail.value = in_charge?.email || "";
-          form.inChargeWhatsapp.value =
-            in_charge?.user_meta_data?.phone_number || "";
-
-          form.correspondentFirstName.value = correspondent?.first_name || "";
-          form.correspondentLastName.value = correspondent?.last_name || "";
-          form.correspondentEmail.value = correspondent?.email || "";
-          form.correspondentWhatsapp.value =
-            correspondent?.user_meta_data?.phone_number || "";
-
-          form.principalFirstName.value = principal?.first_name || "";
-          form.principalLastName.value = principal?.last_name || "";
-          form.principalEmail.value = principal?.email || "";
-          form.principalWhatsapp.value =
-            principal?.user_meta_data?.phone_number || "";
-        }
+        setInCharges(inChargeUsers.length > 0 ? inChargeUsers : [{
+          email: "",
+          first_name: "",
+          last_name: "",
+          phone_number: "",
+        }]);
+        setPrincipals(principalUsers);
+        setCorrespondents(correspondentUsers);
+        
+        // Set default form values
+        setTimeout(() => {
+          const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+          const addressLine1Input = document.querySelector('input[name="addressLine1"]') as HTMLInputElement;
+          const addressLine2Input = document.querySelector('input[name="addressLine2"]') as HTMLInputElement;
+          const pincodeInput = document.querySelector('input[name="pincode"]') as HTMLInputElement;
+          const websiteInput = document.querySelector('input[name="websiteURL"]') as HTMLInputElement;
+          
+          if (nameInput) nameInput.value = data.name;
+          if (addressLine1Input) addressLine1Input.value = data.address.address_line1 || '';
+          if (addressLine2Input) addressLine2Input.value = data.address.address_line2 || '';
+          if (pincodeInput) pincodeInput.value = data.address.pincode || '';
+          if (websiteInput) websiteInput.value = data.website_url || '';
+        }, 100);
       } catch (error) {
         setError("Error loading school data. Please try again.");
         console.error(error);
@@ -234,18 +256,6 @@ export default function EditSchoolForm({
     setSocialLinks(updatedLinks);
   };
 
-  const handleSameAsPrincipalChange = (checked: boolean) => {
-    setSameAsPrincipal(checked);
-    if (checked) {
-      const form = document.querySelector("form") as HTMLFormElement;
-      if (form) {
-        form.correspondentFirstName.value = form.principalFirstName.value;
-        form.correspondentLastName.value = form.principalLastName.value;
-        form.correspondentEmail.value = form.principalEmail.value;
-        form.correspondentWhatsapp.value = form.principalWhatsapp.value;
-      }
-    }
-  };
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -268,6 +278,42 @@ export default function EditSchoolForm({
         }
       }
 
+      // Validate that at least one in-charge is provided
+      const validInCharges = inCharges.filter(user => 
+        user.email.trim() !== "" && 
+        user.first_name.trim() !== "" && 
+        user.last_name.trim() !== ""
+      );
+      
+      if (validInCharges.length === 0) {
+        throw new Error("At least one in-charge is required");
+      }
+
+      // Validate no duplicate emails within each role
+      const validateEmailDuplicates = (users: typeof inCharges, roleName: string) => {
+        const emails = users
+          .filter(user => user.email.trim() !== "")
+          .map(user => user.email.toLowerCase().trim());
+        const uniqueEmails = new Set(emails);
+        if (uniqueEmails.size !== emails.length) {
+          throw new Error(`Duplicate emails found among ${roleName}. Each ${roleName.slice(0, -1)} must have a unique email.`);
+        }
+      };
+
+      validateEmailDuplicates(validInCharges, "in-charges");
+      const validPrincipals = principals.filter(user => 
+        user.email.trim() !== "" && 
+        user.first_name.trim() !== "" && 
+        user.last_name.trim() !== ""
+      );
+      validateEmailDuplicates(validPrincipals, "principals");
+      const validCorrespondents = correspondents.filter(user => 
+        user.email.trim() !== "" && 
+        user.first_name.trim() !== "" && 
+        user.last_name.trim() !== ""
+      );
+      validateEmailDuplicates(validCorrespondents, "correspondents");
+
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
@@ -279,47 +325,32 @@ export default function EditSchoolForm({
           address_line1: formData.get("addressLine1"),
           address_line2: formData.get("addressLine2"),
           pincode: formData.get("pincode"),
-          cityId: parseInt(selectedCity),
+          city_id: parseInt(selectedCity),
         },
-        in_charge: formData.get("inChargeEmail")
-          ? {
-              email: formData.get("inChargeEmail"),
-              first_name: formData.get("inChargeFirstName"),
-              last_name: formData.get("inChargeLastName"),
-              user_meta_data: {
-                phone_number: formData.get("inChargeWhatsapp"),
-              },
-            }
-          : undefined,
-        correspondent: sameAsPrincipal
-          ? {
-              email: formData.get("principalEmail"),
-              first_name: formData.get("principalFirstName"),
-              last_name: formData.get("principalLastName"),
-              user_meta_data: {
-                phone_number: formData.get("principalWhatsapp"),
-              },
-            }
-          : formData.get("correspondentEmail")
-          ? {
-              email: formData.get("correspondentEmail"),
-              first_name: formData.get("correspondentFirstName"),
-              last_name: formData.get("correspondentLastName"),
-              user_meta_data: {
-                phone_number: formData.get("correspondentWhatsapp"),
-              },
-            }
-          : undefined,
-        principal: formData.get("principalEmail")
-          ? {
-              email: formData.get("principalEmail"),
-              first_name: formData.get("principalFirstName"),
-              last_name: formData.get("principalLastName"),
-              user_meta_data: {
-                phone_number: formData.get("principalWhatsapp"),
-              },
-            }
-          : undefined,
+        in_charges: validInCharges.map(user => ({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_meta_data: {
+            phone_number: user.phone_number,
+          },
+        })),
+        correspondents: validCorrespondents.map(user => ({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_meta_data: {
+            phone_number: user.phone_number,
+          },
+        })),
+        principals: validPrincipals.map(user => ({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_meta_data: {
+            phone_number: user.phone_number,
+          },
+        })),
         syllabus,
         website_url: formData.get("websiteURL"),
         paid_subscription: paidSubscription === "Yes",
@@ -483,163 +514,113 @@ export default function EditSchoolForm({
                 ]}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
-                <SelectField
-                  name="country"
-                  label="Country"
-                  options={countryOptions}
-                  value={selectedCountry}
-                  onChange={handleCountryChange}
-                  required
-                />
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 font-semibold text-gray-700">Country *</label>
+                    <select 
+                      value={selectedCountry}
+                      onChange={handleCountryChange}
+                      required
+                      className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                      <option value="">Select Country</option>
+                      {countryOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-2 font-semibold text-gray-700">State *</label>
+                    <select 
+                      value={selectedState}
+                      onChange={handleStateChange}
+                      required
+                      disabled={!selectedCountry}
+                      className={`w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                        !selectedCountry ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <option value="">Select State</option>
+                      {stateOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-                <SelectField
-                  name="state"
-                  label="State"
-                  options={stateOptions}
-                  value={selectedState}
-                  onChange={handleStateChange}
-                  required
-                  className={
-                    !selectedCountry ? "opacity-50 pointer-events-none" : ""
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-                <SelectField
-                  name="city"
-                  label="City"
-                  options={cityOptions}
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  required
-                  className={
-                    !selectedState ? "opacity-50 pointer-events-none" : ""
-                  }
-                />
-
-                <TextFieldGroup
-                  fields={[
-                    {
-                      name: "pincode",
-                      label: "Pincode",
-                      required: true,
-                      placeholder: "Enter pincode",
-                    },
-                  ]}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 font-semibold text-gray-700">City *</label>
+                    <select 
+                      value={selectedCity}
+                      onChange={(e) => setSelectedCity(e.target.value)}
+                      required
+                      disabled={!selectedState}
+                      className={`w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                        !selectedState ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <option value="">Select City</option>
+                      {cityOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <TextFieldGroup
+                    fields={[
+                      {
+                        name: "pincode",
+                        label: "Pincode",
+                        required: true,
+                        placeholder: "Enter pincode",
+                      },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           </FormSection>
 
           <FormSection
             title="In-Charge Details"
-            description="Enter the details of the in-charge person (optional)"
+            description="Add one or more in-charge persons (at least one is required)"
           >
-            <TextFieldGroup
-              fields={[
-                {
-                  name: "inChargeFirstName",
-                  label: "First Name",
-                  placeholder: "Enter first name",
-                },
-                {
-                  name: "inChargeLastName",
-                  label: "Last Name",
-                  placeholder: "Enter last name",
-                },
-                {
-                  name: "inChargeEmail",
-                  label: "Email",
-                  type: "email",
-                  placeholder: "Enter email address",
-                },
-                {
-                  name: "inChargeWhatsapp",
-                  label: "WhatsApp Number",
-                  placeholder: "Enter WhatsApp number",
-                },
-              ]}
-            />
-          </FormSection>
-
-          <FormSection
-            title="Correspondent Details"
-            description="Enter the details of the correspondent (optional)"
-          >
-            <div className="mb-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={sameAsPrincipal}
-                  onChange={(e) =>
-                    handleSameAsPrincipalChange(e.target.checked)
-                  }
-                  className="form-checkbox h-4 w-4 text-blue-600"
-                />
-                <span className="text-sm text-gray-700">Same as Principal</span>
-              </label>
-            </div>
-            <TextFieldGroup
-              fields={[
-                {
-                  name: "correspondentFirstName",
-                  label: "First Name",
-                  placeholder: "Enter first name",
-                  disabled: sameAsPrincipal ? true : false,
-                },
-                {
-                  name: "correspondentLastName",
-                  label: "Last Name",
-                  placeholder: "Enter last name",
-                  disabled: sameAsPrincipal ? true : false,
-                },
-                {
-                  name: "correspondentEmail",
-                  label: "Email",
-                  type: "email",
-                  placeholder: "Enter email address",
-                  disabled: sameAsPrincipal ? true : false,
-                },
-                {
-                  name: "correspondentWhatsapp",
-                  label: "WhatsApp Number",
-                  placeholder: "Enter WhatsApp number",
-                  disabled: sameAsPrincipal ? true : false,
-                },
-              ]}
+            <MultipleUserInput
+              title="In-Charges"
+              description="At least one in-charge is required"
+              users={inCharges}
+              onChange={setInCharges}
+              required={true}
+              minUsers={1}
             />
           </FormSection>
 
           <FormSection
             title="Principal Details"
-            description="Enter the details of the principal (optional)"
+            description="Add principals for the school (optional)"
           >
-            <TextFieldGroup
-              fields={[
-                {
-                  name: "principalFirstName",
-                  label: "First Name",
-                  placeholder: "Enter first name",
-                },
-                {
-                  name: "principalLastName",
-                  label: "Last Name",
-                  placeholder: "Enter last name",
-                },
-                {
-                  name: "principalEmail",
-                  label: "Email",
-                  type: "email",
-                  placeholder: "Enter email address",
-                },
-                {
-                  name: "principalWhatsapp",
-                  label: "WhatsApp Number",
-                  placeholder: "Enter WhatsApp number",
-                },
-              ]}
+            <MultipleUserInput
+              title="Principals"
+              description="Add school principals (optional)"
+              users={principals}
+              onChange={setPrincipals}
+              required={false}
+              minUsers={0}
+            />
+          </FormSection>
+
+          <FormSection
+            title="Correspondent Details"
+            description="Add correspondents for the school (optional)"
+          >
+            <MultipleUserInput
+              title="Correspondents"
+              description="Add school correspondents (optional)"
+              users={correspondents}
+              onChange={setCorrespondents}
+              required={false}
+              minUsers={0}
             />
           </FormSection>
 

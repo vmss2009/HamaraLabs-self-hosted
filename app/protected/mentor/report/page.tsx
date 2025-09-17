@@ -14,6 +14,7 @@ import DetailViewer from "@/components/DetailViewer";
 import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/Icons";
 import Alert from "@/components/Alert";
+import ReportShell from "@/components/ReportShell";
 
 interface Mentor {
   id: string;
@@ -151,8 +152,40 @@ export default function MentorReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
-      <div className="pt-20 ">
+    <ReportShell>
+      <div className="w-full">
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
+          <DataGrid
+            rows={mentors}
+            columns={columns}
+            loading={loading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
+          />
+        </div>
+
         {error && (
           <Alert severity="error" className="mb-4">
             {error}
@@ -165,45 +198,15 @@ export default function MentorReport() {
           </Alert>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm">
-          <DataGrid
-            rows={mentors}
-            columns={columns}
-            loading={loading}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 10 } },
-            }}
-            pageSizeOptions={[5, 10, 25, 50]}
-            disableRowSelectionOnClick
-            autoHeight
-            onRowClick={handleRowClick}
-            sx={{
-              borderRadius: "12px",
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f3f4f6",
-                color: "#1f2937",
-              },
-            }}
-            slots={{
-              toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
-                </GridToolbarContainer>
-              ),
-            }}
-          />
-        </div>
-
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          formtype="Mentor"
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               mentors.findIndex((mentor) => mentor.id === selectedRow?.id) + 1,
-          }}
+          } : null}
+          formtype="Mentor"
           columns={[
             { label: "S.No", field: "index" },
             { label: "First name", field: "first_name" },
@@ -214,6 +217,6 @@ export default function MentorReport() {
           ]}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

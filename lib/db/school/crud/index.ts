@@ -8,108 +8,51 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { Prisma } from "@prisma/client";
 
+async function createOrUpdateUser(userData: UserInput) {
+  const existingUser = await prisma.user.findUnique({
+    where: { email: userData.email },
+  });
+
+  if (existingUser) {
+    return await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        user_meta_data: {
+          phone_number: userData.phone_number,
+          ...userData.user_meta_data,
+        },
+      },
+    });
+  } else {
+    return await prisma.user.create({
+      data: {
+        id: uuidv4(),
+        email: userData.email,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        user_meta_data: {
+          phone_number: userData.phone_number,
+          ...userData.user_meta_data,
+        },
+      },
+    });
+  }
+}
+
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
-    const existingInCharge = data.in_charge
-      ? await prisma.user.findUnique({
-          where: { email: data.in_charge.email },
-        })
-      : null;
-
-    const in_charge = data.in_charge
-      ? existingInCharge
-        ? await prisma.user.update({
-            where: { id: existingInCharge.id },
-            data: {
-              first_name: data.in_charge.first_name,
-              last_name: data.in_charge.last_name,
-              user_meta_data: {
-                phone_number: data.in_charge.phone_number,
-                ...data.in_charge.user_meta_data,
-              },
-            },
-          })
-        : await prisma.user.create({
-            data: {
-              id: uuidv4(),
-              email: data.in_charge.email,
-              first_name: data.in_charge.first_name,
-              last_name: data.in_charge.last_name,
-              user_meta_data: {
-                phone_number: data.in_charge.phone_number,
-                ...data.in_charge.user_meta_data,
-              },
-            },
-          })
-      : null;
-
-    const existingPrincipal = data.principal
-      ? await prisma.user.findUnique({
-          where: { email: data.principal.email },
-        })
-      : null;
-
-    const principal = data.principal
-      ? existingPrincipal
-        ? await prisma.user.update({
-            where: { id: existingPrincipal.id },
-            data: {
-              first_name: data.principal.first_name,
-              last_name: data.principal.last_name,
-              user_meta_data: {
-                phone_number: data.principal.phone_number,
-                ...data.principal.user_meta_data,
-              },
-            },
-          })
-        : await prisma.user.create({
-            data: {
-              id: uuidv4(),
-              email: data.principal.email,
-              first_name: data.principal.first_name,
-              last_name: data.principal.last_name,
-              user_meta_data: {
-                phone_number: data.principal.phone_number,
-                ...data.principal.user_meta_data,
-              },
-            },
-          })
-      : null;
-
-    const existingCorrespondent = data.correspondent
-      ? await prisma.user.findUnique({
-          where: { email: data.correspondent.email },
-        })
-      : null;
-
-    const correspondent = data.correspondent
-      ? data.correspondent.email === data.principal?.email
-        ? principal
-        : existingCorrespondent
-        ? await prisma.user.update({
-            where: { id: existingCorrespondent.id },
-            data: {
-              first_name: data.correspondent.first_name,
-              last_name: data.correspondent.last_name,
-              user_meta_data: {
-                phone_number: data.correspondent.phone_number,
-                ...data.correspondent.user_meta_data,
-              },
-            },
-          })
-        : await prisma.user.create({
-            data: {
-              id: uuidv4(),
-              email: data.correspondent.email,
-              first_name: data.correspondent.first_name,
-              last_name: data.correspondent.last_name,
-              user_meta_data: {
-                phone_number: data.correspondent.phone_number,
-                ...data.correspondent.user_meta_data,
-              },
-            },
-          })
-      : null;
+    // Create or update users
+    const inChargeUsers = await Promise.all(
+      data.in_charges.map(userData => createOrUpdateUser(userData))
+    );
+    const principalUsers = await Promise.all(
+      data.principals.map(userData => createOrUpdateUser(userData))
+    );
+    const correspondentUsers = await Promise.all(
+      data.correspondents.map(userData => createOrUpdateUser(userData))
+    );
 
     const school = await prisma.school.create({
       data: {
@@ -117,23 +60,10 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
         is_ATL: data.is_ATL,
         ATL_establishment_year: data.ATL_establishment_year,
         address_id: data.address_id,
-        in_charge_id: in_charge?.id,
-        correspondent_id: correspondent?.id,
-        principal_id: principal?.id,
         syllabus: data.syllabus,
         website_url: data.website_url,
         paid_subscription: data.paid_subscription,
         social_links: data.social_links,
-        users: {
-          connect: [
-            ...(in_charge ? [{ id: in_charge.id }] : []),
-            ...(correspondent ? [{ id: correspondent.id }] : []),
-            ...(principal ? [{ id: principal.id }] : []),
-          ].filter(
-            (user, index, self) =>
-              index === self.findIndex((u) => u.id === user.id)
-          ),
-        },
       },
       include: {
         address: {
@@ -149,13 +79,63 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
             },
           },
         },
-        users: true,
+      },
+    });
+
+    // Create user roles
+    const userRoles = [
+      ...inChargeUsers.map(user => ({
+        id: uuidv4(),
+        user_id: user.id,
+        school_id: school.id,
+        role: 'INCHARGE' as const,
+      })),
+      ...principalUsers.map(user => ({
+        id: uuidv4(),
+        user_id: user.id,
+        school_id: school.id,
+        role: 'PRINCIPAL' as const,
+      })),
+      ...correspondentUsers.map(user => ({
+        id: uuidv4(),
+        user_id: user.id,
+        school_id: school.id,
+        role: 'CORRESPONDENT' as const,
+      })),
+    ];
+
+    await prisma.userRole.createMany({
+      data: userRoles,
+    });
+
+    // Return school with user roles
+    const schoolWithRoles = await prisma.school.findUnique({
+      where: { id: school.id },
+      include: {
+        address: {
+          include: {
+            city: {
+              include: {
+                state: {
+                  include: {
+                    country: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        user_roles: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
     return {
-      ...school,
-      id: school.id.toString(),
+      ...schoolWithRoles!,
+      id: schoolWithRoles!.id.toString(),
     };
   } catch (error) {
     console.error("Error creating school:", error);
@@ -214,7 +194,11 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
             },
           },
         },
-        users: true,
+        user_roles: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -246,7 +230,11 @@ export async function getSchoolById(id: string): Promise<SchoolWithAddress | nul
             },
           },
         },
-        users: true,
+        user_roles: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -267,7 +255,11 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     const currentSchool = await prisma.school.findUnique({
       where: { id },
       include: {
-        users: true,
+        user_roles: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -287,167 +279,48 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       });
     }
 
-    let principalId = undefined;
-    if (data.principal) {
-      const previousPrincipal = currentSchool.users?.find(
-        (user) => user.id === currentSchool.principal_id
-      );
+    // Remove all existing user roles for this school
+    await prisma.userRole.deleteMany({
+      where: { school_id: id },
+    });
 
-      if (
-        previousPrincipal &&
-        previousPrincipal.email !== data.principal.email
-      ) {
-        await prisma.user.update({
-          where: { id: previousPrincipal.id },
-          data: {
-            schools: {
-              disconnect: { id: id },
-            },
-          },
-        });
-      }
+    // Create or update users and create new roles
+    const inChargeUsers = await Promise.all(
+      data.in_charges.map(userData => createOrUpdateUser(userData))
+    );
+    const principalUsers = await Promise.all(
+      data.principals.map(userData => createOrUpdateUser(userData))
+    );
+    const correspondentUsers = await Promise.all(
+      data.correspondents.map(userData => createOrUpdateUser(userData))
+    );
 
-      const existingUser = await prisma.user.findUnique({
-        where: { email: data.principal.email },
+    // Create user roles
+    const userRoles = [
+      ...inChargeUsers.map(user => ({
+        id: uuidv4(),
+        user_id: user.id,
+        school_id: id,
+        role: 'INCHARGE' as const,
+      })),
+      ...principalUsers.map(user => ({
+        id: uuidv4(),
+        user_id: user.id,
+        school_id: id,
+        role: 'PRINCIPAL' as const,
+      })),
+      ...correspondentUsers.map(user => ({
+        id: uuidv4(),
+        user_id: user.id,
+        school_id: id,
+        role: 'CORRESPONDENT' as const,
+      })),
+    ];
+
+    if (userRoles.length > 0) {
+      await prisma.userRole.createMany({
+        data: userRoles,
       });
-
-      if (existingUser) {
-        principalId = existingUser.id;
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            first_name: data.principal.first_name,
-            last_name: data.principal.last_name,
-            user_meta_data: data.principal.user_meta_data,
-            schools: {
-              connect: { id: id },
-            },
-          },
-        });
-      } else {
-        const newPrincipal = await prisma.user.create({
-          data: {
-            id: uuidv4(),
-            email: data.principal.email,
-            first_name: data.principal.first_name,
-            last_name: data.principal.last_name,
-            user_meta_data: data.principal.user_meta_data,
-            schools: {
-              connect: { id: id },
-            },
-          },
-        });
-        principalId = newPrincipal.id;
-      }
-    }
-
-    let correspondentId = undefined;
-    if (data.correspondent) {
-      if (data.correspondent.email === data.principal?.email) {
-        correspondentId = principalId;
-      } else {
-        const previousCorrespondent = currentSchool.users?.find(
-          (user) => user.id === currentSchool.correspondent_id
-        );
-
-        if (
-          previousCorrespondent &&
-          previousCorrespondent.email !== data.correspondent.email
-        ) {
-          await prisma.user.update({
-            where: { id: previousCorrespondent.id },
-            data: {
-              schools: {
-                disconnect: { id: id },
-              },
-            },
-          });
-        }
-
-        const existingUser = await prisma.user.findUnique({
-          where: { email: data.correspondent.email },
-        });
-
-        if (existingUser) {
-          correspondentId = existingUser.id;
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: {
-              first_name: data.correspondent.first_name,
-              last_name: data.correspondent.last_name,
-              user_meta_data: data.correspondent.user_meta_data,
-              schools: {
-                connect: { id: id },
-              },
-            },
-          });
-        } else {
-          const newCorrespondent = await prisma.user.create({
-            data: {
-              id: uuidv4(),
-              email: data.correspondent.email,
-              first_name: data.correspondent.first_name,
-              last_name: data.correspondent.last_name,
-              user_meta_data: data.correspondent.user_meta_data,
-              schools: {
-                connect: { id: id },
-              },
-            },
-          });
-          correspondentId = newCorrespondent.id;
-        }
-      }
-    }
-
-    let inChargeId = undefined;
-    if (data.in_charge) {
-      const previousInCharge = currentSchool.users?.find(
-        (user) => user.id === currentSchool.in_charge_id
-      );
-
-      if (previousInCharge && previousInCharge.email !== data.in_charge.email) {
-        await prisma.user.update({
-          where: { id: previousInCharge.id },
-          data: {
-            schools: {
-              disconnect: { id: id },
-            },
-          },
-        });
-      }
-
-      const existingUser = await prisma.user.findUnique({
-        where: { email: data.in_charge.email },
-      });
-
-      if (existingUser) {
-        inChargeId = existingUser.id;
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            first_name: data.in_charge.first_name,
-            last_name: data.in_charge.last_name,
-            user_meta_data: data.in_charge.user_meta_data,
-            schools: {
-              connect: { id: id },
-            },
-          },
-        });
-      } else {
-        const newInCharge = await prisma.user.create({
-          data: {
-            id: uuidv4(),
-            email: data.in_charge.email,
-            first_name: data.in_charge.first_name,
-            last_name: data.in_charge.last_name,
-            user_meta_data: data.in_charge.user_meta_data,
-            schools: {
-              connect: { id: id },
-            },
-          },
-        });
-        inChargeId = newInCharge.id;
-      }
     }
 
     const school = await prisma.school.update({
@@ -460,16 +333,6 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
         website_url: data.website_url,
         paid_subscription: data.paid_subscription,
         social_links: data.social_links,
-        principal_id: principalId,
-        correspondent_id: correspondentId,
-        in_charge_id: inChargeId,
-        users: {
-          connect: [
-            ...(principalId ? [{ id: principalId }] : []),
-            ...(correspondentId ? [{ id: correspondentId }] : []),
-            ...(inChargeId ? [{ id: inChargeId }] : []),
-          ],
-        },
       },
       include: {
         address: {
@@ -485,7 +348,11 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             },
           },
         },
-        users: true,
+        user_roles: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 

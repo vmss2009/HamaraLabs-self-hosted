@@ -4,12 +4,19 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import TextFieldGroup from "@/components/TextFieldGroup";
-import SelectField from "@/components/SelectField";
 import SearchableSelect from "@/components/SearchableSelect";
 import CheckboxGroup from "@/components/CheckboxGroup";
 import RadioButtonGroup from "@/components/RadioButtonGroup";
 import DynamicFieldArray from "@/components/DynamicFieldArray";
+import MultipleUserInput from "@/components/MultipleUserInput";
 import { useRouter } from "next/navigation";
+
+interface UserData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
+}
 
 type Country = {
   id: number;
@@ -42,7 +49,14 @@ export default function SchoolForm() {
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [sameAsPrincipal, setSameAsPrincipal] = useState<boolean>(false);
+  const [inCharges, setInCharges] = useState<UserData[]>([{
+    email: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+  }]);
+  const [principals, setPrincipals] = useState<UserData[]>([]);
+  const [correspondents, setCorrespondents] = useState<UserData[]>([]);
 
   const [isATL, setIsATL] = useState<string>("No");
   const [paidSubscription, setPaidSubscription] = useState<string>("No");
@@ -75,45 +89,6 @@ export default function SchoolForm() {
     };
   }, []);
 
-  const handleCountryChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const countryId = e.target.value;
-    setSelectedCountry(countryId);
-
-    try {
-      const response = await fetch(`/api/states?countryId=${countryId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch states");
-      }
-      const data = await response.json();
-      setStates(data);
-      setCities([]);
-      setSelectedState("");
-      setSelectedCity("");
-    } catch (error) {
-      setError("Error loading states. Please try again.");
-      console.error(error);
-    }
-  };
-
-  const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const stateId = e.target.value;
-    setSelectedState(stateId);
-
-    try {
-      const response = await fetch(`/api/cities?stateId=${stateId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch cities");
-      }
-      const data = await response.json();
-      setCities(data);
-      setSelectedCity("");
-    } catch (error) {
-      setError("Error loading cities. Please try again.");
-      console.error(error);
-    }
-  };
 
   const handleSyllabiChange = (value: string, checked: boolean) => {
     if (checked) {
@@ -139,18 +114,6 @@ export default function SchoolForm() {
     setSocialLinks(updatedLinks);
   };
 
-  const handleSameAsPrincipalChange = (checked: boolean) => {
-    setSameAsPrincipal(checked);
-    if (checked) {
-      const form = document.querySelector("form") as HTMLFormElement;
-      if (form) {
-        form.correspondentFirstName.value = form.principalFirstName.value;
-        form.correspondentLastName.value = form.principalLastName.value;
-        form.correspondentEmail.value = form.principalEmail.value;
-        form.correspondentWhatsapp.value = form.principalWhatsapp.value;
-      }
-    }
-  };
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -173,6 +136,42 @@ export default function SchoolForm() {
         }
       }
 
+      // Validate that at least one in-charge is provided
+      const validInCharges = inCharges.filter(user => 
+        user.email.trim() !== "" && 
+        user.first_name.trim() !== "" && 
+        user.last_name.trim() !== ""
+      );
+      
+      if (validInCharges.length === 0) {
+        throw new Error("At least one in-charge is required");
+      }
+
+      // Validate no duplicate emails within each role
+      const validateEmailDuplicates = (users: typeof inCharges, roleName: string) => {
+        const emails = users
+          .filter(user => user.email.trim() !== "")
+          .map(user => user.email.toLowerCase().trim());
+        const uniqueEmails = new Set(emails);
+        if (uniqueEmails.size !== emails.length) {
+          throw new Error(`Duplicate emails found among ${roleName}. Each ${roleName.slice(0, -1)} must have a unique email.`);
+        }
+      };
+
+      validateEmailDuplicates(validInCharges, "in-charges");
+      const validPrincipals = principals.filter(user => 
+        user.email.trim() !== "" && 
+        user.first_name.trim() !== "" && 
+        user.last_name.trim() !== ""
+      );
+      validateEmailDuplicates(validPrincipals, "principals");
+      const validCorrespondents = correspondents.filter(user => 
+        user.email.trim() !== "" && 
+        user.first_name.trim() !== "" && 
+        user.last_name.trim() !== ""
+      );
+      validateEmailDuplicates(validCorrespondents, "correspondents");
+
       const schoolData = {
         name: formData.get("name"),
         is_ATL: isATL === "Yes",
@@ -186,45 +185,30 @@ export default function SchoolForm() {
           pincode: formData.get("pincode"),
           cityId: parseInt(selectedCity),
         },
-        in_charge: formData.get("inChargeEmail")
-          ? {
-              email: formData.get("inChargeEmail"),
-              first_name: formData.get("inChargeFirstName"),
-              last_name: formData.get("inChargeLastName"),
-              user_meta_data: {
-                phone_number: formData.get("inChargeWhatsapp"),
-              },
-            }
-          : undefined,
-        correspondent: sameAsPrincipal
-          ? {
-              email: formData.get("principalEmail"),
-              first_name: formData.get("principalFirstName"),
-              last_name: formData.get("principalLastName"),
-              user_meta_data: {
-                phone_number: formData.get("principalWhatsapp"),
-              },
-            }
-          : formData.get("correspondentEmail")
-          ? {
-              email: formData.get("correspondentEmail"),
-              first_name: formData.get("correspondentFirstName"),
-              last_name: formData.get("correspondentLastName"),
-              user_meta_data: {
-                phone_number: formData.get("correspondentWhatsapp"),
-              },
-            }
-          : undefined,
-        principal: formData.get("principalEmail")
-          ? {
-              email: formData.get("principalEmail"),
-              first_name: formData.get("principalFirstName"),
-              last_name: formData.get("principalLastName"),
-              user_meta_data: {
-                phone_number: formData.get("principalWhatsapp"),
-              },
-            }
-          : undefined,
+        in_charges: validInCharges.map(user => ({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_meta_data: {
+            phone_number: user.phone_number,
+          },
+        })),
+        correspondents: validCorrespondents.map(user => ({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_meta_data: {
+            phone_number: user.phone_number,
+          },
+        })),
+        principals: validPrincipals.map(user => ({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_meta_data: {
+            phone_number: user.phone_number,
+          },
+        })),
         syllabus,
         website_url: formData.get("websiteURL"),
         paid_subscription: paidSubscription === "Yes",
@@ -476,120 +460,43 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
 
           <FormSection
             title="In-Charge Details"
-            description="Enter the details of the in-charge person (optional)"
+            description="Add one or more in-charge persons (at least one is required)"
           >
-            <TextFieldGroup
-              fields={[
-                {
-                  name: "inChargeFirstName",
-                  label: "First Name",
-                  placeholder: "Enter first name",
-                  required: true,
-                },
-                {
-                  name: "inChargeLastName",
-                  label: "Last Name",
-                  placeholder: "Enter last name",
-                  required: true,
-                },
-                {
-                  name: "inChargeEmail",
-                  label: "Email",
-                  type: "email",
-                  placeholder: "Enter email address",
-                  required: true,
-                },
-                {
-                  name: "inChargeWhatsapp",
-                  label: "WhatsApp Number",
-                  placeholder: "Enter WhatsApp number",
-                },
-              ]}
-            />
-          </FormSection>
-
-          <FormSection
-            title="Correspondent Details"
-            description="Enter the details of the correspondent (optional)"
-          >
-            <div className="mb-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={sameAsPrincipal}
-                  onChange={(e) =>
-                    handleSameAsPrincipalChange(e.target.checked)
-                  }
-                  className="form-checkbox h-4 w-4 text-blue-600"
-                />
-                <span className="text-sm text-gray-700">Same as Principal</span>
-              </label>
-            </div>
-            <TextFieldGroup
-              fields={[
-                {
-                  name: "correspondentFirstName",
-                  label: "First Name",
-                  placeholder: "Enter first name",
-                  required: true,
-                  disabled: sameAsPrincipal ? true : false,
-                },
-                {
-                  name: "correspondentLastName",
-                  label: "Last Name",
-                  placeholder: "Enter last name",
-                  required: true,
-                  disabled: sameAsPrincipal ? true : false,
-                },
-                {
-                  name: "correspondentEmail",
-                  label: "Email",
-                  type: "email",
-                  placeholder: "Enter email address",
-                  required: true,
-                  disabled: sameAsPrincipal ? true : false,
-                },
-                {
-                  name: "correspondentWhatsapp",
-                  label: "WhatsApp Number",
-                  placeholder: "Enter WhatsApp number",
-                  disabled: sameAsPrincipal ? true : false,
-                },
-              ]}
+            <MultipleUserInput
+              title="In-Charges"
+              description="At least one in-charge is required"
+              users={inCharges}
+              onChange={setInCharges}
+              required={true}
+              minUsers={1}
             />
           </FormSection>
 
           <FormSection
             title="Principal Details"
-            description="Enter the details of the principal (optional)"
+            description="Add principals for the school (optional)"
           >
-            <TextFieldGroup
-              fields={[
-                {
-                  name: "principalFirstName",
-                  label: "First Name",
-                  placeholder: "Enter first name",
-                  required: true,
-                },
-                {
-                  name: "principalLastName",
-                  label: "Last Name",
-                  placeholder: "Enter last name",
-                  required: true,
-                },
-                {
-                  name: "principalEmail",
-                  label: "Email",
-                  type: "email",
-                  placeholder: "Enter email address",
-                  required: true,
-                },
-                {
-                  name: "principalWhatsapp",
-                  label: "WhatsApp Number",
-                  placeholder: "Enter WhatsApp number",
-                },
-              ]}
+            <MultipleUserInput
+              title="Principals"
+              description="Add school principals (optional)"
+              users={principals}
+              onChange={setPrincipals}
+              required={false}
+              minUsers={0}
+            />
+          </FormSection>
+
+          <FormSection
+            title="Correspondent Details"
+            description="Add correspondents for the school (optional)"
+          >
+            <MultipleUserInput
+              title="Correspondents"
+              description="Add school correspondents (optional)"
+              users={correspondents}
+              onChange={setCorrespondents}
+              required={false}
+              minUsers={0}
             />
           </FormSection>
 

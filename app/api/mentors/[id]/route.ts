@@ -6,13 +6,22 @@ import {
 } from "@/lib/db/mentor/crud";
 import { MentorUpdateInput, mentorSchema } from "@/lib/db/mentor/type";
 
+// Transform function to convert user_roles back to schools for frontend compatibility
+function transformMentorData(mentor: any) {
+  return {
+    ...mentor,
+    schools: mentor.user_roles?.map((role: any) => role.school) || []
+  };
+}
+
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const mentor = await getMentorById(params.id);
     if (!mentor) {
       return failure("Mentor not found", 404);
     }
-    return success(mentor);
+    const transformedMentor = transformMentorData(mentor);
+    return success(transformedMentor);
   } catch (error) {
     console.error("Error fetching mentor:", error);
     return failure("Failed to fetch mentor", 500, {
@@ -42,7 +51,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     const mentor = await updateMentor(params.id, result.data);
-    return success(mentor);
+    const transformedMentor = transformMentorData(mentor);
+    return success(transformedMentor);
   } catch (error) {
     console.error("Error updating mentor:", error);
     if (error instanceof Error) {

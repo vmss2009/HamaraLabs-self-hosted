@@ -15,6 +15,7 @@ import { EditIcon, DeleteIcon } from "@/components/Icons";
 import Alert from "@/components/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
 import DetailViewer from "@/components/DetailViewer";
+import ReportShell from "@/components/ReportShell";
 
 export default function SchoolVisitReport() {
   const router = useRouter();
@@ -138,84 +139,74 @@ export default function SchoolVisitReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start min-h-screen w-screen bg-gray-500">
-      <div className="pt-20 w-full">
-      {error && (
-        <Alert
-          severity="error"
-          className="mb-4"
-          sx={{
-            borderRadius: "8px",
-            backgroundColor: "#FFEBEE",
-            border: "1px solid #FFCDD2",
-            padding: "10px 16px",
-          }}
-        >
-          {error}
-        </Alert>
-      )}
+    <ReportShell>
+      <div className="w-full">
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
+          <DataGrid
+            rows={visits}
+            columns={columns}
+            loading={loading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
+          />
+        </div>
 
-      <div className="w-[calc(100vw-6rem)] mx-auto my-10 bg-white rounded-xl shadow-sm">
-        <DataGrid
-          rows={visits}
-          columns={columns}
-          loading={loading}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
-          disableRowSelectionOnClick
-          autoHeight
-          onRowClick={handleRowClick}
-          sx={{
-            borderRadius: "12px",
-            "& .MuiDataGrid-cell": {
-              color: "#1f2937",
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
+        <DetailViewer
+          drawerOpen={drawerOpen}
+          closeDrawer={closeDrawer}
+          selectedRow={selectedRow ? {
+            ...selectedRow,
+            index: visits.findIndex((visit) => visit.id === selectedRow?.id) + 1,
+            point_of_contact_name: selectedRow?.point_of_contact
+              ? `${selectedRow.point_of_contact.first_name} ${selectedRow.point_of_contact.last_name}`
+              : selectedRow?.other_poc || "N/A",
+          } : null}
+          formtype="School Visit"
+          columns={[
+            { label: "S.No", field: "index" },
+            { label: "School", field: "school.name" },
+            { label: "Visit Date", field: "visit_date", type: "date" },
+            { label: "Point of Contact", field: "point_of_contact_name" },
+            { label: "School Performance", field: "school_performance" },
+            {
+              label: "No of UCs submitted",
+              field: "details.No of UCs submitted",
             },
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f3f4f6",
-              color: "#1f2937",
+            {
+              label: "Planned showcase date",
+              field: "details.Planned showcase date",
             },
-          }}
-          slots={{
-            toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                <GridToolbarColumnsButton />
-              </GridToolbarContainer>
-            ),
-          }}
+          ]}
         />
       </div>
-
-      <DetailViewer
-        drawerOpen={drawerOpen}
-        closeDrawer={closeDrawer}
-        selectedRow={{
-          ...selectedRow,
-          index: visits.findIndex((visit) => visit.id === selectedRow?.id) + 1,
-          point_of_contact_name: selectedRow?.point_of_contact
-            ? `${selectedRow.point_of_contact.first_name} ${selectedRow.point_of_contact.last_name}`
-            : selectedRow?.other_poc || "N/A",
-        }}
-        formtype="School Visit"
-        columns={[
-          { label: "S.No", field: "index" },
-          { label: "School", field: "school.name" },
-          { label: "Visit Date", field: "visit_date", type: "date" },
-          { label: "Point of Contact", field: "point_of_contact_name" },
-          { label: "School Performance", field: "school_performance" },
-          {
-            label: "No of UCs submitted",
-            field: "details.No of UCs submitted",
-          },
-          {
-            label: "Planned showcase date",
-            field: "details.Planned showcase date",
-          },
-        ]}
-      />
-      </div>
-    </div>
+    </ReportShell>
   );
 }

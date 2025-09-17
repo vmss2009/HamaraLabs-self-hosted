@@ -20,12 +20,19 @@ export async function createMentor(data: MentorCreateInput) {
         first_name: data.first_name,
         last_name: data.last_name,
         user_meta_data: data.user_meta_data || {},
-        schools: {
-          connect: data.school_ids.map(id => ({ id }))
+        user_roles: {
+          create: data.school_ids.map(schoolId => ({
+            school_id: String(schoolId),
+            role: 'INCHARGE'
+          }))
         }
       },
       include: {
-        schools: true
+        user_roles: {
+          include: {
+            school: true
+          }
+        }
       }
     });
 
@@ -47,9 +54,9 @@ export async function getMentors(filter?: MentorFilter) {
       }),
       ...(filter?.email && { email: { contains: filter.email, mode: Prisma.QueryMode.insensitive } }),
       ...(filter?.schoolId && {
-        schools: {
+        user_roles: {
           some: {
-            id: filter.schoolId
+            school_id: filter.schoolId
           }
         }
       })
@@ -58,7 +65,11 @@ export async function getMentors(filter?: MentorFilter) {
     const mentors = await prisma.user.findMany({
       where,
       include: {
-        schools: true
+        user_roles: {
+          include: {
+            school: true
+          }
+        }
       }
     });
 
@@ -74,7 +85,11 @@ export async function getMentorById(id: string) {
     const mentor = await prisma.user.findUnique({
       where: { id },
       include: {
-        schools: true
+        user_roles: {
+          include: {
+            school: true
+          }
+        }
       }
     });
 
@@ -117,13 +132,23 @@ export async function updateMentor(id: string, data: MentorUpdateInput) {
         ...(data.email && { email: data.email }),
         ...(data.user_meta_data && { user_meta_data: data.user_meta_data }),
         ...(data.school_ids && {
-          schools: {
-            set: data.school_ids.map(id => ({ id }))
+          user_roles: {
+            deleteMany: {
+              user_id: id
+            },
+            create: data.school_ids.map(schoolId => ({
+              school_id: String(schoolId),
+              role: 'INCHARGE'
+            }))
           }
         })
       },
       include: {
-        schools: true
+        user_roles: {
+          include: {
+            school: true
+          }
+        }
       }
     });
 
@@ -136,15 +161,12 @@ export async function updateMentor(id: string, data: MentorUpdateInput) {
 
 export async function deleteMentor(id: string) {
   try {
-    await prisma.user.update({
-      where: { id },
-      data: {
-        schools: {
-          set: []
-        }
-      }
+    // Delete associated user roles first
+    await prisma.userRole.deleteMany({
+      where: { user_id: id }
     });
 
+    // Then delete the user
     await prisma.user.delete({
       where: { id }
     });
@@ -154,4 +176,4 @@ export async function deleteMentor(id: string) {
     console.error("Error deleting mentor:", error);
     throw error;
   }
-} 
+}

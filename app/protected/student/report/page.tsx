@@ -132,35 +132,7 @@ export default function StudentReport() {
   return (
     <ReportShell>
       <div className="w-full">
-        {error && (
-          <Alert
-            severity="error"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFEBEE",
-              border: "1px solid #FFCDD2",
-              padding: "10px 16px",
-            }}
-          >
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-7 mr-7"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
-            {success}
-          </Alert>
-        )}
-        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={students}
             columns={columns}
@@ -170,8 +142,15 @@ export default function StudentReport() {
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
-            autoHeight
             onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
@@ -182,26 +161,29 @@ export default function StudentReport() {
                 color: "#1f2937",
               },
             }}
-            slots={{
-              toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
-                </GridToolbarContainer>
-              ),
-            }}
           />
         </div>
+
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" className="mb-4">
+            {success}
+          </Alert>
+        )}
 
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
-              students.findIndex((student) => student.id === selectedRow?.id) +
-              1,
-          }}
+              students.findIndex((student) => student.id === selectedRow?.id) + 1,
+          } : null}
           formtype="Student"
           columns={[
             { label: "S.No", field: "index" },

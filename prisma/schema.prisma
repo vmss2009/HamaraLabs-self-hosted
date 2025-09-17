@@ -17,7 +17,7 @@ model User {
   last_name      String?
   school_visits  SchoolVisit[] @relation("VisitPOC")
   students       Student[]
-  schools        School[]      @relation("UserSchools")
+  user_roles     UserRole[]
 }
 
 model Country {
@@ -66,16 +66,32 @@ model School {
   paid_subscription      Boolean
   social_links           String[]
   address_id             Int
-  correspondent_id       String?
-  in_charge_id           String?
-  principal_id           String?
   ATL_establishment_year Int?
   hub_school             Hub[]         @relation("HubSchool")
   address                Address       @relation(fields: [address_id], references: [id])
   visits                 SchoolVisit[]
   students               Student[]
   hub_spokes             Hub[]         @relation("HubSpokes")
-  users                  User[]        @relation("UserSchools")
+  user_roles             UserRole[]
+}
+
+enum UserRoleType {
+  INCHARGE
+  PRINCIPAL
+  CORRESPONDENT
+}
+
+model UserRole {
+  id         String       @id @default(uuid())
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  user_id    String
+  school_id  String
+  role       UserRoleType
+  user       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  school     School       @relation(fields: [school_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, school_id, role])
 }
 
 model Student {

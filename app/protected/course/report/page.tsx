@@ -196,20 +196,12 @@ export default function CourseReport() {
           </Alert>
         )}
         {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-7 mr-7"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="success" className="mb-4">
             {success}
           </Alert>
         )}
-        <div className="bg-white rounded-xl shadow-sm overflow-x-auto w-[calc(100vw-6rem)]  m-10 ">
+        
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={courses}
             columns={columns}
@@ -217,17 +209,9 @@ export default function CourseReport() {
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
-            pageSizeOptions={[5, 10, 25, 50]}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
-            autoHeight
             onRowClick={handleRowClick}
-            sx={{
-              borderRadius: "12px",
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f3f4f6",
-                color: "#1f2937",
-              },
-            }}
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
@@ -236,16 +220,27 @@ export default function CourseReport() {
                 </GridToolbarContainer>
               ),
             }}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
           />
         </div>
+        
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               courses.findIndex((course) => course.id === selectedRow?.id) + 1,
-          }}
+          } : null}
           formtype="Course"
           columns={[
             { label: "S.No", field: "index" },
@@ -285,6 +280,7 @@ export default function CourseReport() {
             { label: "Course Tags", field: "course_tags" },
           ]}
         />
+        
         <AssignDialog
           open={assignDialogOpen}
           formtype="Course"
@@ -292,7 +288,6 @@ export default function CourseReport() {
           selectedActivity={selectedActivity}
           setSuccess={setSuccess}
         />
-        ;
       </div>
     </ReportShell>
   );

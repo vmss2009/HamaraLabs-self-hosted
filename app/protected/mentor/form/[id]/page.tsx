@@ -9,7 +9,7 @@ import MultiSelect from "@/components/MultiSelect";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
 
 type School = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -56,7 +56,7 @@ export default function EditMentorPage({
             ""
         );
         setSelectedSchools(
-          mentor.schools.map((school: { id: number }) => school.id)
+          mentor.schools.map((school: { id: string }) => String(school.id))
         );
       } catch (error) {
         console.error("Error fetching data:", error);

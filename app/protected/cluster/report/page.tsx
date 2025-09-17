@@ -5,6 +5,8 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EditIcon, DeleteIcon } from "@/components/Icons";
 import { useRouter } from "next/navigation";
+import ReportShell from "@/components/ReportShell";
+import Alert from "@/components/Alert";
 
 type ClusterSchool = { id: number; name: string };
 
@@ -61,12 +63,12 @@ export default function ClusterReport() {
   };
 
   return (
-    <div className="flex justify-center items-start h-screen w-screen bg-gray-500">
-      <div className="pt-20 max-w-6xl mx-auto">
+    <ReportShell>
+      <div className="w-full max-w-6xl mx-auto pt-10">
         {error && (
-          <div className="bg-red-100 text-red-800 p-4 rounded mb-6">
+          <Alert severity="error" className="mb-4">
             {error}
-          </div>
+          </Alert>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -144,6 +146,6 @@ export default function ClusterReport() {
           </div>
         </div>
       </div>
-    </div>
+    </ReportShell>
   );
 }

@@ -16,6 +16,7 @@ import Alert from "@/components/Alert";
 import { EditIcon, DeleteIcon } from "@/components/Icons";
 import DetailViewer from "@/components/DetailViewer";
 import AssignDialog from "@/components/DialogBox";
+import ReportShell from "@/components/ReportShell";
 import { Competition } from "@/lib/db/competition/type";
 
 export default function CompetitionReport() {
@@ -177,37 +178,9 @@ export default function CompetitionReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start w-screen bg-gray-500">
-      <div className="pt-20 ">
-        {error && (
-          <Alert
-            severity="error"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFEBEE",
-              border: "1px solid #FFCDD2",
-              padding: "10px 16px",
-            }}
-          >
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-5 mr-5"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
-            {success}
-          </Alert>
-        )}
-        <div className="bg-white rounded-xl shadow-sm ">
+    <ReportShell>
+      <div className="w-full">
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={competitions}
             columns={columns}
@@ -217,8 +190,15 @@ export default function CompetitionReport() {
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
-            autoHeight
             onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
@@ -228,30 +208,32 @@ export default function CompetitionReport() {
                 backgroundColor: "#f3f4f6",
                 color: "#1f2937",
               },
-              "& .MuiDataGrid-row:hover": {
-                backgroundColor: "#f9fafb",
-              },
-            }}
-            slots={{
-              toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
-                </GridToolbarContainer>
-              ),
             }}
           />
         </div>
+
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" className="mb-4">
+            {success}
+          </Alert>
+        )}
+
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               competitions.findIndex(
                 (competition) => competition.id === selectedRow?.id
               ) + 1,
-          }}
+          } : null}
           formtype="Competition"
           columns={[
             { label: "S.No", field: "index" },
@@ -285,6 +267,7 @@ export default function CompetitionReport() {
             { label: "Fee", field: "fee" },
           ]}
         />
+        
         <AssignDialog
           open={assignDialogOpen}
           formtype="Competition"
@@ -293,6 +276,6 @@ export default function CompetitionReport() {
           setSuccess={setSuccess}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

@@ -14,9 +14,9 @@ export interface SchoolCreateInput {
   is_ATL: boolean;
   ATL_establishment_year?: number | null;
   address_id: number;
-  in_charge?: UserInput;
-  principal?: UserInput;
-  correspondent?: UserInput;
+  in_charges: UserInput[];
+  principals: UserInput[];
+  correspondents: UserInput[];
   syllabus: string[];
   website_url?: string;
   paid_subscription: boolean;
@@ -30,9 +30,6 @@ export interface SchoolWithAddress {
   is_ATL: boolean;
   ATL_establishment_year: number | null;
   address_id: number;
-  in_charge_id: string | null;
-  correspondent_id: string | null;
-  principal_id: string | null;
   syllabus: string[];
   website_url: string | null;
   paid_subscription: boolean;
@@ -62,10 +59,11 @@ export interface SchoolWithAddress {
       };
     };
   };
-  in_charge?: User | null;
-  correspondent?: User | null;
-  principal?: User | null;
-  users?: User[];
+  user_roles?: {
+    id: string;
+    role: 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
+    user: User;
+  }[];
 }
 
 export interface SchoolFilter {
@@ -91,31 +89,30 @@ export interface SchoolUpdateInput {
     pincode: string;
     city_id: number;
   };
-  correspondent?: {
+  correspondents: {
     email: string;
     first_name: string;
     last_name: string;
     user_meta_data?: {
       phone_number?: string;
     };
-    create_new?: boolean;
-  };
-  principal?: {
+  }[];
+  principals: {
     email: string;
     first_name: string;
     last_name: string;
     user_meta_data?: {
       phone_number?: string;
     };
-  };
-  in_charge?: {
+  }[];
+  in_charges: {
     email: string;
     first_name: string;
     last_name: string;
     user_meta_data?: {
       phone_number?: string;
     };
-  };
+  }[];
 }
 
 const userMetadataSchema = z.object({
@@ -141,11 +138,44 @@ export const schoolSchema = z.object({
   is_ATL: z.boolean(),
   ATL_establishment_year: z.number().int().optional(),
   address: addressSchema,
-  in_charge: userSchema,
-  correspondent: userSchema,
-  principal: userSchema,
+  in_charges: z.array(userSchema).min(1, "At least one in-charge is required"),
+  correspondents: z.array(userSchema),
+  principals: z.array(userSchema),
   syllabus: z.array(z.string()),
   website_url: z.string().url().optional().or(z.literal("")),
   paid_subscription: z.boolean(),
   social_links: z.array(z.string().url()).optional(),
-});
+}).refine(
+  (data) => {
+    // Check for duplicate emails within in_charges
+    const inChargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());
+    const uniqueInChargeEmails = new Set(inChargeEmails);
+    return uniqueInChargeEmails.size === inChargeEmails.length;
+  },
+  {
+    message: "Duplicate emails found among in-charges",
+    path: ["in_charges"],
+  }
+).refine(
+  (data) => {
+    // Check for duplicate emails within principals
+    const principalEmails = data.principals.map(u => u.email.toLowerCase().trim());
+    const uniquePrincipalEmails = new Set(principalEmails);
+    return uniquePrincipalEmails.size === principalEmails.length;
+  },
+  {
+    message: "Duplicate emails found among principals",
+    path: ["principals"],
+  }
+).refine(
+  (data) => {
+    // Check for duplicate emails within correspondents
+    const correspondentEmails = data.correspondents.map(u => u.email.toLowerCase().trim());
+    const uniqueCorrespondentEmails = new Set(correspondentEmails);
+    return uniqueCorrespondentEmails.size === correspondentEmails.length;
+  },
+  {
+    message: "Duplicate emails found among correspondents",
+    path: ["correspondents"],
+  }
+);

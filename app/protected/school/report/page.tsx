@@ -13,9 +13,22 @@ import {
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/Icons";
-import DetailViewer from "@/components/DetailViewer";
+import SchoolDetailViewer from "@/components/SchoolDetailViewer";
 import Alert from "@/components/Alert";
 import ReportShell from "@/components/ReportShell";
+
+interface UserRole {
+  id: string;
+  role: 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
+  user: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    user_meta_data?: {
+      phone_number?: string;
+    };
+  };
+}
 
 interface School {
   id: number;
@@ -32,30 +45,10 @@ interface School {
   stateId?: number;
   countryId?: number;
   pincode?: string;
-  principal?: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    user_meta_data?: {
-      phone_number?: string;
-    };
-  } | null;
-  correspondent?: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    user_meta_data?: {
-      phone_number?: string;
-    };
-  } | null;
-  in_charge?: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    user_meta_data?: {
-      phone_number?: string;
-    };
-  } | null;
+  user_roles?: UserRole[];
+  principals: string;
+  correspondents: string;
+  inCharges: string;
   city?: string;
   state?: string;
   country?: string;
@@ -75,18 +68,9 @@ export default function Page() {
       state: false,
       country: false,
       pincode: false,
-      principalEmail: false,
-      principalFirstName: false,
-      principalLastName: false,
-      principalNumber: false,
-      correspondentEmail: false,
-      correspondentFirstName: false,
-      correspondentLastName: false,
-      correspondentNumber: false,
-      inChargeEmail: false,
-      inChargeFirstName: false,
-      inChargeLastName: false,
-      inChargeNumber: false,
+      principals: false,
+      correspondents: false,
+      inCharges: false,
       ATL_establishment_year: false,
     });
 
@@ -117,50 +101,81 @@ export default function Page() {
     { field: "state", headerName: "State", width: 300 },
     { field: "country", headerName: "Country", width: 300 },
     { field: "pincode", headerName: "Pincode", width: 300 },
-    { field: "principalEmail", headerName: "Principal Email", width: 300 },
-    {
-      field: "principalFirstName",
-      headerName: "Principal First Name",
+    { 
+      field: "principals", 
+      headerName: "Principals", 
       width: 300,
+      renderCell: (params) => {
+        const principals = params.row.principalsList || [];
+        if (principals.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
+        return (
+          <div className="py-2">
+            {principals.map((principal: any, index: number) => (
+              <div key={index} className="mb-1 last:mb-0">
+                <div className="font-medium text-sm text-blue-600">
+                  {principal.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {principal.email}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
     },
-    {
-      field: "principalLastName",
-      headerName: "Principal Last Name",
+    { 
+      field: "correspondents", 
+      headerName: "Correspondents", 
       width: 300,
+      renderCell: (params) => {
+        const correspondents = params.row.correspondentsList || [];
+        if (correspondents.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
+        return (
+          <div className="py-2">
+            {correspondents.map((correspondent: any, index: number) => (
+              <div key={index} className="mb-1 last:mb-0">
+                <div className="font-medium text-sm text-green-600">
+                  {correspondent.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {correspondent.email}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
     },
-    { field: "principalNumber", headerName: "Principal Number", width: 300 },
-    {
-      field: "correspondentEmail",
-      headerName: "Correspondent Email",
+    { 
+      field: "inCharges", 
+      headerName: "In-Charges", 
       width: 300,
+      renderCell: (params) => {
+        const inCharges = params.row.inChargesList || [];
+        if (inCharges.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
+        return (
+          <div className="py-2">
+            {inCharges.map((inCharge: any, index: number) => (
+              <div key={index} className="mb-1 last:mb-0">
+                <div className="font-medium text-sm text-purple-600">
+                  {inCharge.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {inCharge.email}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
     },
-    {
-      field: "correspondentFirstName",
-      headerName: "Correspondent First Name",
-      width: 300,
-    },
-    {
-      field: "correspondentLastName",
-      headerName: "Correspondent Last Name",
-      width: 300,
-    },
-    {
-      field: "correspondentNumber",
-      headerName: "Correspondent Number",
-      width: 300,
-    },
-    { field: "inChargeEmail", headerName: "In Charge Email", width: 300 },
-    {
-      field: "inChargeFirstName",
-      headerName: "In Charge First Name",
-      width: 300,
-    },
-    {
-      field: "inChargeLastName",
-      headerName: "In Charge Last Name",
-      width: 300,
-    },
-    { field: "inChargeNumber", headerName: "In Charge Number", width: 300 },
     {
       field: "actions",
       type: "actions",
@@ -192,21 +207,41 @@ export default function Page() {
       }
       const data = await response.json();
 
-      const transformedData = data.map((school: any) => {
+      const transformedData = data.map((school: Record<string, unknown>) => {
         const address = school.address || {};
         const city = address.city || {};
         const state = city.state || {};
         const country = state.country || {};
+        const userRoles = school.user_roles || [];
 
-        const principal = school.users?.find(
-          (user: { id: string }) => user.id === school.principal_id
-        );
-        const correspondent = school.users?.find(
-          (user: { id: string }) => user.id === school.correspondent_id
-        );
-        const in_charge = school.users?.find(
-          (user: { id: string }) => user.id === school.in_charge_id
-        );
+        const principalsList = userRoles
+          .filter((role: UserRole) => role.role === 'PRINCIPAL')
+          .map((role: UserRole) => ({
+            name: `${role.user.first_name} ${role.user.last_name}`,
+            email: role.user.email,
+            phone: role.user.user_meta_data?.phone_number || 'N/A'
+          }));
+        
+        const correspondentsList = userRoles
+          .filter((role: UserRole) => role.role === 'CORRESPONDENT')
+          .map((role: UserRole) => ({
+            name: `${role.user.first_name} ${role.user.last_name}`,
+            email: role.user.email,
+            phone: role.user.user_meta_data?.phone_number || 'N/A'
+          }));
+        
+        const inChargesList = userRoles
+          .filter((role: UserRole) => role.role === 'INCHARGE')
+          .map((role: UserRole) => ({
+            name: `${role.user.first_name} ${role.user.last_name}`,
+            email: role.user.email,
+            phone: role.user.user_meta_data?.phone_number || 'N/A'
+          }));
+
+        // Keep legacy string format for DetailViewer compatibility
+        const principals = principalsList.map(p => `${p.name} (${p.email})`).join(', ') || 'None';
+        const correspondents = correspondentsList.map(c => `${c.name} (${c.email})`).join(', ') || 'None';
+        const inCharges = inChargesList.map(i => `${i.name} (${i.email})`).join(', ') || 'None';
 
         return {
           ...school,
@@ -216,19 +251,12 @@ export default function Page() {
           state: state.state_name || "N/A",
           country: country.country_name || "N/A",
           pincode: address.pincode || "N/A",
-          principalEmail: principal?.email || "N/A",
-          principalFirstName: principal?.first_name || "N/A",
-          principalLastName: principal?.last_name || "N/A",
-          principalNumber: principal?.user_meta_data?.phone_number || "N/A",
-          correspondentEmail: correspondent?.email || "N/A",
-          correspondentFirstName: correspondent?.first_name || "N/A",
-          correspondentLastName: correspondent?.last_name || "N/A",
-          correspondentNumber:
-            correspondent?.user_meta_data?.phone_number || "N/A",
-          inChargeEmail: in_charge?.email || "N/A",
-          inChargeFirstName: in_charge?.first_name || "N/A",
-          inChargeLastName: in_charge?.last_name || "N/A",
-          inChargeNumber: in_charge?.user_meta_data?.phone_number || "N/A",
+          principals,
+          correspondents,
+          inCharges,
+          principalsList,
+          correspondentsList,
+          inChargesList,
         };
       });
 
@@ -320,62 +348,14 @@ export default function Page() {
           </Alert>
         )}
 
-        <DetailViewer
+        <SchoolDetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               schools.findIndex((school) => school.id === selectedRow?.id) + 1,
-          }}
-          formtype="School"
-          columns={[
-            { label: "S.No", field: "index" },
-            { label: "Name", field: "name" },
-            { label: "Is ATL", field: "is_ATL" },
-            {
-              label: "ATL Establishment Year",
-              field: "ATL_establishment_year",
-            },
-            { label: "Paid Subscription", field: "paid_subscription" },
-            { label: "Website URL", field: "website_url" },
-            { label: "Syllabus", field: "syllabus" },
-            {
-              label: "Address",
-              type: "address",
-            },
-            {
-              label: "Principal Details",
-              type: "Details",
-              fields: [
-                { label: "First Name", field: "principalFirstName" },
-                { label: "Last Name", field: "principalLastName" },
-                { label: "Email", field: "principalEmail" },
-                { label: "Phone", field: "principalNumber" },
-              ],
-            },
-            {
-              label: "Correspondent Details",
-              type: "Details",
-              fields: [
-                { label: "First Name", field: "correspondentFirstName" },
-                { label: "Last Name", field: "correspondentLastName" },
-                { label: "Email", field: "correspondentEmail" },
-                { label: "Phone", field: "correspondentNumber" },
-              ],
-            },
-            {
-              label: "In-Charge Details",
-              type: "Details",
-              fields: [
-                { label: "First Name", field: "inChargeFirstName" },
-                { label: "Last Name", field: "inChargeLastName" },
-                { label: "Email", field: "inChargeEmail" },
-                { label: "Phone", field: "inChargeNumber" },
-              ],
-            },
-            { label: "Social Links", field: "social_links" },
-          ]}
+          } : null}
         />
       </div>
     </ReportShell>

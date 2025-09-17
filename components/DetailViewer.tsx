@@ -89,9 +89,10 @@ function DetailsDrawer<T extends Record<string, unknown>>({
   return (
     <DrawerPanel open={drawerOpen} onClose={closeDrawer} title={`${formtype} Details`}>
       {selectedRow ? (
-        columns.map((col) => (
-          <div key={("field" in col && col.field) || col.label} className="mb-4">
-            <div className="text-sm font-semibold text-gray-600 mb-1">{col.label}:</div>
+        <div className="space-y-6">
+          {columns.map((col) => (
+            <div key={("field" in col && col.field) || col.label} className="border-b border-gray-100 pb-4 last:border-b-0">
+              <div className="text-sm font-semibold text-gray-700 mb-2">{col.label}:</div>
             {col.type === "Details" && col.fields ? (
               <div className="mb-2 text-gray-900">
                 {`${formatValue(getNestedValue(selectedRow, col.fields[0].field))} ${formatValue(
@@ -117,8 +118,9 @@ function DetailsDrawer<T extends Record<string, unknown>>({
             ) : "field" in col && typeof col.field === "string" ? (
               <div className="text-gray-900">{formatValue(getNestedValue(selectedRow, col.field as string))}</div>
             ) : null}
-          </div>
-        ))
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="text-gray-900">No data available</div>
       )}
