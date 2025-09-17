@@ -6,14 +6,6 @@ import {
 } from "@/lib/db/mentor/crud";
 import { MentorUpdateInput, mentorSchema } from "@/lib/db/mentor/type";
 
-// Transform function to convert user_roles back to schools for frontend compatibility
-function transformMentorData(mentor: any) {
-  return {
-    ...mentor,
-    schools: mentor.user_roles?.map((role: any) => role.school) || []
-  };
-}
-
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -21,8 +13,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!mentor) {
       return failure("Mentor not found", 404);
     }
-    const transformedMentor = transformMentorData(mentor);
-    return success(transformedMentor);
+    return success(mentor);
   } catch (error) {
     console.error("Error fetching mentor:", error);
     return failure("Failed to fetch mentor", 500, {
@@ -39,8 +30,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       first_name: body.first_name,
       last_name: body.last_name,
       email: body.email,
-      user_meta_data: body.user_meta_data,
+      phone_number: body.phone_number,
       school_ids: body.school_ids,
+      comments: body.comments,
     };
     const result = mentorSchema.partial().safeParse(updateData);
     if (!result.success) {
@@ -53,8 +45,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const mentor = await updateMentor(id, result.data);
-    const transformedMentor = transformMentorData(mentor);
-    return success(transformedMentor);
+    return success(mentor);
   } catch (error) {
     console.error("Error updating mentor:", error);
     if (error instanceof Error) {

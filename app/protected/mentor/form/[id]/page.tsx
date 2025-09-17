@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import { Input } from "@/components/Input";
-import MultiSelect from "@/components/MultiSelect";
+import { Autocomplete, TextField, Chip } from "@mui/material";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
 
 type School = {
@@ -51,13 +51,8 @@ export default function EditMentorPage({
         setFirstName(mentor.first_name || "");
         setLastName(mentor.last_name || "");
         setEmail(mentor.email || "");
-        setPhoneNumber(
-          (mentor.user_meta_data as { phone_number?: string })?.phone_number ||
-            ""
-        );
-        setSelectedSchools(
-          mentor.schools.map((school: { id: string }) => String(school.id))
-        );
+        setPhoneNumber(mentor.phone_number || "");
+        setSelectedSchools(mentor.school_ids || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load data. Please try again later.");
@@ -78,9 +73,7 @@ export default function EditMentorPage({
         first_name: firstName,
         last_name: lastName,
         email,
-        user_meta_data: {
-          phone_number: phoneNumber,
-        },
+        phone_number: phoneNumber,
         school_ids: selectedSchools,
       };
 
@@ -191,16 +184,67 @@ export default function EditMentorPage({
 
           <FormSection title="School Selection">
             <div className="w-full">
-              <MultiSelect
-                label="Schools"
-                options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
-                selectedValues={selectedSchools}
-                onChange={(vals) => setSelectedSchools(vals)}
-                searchable
+              <Autocomplete
+                multiple
+                id="schools-autocomplete-edit"
+                options={schools}
+                getOptionLabel={(option) => option.name}
+                value={schools.filter((school) => selectedSchools.includes(school.id))}
+                onChange={(event, newValue) => {
+                  setSelectedSchools(newValue.map((school) => school.id));
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Schools *"
+                    placeholder="Select schools"
+                    variant="outlined"
+                    fullWidth
+                    error={formSubmitted && selectedSchools.length === 0}
+                    helperText={
+                      formSubmitted && selectedSchools.length === 0
+                        ? "Please select at least one school"
+                        : undefined
+                    }
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#1f2937',
+                        fontWeight: 600,
+                      },
+                      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                    }}
+                  />
+                )}
+                renderTags={(tagValue, getTagProps) =>
+                  tagValue.map((option, index) => (
+                    <Chip
+                      label={option.name}
+                      {...getTagProps({ index })}
+                      key={option.id}
+                      sx={{
+                        backgroundColor: '#e0e7ff',
+                        color: '#3730a3',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#3730a3',
+                        },
+                      }}
+                    />
+                  ))
+                }
+                sx={{
+                  '& .MuiAutocomplete-popupIndicator': {
+                    color: '#6b7280',
+                  },
+                }}
               />
-              {formSubmitted && selectedSchools.length === 0 && (
-                <p className="mt-1.5 text-sm text-red-600 font-medium">Please select at least one school</p>
-              )}
             </div>
           </FormSection>
 

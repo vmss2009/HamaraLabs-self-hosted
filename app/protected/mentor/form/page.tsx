@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import FormSection from "@/components/FormSection";
 import { Input } from "@/components/Input";
-import MultiSelect from "@/components/MultiSelect";
+import { Autocomplete, TextField, Chip } from "@mui/material";
 
 type School = {
   id: string;
@@ -53,9 +53,7 @@ export default function MentorForm() {
         first_name: firstName,
         last_name: lastName,
         email,
-        user_meta_data: {
-          phone_number: phoneNumber,
-        },
+        phone_number: phoneNumber,
         school_ids: selectedSchools,
       };
 
@@ -169,15 +167,63 @@ export default function MentorForm() {
 
           <FormSection title="School Selection">
             <div className="w-full">
-              <MultiSelect
-                label="Schools"
-                options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
-                selectedValues={selectedSchools}
-                onChange={(vals) => setSelectedSchools(vals)}
-                searchable
+              <Autocomplete
+                multiple
+                id="schools-autocomplete"
+                options={schools}
+                getOptionLabel={(option) => option.name}
+                value={schools.filter((school) => selectedSchools.includes(school.id))}
+                onChange={(event, newValue) => {
+                  setSelectedSchools(newValue.map((school) => school.id));
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Schools *"
+                    placeholder="Select schools"
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#1f2937',
+                        fontWeight: 600,
+                      },
+                      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                    }}
+                  />
+                )}
+                renderTags={(tagValue, getTagProps) =>
+                  tagValue.map((option, index) => (
+                    <Chip
+                      label={option.name}
+                      {...getTagProps({ index })}
+                      key={option.id}
+                      sx={{
+                        backgroundColor: '#e0e7ff',
+                        color: '#3730a3',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#3730a3',
+                        },
+                      }}
+                    />
+                  ))
+                }
+                sx={{
+                  '& .MuiAutocomplete-popupIndicator': {
+                    color: '#6b7280',
+                  },
+                }}
               />
             </div>
-        </FormSection>
+          </FormSection>
 
           <div className="flex justify-end">
             <Button

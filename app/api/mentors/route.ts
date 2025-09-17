@@ -1,14 +1,6 @@
 import { failure, success } from "@/lib/api/http";
 import { createMentor, getMentors } from "@/lib/db/mentor/crud";
-import { mentorSchema } from "@/lib/db/mentor/type";
-
-// Transform function to convert user_roles back to schools for frontend compatibility
-function transformMentorData(mentor: any) {
-  return {
-    ...mentor,
-    schools: mentor.user_roles?.map((role: any) => role.school) || []
-  };
-}
+import { mentorSchema, MentorCreateInput } from "@/lib/db/mentor/type";
 
 export async function GET(request: Request) {
   try {
@@ -20,8 +12,7 @@ export async function GET(request: Request) {
     };
 
     const mentors = await getMentors(filter);
-    const transformedMentors = mentors.map(transformMentorData);
-    return success(transformedMentors);
+    return success(mentors);
   } catch (error) {
     console.error("Error fetching mentors:", error);
     return failure("Failed to fetch mentors", 500, {
@@ -47,9 +38,17 @@ export async function POST(request: Request) {
 
     const validatedData = result.data;
 
-    const mentor = await createMentor(validatedData);
-    const transformedMentor = transformMentorData(mentor);
-    return success(transformedMentor, 201);
+    const mentorInput: MentorCreateInput = {
+      first_name: validatedData.first_name,
+      last_name: validatedData.last_name,
+      email: validatedData.email,
+      phone_number: validatedData.phone_number,
+      school_ids: validatedData.school_ids,
+      comments: validatedData.comments,
+    };
+
+    const mentor = await createMentor(mentorInput);
+    return success(mentor, 201);
   } catch (error) {
     console.error("Error creating mentor:", error);
     if (error instanceof Error) {

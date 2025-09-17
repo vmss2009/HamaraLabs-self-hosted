@@ -1,51 +1,93 @@
 import { prisma } from "@/lib/db/prisma";
 import { v4 as uuidv4 } from 'uuid';
-import { MentorCreateInput, MentorFilter, MentorUpdateInput } from "../type";
+import { MentorCreateInput, MentorFilter, MentorUpdateInput, MentorWithUser } from "../type";
 import { Prisma } from "@prisma/client";
 
-export async function createMentor(data: MentorCreateInput) {
-  try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email }
+async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds: string[]) {
+  console.log(`Creating/updating user for mentor email: ${mentorData.email}, schools: ${schoolIds}`);
+  
+  if (!mentorData.email || mentorData.email.trim() === "") {
+    // No email provided, no user account needed
+    return undefined;
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: mentorData.email },
+  });
+
+  if (existingUser) {
+    console.log(`Found existing user: ${existingUser.id}, current schools: ${existingUser.schools}`);
+    // Add schools to existing user's schools array if not already present
+    const updatedSchools = [...new Set([...existingUser.schools, ...schoolIds])];
+    
+    console.log(`Updated schools array for mentor: ${updatedSchools}`);
+      
+    return await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        first_name: mentorData.first_name,
+        last_name: mentorData.last_name,
+        schools: updatedSchools,
+        user_meta_data: {
+          phone_number: mentorData.phone_number,
+        },
+      },
     });
-
-    if (existingUser) {
-      throw new Error("A user with this email already exists");
-    }
-
-    const user = await prisma.user.create({
+  } else {
+    console.log(`Creating new user for mentor email: ${mentorData.email}`);
+    return await prisma.user.create({
       data: {
         id: uuidv4(),
-        email: data.email,
+        email: mentorData.email,
+        first_name: mentorData.first_name,
+        last_name: mentorData.last_name,
+        schools: schoolIds,
+        user_meta_data: {
+          phone_number: mentorData.phone_number,
+        },
+      },
+    });
+  }
+}
+
+export async function createMentor(data: MentorCreateInput): Promise<MentorWithUser> {
+  try {
+    console.log(`Creating mentor with data:`, data);
+    
+    let userId: string | undefined = undefined;
+
+    // Create or update user if email is provided
+    if (data.email && data.email.trim() !== "") {
+      const user = await createOrUpdateMentorUser(data, data.school_ids);
+      userId = user?.id;
+    }
+
+    const mentor = await prisma.mentor.create({
+      data: {
         first_name: data.first_name,
         last_name: data.last_name,
-        user_meta_data: data.user_meta_data || {},
-        user_roles: {
-          create: data.school_ids.map(schoolId => ({
-            school_id: String(schoolId),
-            role: 'INCHARGE'
-          }))
-        }
+        email: data.email,
+        phone_number: data.phone_number,
+        school_ids: data.school_ids,
+        comments: data.comments,
+        user_id: userId,
       },
       include: {
-        user_roles: {
-          include: {
-            school: true
-          }
-        }
-      }
+        user: true,
+      },
     });
 
-    return user;
+    console.log(`Created mentor: ${mentor.id} with user: ${userId}`);
+    return mentor;
   } catch (error) {
     console.error("Error creating mentor:", error);
     throw error;
   }
 }
 
-export async function getMentors(filter?: MentorFilter) {
+export async function getMentors(filter?: MentorFilter): Promise<MentorWithUser[]> {
   try {
-    const where: Prisma.UserWhereInput = {
+    const where: Prisma.MentorWhereInput = {
       ...(filter?.name && {
         OR: [
           { first_name: { contains: filter.name, mode: Prisma.QueryMode.insensitive } },
@@ -54,23 +96,20 @@ export async function getMentors(filter?: MentorFilter) {
       }),
       ...(filter?.email && { email: { contains: filter.email, mode: Prisma.QueryMode.insensitive } }),
       ...(filter?.schoolId && {
-        user_roles: {
-          some: {
-            school_id: filter.schoolId
-          }
+        school_ids: {
+          has: filter.schoolId
         }
       })
     };
 
-    const mentors = await prisma.user.findMany({
+    const mentors = await prisma.mentor.findMany({
       where,
       include: {
-        user_roles: {
-          include: {
-            school: true
-          }
-        }
-      }
+        user: true,
+      },
+      orderBy: {
+        first_name: "asc",
+      },
     });
 
     return mentors;
@@ -80,22 +119,14 @@ export async function getMentors(filter?: MentorFilter) {
   }
 }
 
-export async function getMentorById(id: string) {
+export async function getMentorById(id: string): Promise<MentorWithUser | null> {
   try {
-    const mentor = await prisma.user.findUnique({
+    const mentor = await prisma.mentor.findUnique({
       where: { id },
       include: {
-        user_roles: {
-          include: {
-            school: true
-          }
-        }
-      }
+        user: true,
+      },
     });
-
-    if (!mentor) {
-      throw new Error("Mentor not found");
-    }
 
     return mentor;
   } catch (error) {
@@ -104,76 +135,137 @@ export async function getMentorById(id: string) {
   }
 }
 
-export async function updateMentor(id: string, data: MentorUpdateInput) {
+export async function updateMentor(id: string, data: MentorUpdateInput): Promise<MentorWithUser> {
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { id }
+    // Get current mentor to check if they have a user_id
+    const currentMentor = await prisma.mentor.findUnique({
+      where: { id },
+      include: { user: true },
     });
 
-    if (!existingUser) {
+    if (!currentMentor) {
       throw new Error("Mentor not found");
     }
 
-    if (data.email && data.email !== existingUser.email) {
-      const emailExists = await prisma.user.findUnique({
-        where: { email: data.email }
-      });
+    let userId: string | undefined = currentMentor.user_id || undefined;
 
-      if (emailExists) {
-        throw new Error("A user with this email already exists");
-      }
-    }
-
-    const user = await prisma.user.update({
-      where: { id },
-      data: {
-        ...(data.first_name && { first_name: data.first_name }),
-        ...(data.last_name && { last_name: data.last_name }),
-        ...(data.email && { email: data.email }),
-        ...(data.user_meta_data && { user_meta_data: data.user_meta_data }),
-        ...(data.school_ids && {
-          user_roles: {
-            deleteMany: {
-              user_id: id
+    // Handle User record updates
+    if (data.email && data.email.trim() !== "") {
+      if (currentMentor.user_id) {
+        // Update existing linked user
+        const currentSchools = currentMentor.user?.schools || [];
+        const updatedSchools = data.school_ids 
+          ? [...new Set([...currentSchools.filter(schoolId => !currentMentor.school_ids.includes(schoolId)), ...data.school_ids])]
+          : currentSchools;
+          
+        await prisma.user.update({
+          where: { id: currentMentor.user_id },
+          data: {
+            email: data.email,
+            first_name: data.first_name || currentMentor.first_name,
+            last_name: data.last_name || currentMentor.last_name,
+            schools: updatedSchools,
+            user_meta_data: {
+              phone_number: data.phone_number,
             },
-            create: data.school_ids.map(schoolId => ({
-              school_id: String(schoolId),
-              role: 'INCHARGE'
-            }))
-          }
-        })
-      },
-      include: {
-        user_roles: {
-          include: {
-            school: true
-          }
+          },
+        });
+      } else {
+        // Check if user with new email already exists
+        const existingUser = await prisma.user.findUnique({
+          where: { email: data.email },
+        });
+
+        if (existingUser) {
+          // Add schools to existing user's schools array if not already present
+          const updatedSchools = data.school_ids
+            ? [...new Set([...existingUser.schools, ...data.school_ids])]
+            : existingUser.schools;
+            
+          // Link to existing user and update their info
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              first_name: data.first_name || currentMentor.first_name,
+              last_name: data.last_name || currentMentor.last_name,
+              schools: updatedSchools,
+              user_meta_data: {
+                phone_number: data.phone_number,
+              },
+            },
+          });
+          userId = existingUser.id;
+        } else {
+          // Create new user
+          const newUser = await prisma.user.create({
+            data: {
+              id: uuidv4(),
+              email: data.email,
+              first_name: data.first_name || currentMentor.first_name,
+              last_name: data.last_name || currentMentor.last_name,
+              schools: data.school_ids || [],
+              user_meta_data: {
+                phone_number: data.phone_number,
+              },
+            },
+          });
+          userId = newUser.id;
         }
       }
+    } else if (currentMentor.user_id) {
+      // Email was removed - we could either keep the user or unlink
+      // For now, let's unlink but keep the user record
+      userId = undefined;
+    }
+
+    const updatedMentor = await prisma.mentor.update({
+      where: { id },
+      data: {
+        first_name: data.first_name || currentMentor.first_name,
+        last_name: data.last_name || currentMentor.last_name,
+        email: data.email,
+        phone_number: data.phone_number,
+        school_ids: data.school_ids || currentMentor.school_ids,
+        comments: data.comments,
+        user_id: userId,
+      },
+      include: {
+        user: true,
+      },
     });
 
-    return user;
+    return updatedMentor;
   } catch (error) {
-    console.error("Error updating mentor:", error);
+    console.error(`Error updating mentor with id ${id}:`, error);
     throw error;
   }
 }
 
 export async function deleteMentor(id: string) {
   try {
-    // Delete associated user roles first
-    await prisma.userRole.deleteMany({
-      where: { user_id: id }
+    // Get mentor info before deletion to check if they have a linked user
+    const mentor = await prisma.mentor.findUnique({
+      where: { id },
+      include: { user: true },
     });
 
-    // Then delete the user
-    await prisma.user.delete({
-      where: { id }
+    if (!mentor) {
+      throw new Error("Mentor not found");
+    }
+
+    // Delete the mentor
+    await prisma.mentor.delete({
+      where: { id },
     });
 
+    // Optional: If the user was created specifically for this mentor
+    // and has no other roles/relationships, you might want to delete the user too
+    // For now, we'll keep the user record but could add logic here to clean up
+    // orphaned user records if needed
+    
     return true;
   } catch (error) {
-    console.error("Error deleting mentor:", error);
+    console.error(`Error deleting mentor with id ${id}:`, error);
     throw error;
   }
 }

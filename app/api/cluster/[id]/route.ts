@@ -8,10 +8,10 @@ import { clusterSchema } from "@/lib/db/cluster/type";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const cluster = await getClusterById(id);
     if (!cluster) {
       return failure("Cluster not found", 404);
@@ -27,10 +27,10 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
 
     const result = clusterSchema.safeParse(data);
@@ -59,10 +59,10 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await deleteCluster(id);
     return success({ message: "Cluster deleted successfully" });
   } catch (error) {

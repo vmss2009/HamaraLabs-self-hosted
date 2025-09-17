@@ -20,14 +20,16 @@ interface Mentor {
   id: string;
   first_name: string;
   last_name: string;
-  email: string;
-  user_meta_data: {
-    phone_number: string;
-  };
-  schools: Array<{
-    id: number;
-    name: string;
-  }>;
+  email?: string;
+  phone_number?: string;
+  school_ids: string[];
+  comments?: string;
+  user?: {
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+  } | null;
 }
 
 export default function MentorReport() {
@@ -113,16 +115,20 @@ export default function MentorReport() {
       width: 200,
     },
     {
-      field: "schools",
+      field: "school_ids",
       headerName: "Schools",
       width: 200,
       renderCell: (params) => (
         <div className="truncate">
-          {(params.value as Array<{ name: string }> | undefined)
-            ?.map((school) => school.name)
-            .join(", ") || "N/A"}
+          {(params.value as string[] | undefined)
+            ?.join(", ") || "N/A"}
         </div>
       ),
+    },
+    {
+      field: "phone_number",
+      headerName: "Phone",
+      width: 150,
     },
     {
       field: "actions",
@@ -212,8 +218,9 @@ export default function MentorReport() {
             { label: "First name", field: "first_name" },
             { label: "Last name", field: "last_name" },
             { label: "Email", field: "email" },
-            { label: "Phone Number", field: "user_meta_data.phone_number" },
-            { label: "Schools", field: "schools" },
+            { label: "Phone Number", field: "phone_number" },
+            { label: "Schools", field: "school_ids" },
+            { label: "Comments", field: "comments" },
           ]}
         />
       </div>
