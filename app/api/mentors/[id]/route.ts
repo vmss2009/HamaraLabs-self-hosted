@@ -14,9 +14,10 @@ function transformMentorData(mentor: any) {
   };
 }
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const mentor = await getMentorById(params.id);
+    const { id } = await params;
+    const mentor = await getMentorById(id);
     if (!mentor) {
       return failure("Mentor not found", 404);
     }
@@ -30,8 +31,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const updateData: MentorUpdateInput = {
       first_name: body.first_name,
@@ -50,7 +52,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       });
     }
 
-    const mentor = await updateMentor(params.id, result.data);
+    const mentor = await updateMentor(id, result.data);
     const transformedMentor = transformMentorData(mentor);
     return success(transformedMentor);
   } catch (error) {
@@ -62,9 +64,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await deleteMentor(params.id);
+    const { id } = await params;
+    await deleteMentor(id);
     return success({ message: "Mentor deleted successfully" });
   } catch (error) {
     console.error("Error deleting mentor:", error);

@@ -8,9 +8,9 @@ import {
 import { deleteAddress } from "@/lib/db/address/crud";
 import { SchoolUpdateInput, schoolSchema } from "@/lib/db/school/type";
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const school = await getSchoolById(id);
 
     if (!school) {
@@ -26,9 +26,9 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
 
     const school = await getSchoolById(id);
     if (!school) {
@@ -37,11 +37,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const data = await request.json();
 
+    console.log('Received data for validation:', JSON.stringify(data, null, 2));
     const result = schoolSchema.safeParse(data);
 
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
+      console.error("Detailed errors:", result.error.errors);
+      console.error("Full error structure:", JSON.stringify(result.error.flatten(), null, 2));
       return failure(errorMessages[0] ?? "Invalid data", 400, {
         code: "VALIDATION_ERROR",
         details: result.error.flatten(),
@@ -82,9 +85,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const school = await getSchoolById(id);
 
     if (!school) {

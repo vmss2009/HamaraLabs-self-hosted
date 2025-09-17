@@ -6,9 +6,9 @@ import {
 } from "@/lib/db/competition/crud";
 import { competitionSchema } from "@/lib/db/competition/type";
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     if (!id) {
       return failure("Invalid competition ID", 400, { code: "INVALID_ID" });
     }
@@ -28,9 +28,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     if (!id) {
       return failure("Invalid competition ID", 400, { code: "INVALID_ID" });
     }
@@ -51,9 +51,9 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     if (!id) {
       return failure("Invalid competition ID", 400, { code: "INVALID_ID" });
     }

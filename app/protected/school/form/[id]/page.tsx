@@ -325,14 +325,14 @@ export default function EditSchoolForm({
           address_line1: formData.get("addressLine1"),
           address_line2: formData.get("addressLine2"),
           pincode: formData.get("pincode"),
-          city_id: parseInt(selectedCity),
+          cityId: parseInt(selectedCity),
         },
         in_charges: validInCharges.map(user => ({
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
           user_meta_data: {
-            phone_number: user.phone_number,
+            phone_number: user.phone_number || "",
           },
         })),
         correspondents: validCorrespondents.map(user => ({
@@ -340,7 +340,7 @@ export default function EditSchoolForm({
           first_name: user.first_name,
           last_name: user.last_name,
           user_meta_data: {
-            phone_number: user.phone_number,
+            phone_number: user.phone_number || "",
           },
         })),
         principals: validPrincipals.map(user => ({
@@ -348,7 +348,7 @@ export default function EditSchoolForm({
           first_name: user.first_name,
           last_name: user.last_name,
           user_meta_data: {
-            phone_number: user.phone_number,
+            phone_number: user.phone_number || "",
           },
         })),
         syllabus,

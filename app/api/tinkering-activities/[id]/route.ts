@@ -6,9 +6,9 @@ import {
 } from "@/lib/db/tinkering-activity/crud";
 import { tinkeringActivitySchema } from "@/lib/db/tinkering-activity/type";
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
 
     if (!id) {
       return failure("Invalid ID format", 400, { code: "INVALID_ID" });
@@ -29,9 +29,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
 
     if (!id) {
@@ -62,9 +62,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
 
     if (!id) {
       return failure("Invalid ID format", 400, { code: "INVALID_ID" });

@@ -7,9 +7,9 @@ import {
 } from "@/lib/db/course/crud";
 import { CourseUpdateInput, courseSchema } from "@/lib/db/course/type";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const courseId = params.id;
+    const { id: courseId } = await params;
     const course = await getCourseById(courseId);
 
     if (!course) {
@@ -27,9 +27,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const courseId = params.id;
+    const { id: courseId } = await params;
     if (!courseId) {
       return failure("Invalid course ID", 400, { code: "INVALID_ID" });
     }
@@ -76,9 +76,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const courseId = params.id;
+    const { id: courseId } = await params;
     await deleteCourse(courseId);
     return success({ message: "Course deleted successfully" }, 200);
   } catch (error: unknown) {

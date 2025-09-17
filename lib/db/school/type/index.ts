@@ -123,7 +123,7 @@ const userSchema = z.object({
   email: z.string().email(),
   first_name: z.string().min(1),
   last_name: z.string().min(1),
-  user_meta_data: userMetadataSchema,
+  user_meta_data: userMetadataSchema.optional(),
 });
 
 const addressSchema = z.object({
