@@ -9,17 +9,28 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { Prisma } from "@prisma/client";
 
-async function createOrUpdateUser(userData: UserInput) {
+async function createOrUpdateUser(userData: UserInput, schoolId: string) {
+  console.log(`Creating/updating user for email: ${userData.email}, school: ${schoolId}`);
+  
   const existingUser = await prisma.user.findUnique({
     where: { email: userData.email },
   });
 
   if (existingUser) {
+    console.log(`Found existing user: ${existingUser.id}, current schools: ${existingUser.schools}`);
+    // Add school to existing user's schools array if not already present
+    const updatedSchools = existingUser.schools.includes(schoolId) 
+      ? existingUser.schools 
+      : [...existingUser.schools, schoolId];
+    
+    console.log(`Updated schools array: ${updatedSchools}`);
+      
     return await prisma.user.update({
       where: { id: existingUser.id },
       data: {
         first_name: userData.first_name,
         last_name: userData.last_name,
+        schools: updatedSchools,
         user_meta_data: {
           phone_number: userData.phone_number,
           ...userData.user_meta_data,
@@ -27,12 +38,14 @@ async function createOrUpdateUser(userData: UserInput) {
       },
     });
   } else {
+    console.log(`Creating new user for email: ${userData.email}`);
     return await prisma.user.create({
       data: {
         id: uuidv4(),
         email: userData.email,
         first_name: userData.first_name,
         last_name: userData.last_name,
+        schools: [schoolId],
         user_meta_data: {
           phone_number: userData.phone_number,
           ...userData.user_meta_data,
@@ -44,17 +57,6 @@ async function createOrUpdateUser(userData: UserInput) {
 
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
-    // Create or update users
-    const inChargeUsers = await Promise.all(
-      data.in_charges.map(userData => createOrUpdateUser(userData))
-    );
-    const principalUsers = await Promise.all(
-      data.principals.map(userData => createOrUpdateUser(userData))
-    );
-    const correspondentUsers = await Promise.all(
-      data.correspondents.map(userData => createOrUpdateUser(userData))
-    );
-
     const school = await prisma.school.create({
       data: {
         name: data.name,
@@ -84,60 +86,20 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
       },
     });
 
-    // Create user roles
-    const userRoles = [
-      ...inChargeUsers.map(user => ({
-        id: uuidv4(),
-        user_id: user.id,
-        school_id: school.id,
-        role: 'INCHARGE' as const,
-      })),
-      ...principalUsers.map(user => ({
-        id: uuidv4(),
-        user_id: user.id,
-        school_id: school.id,
-        role: 'PRINCIPAL' as const,
-      })),
-      ...correspondentUsers.map(user => ({
-        id: uuidv4(),
-        user_id: user.id,
-        school_id: school.id,
-        role: 'CORRESPONDENT' as const,
-      })),
-    ];
-
-    await prisma.userRole.createMany({
-      data: userRoles,
-    });
-
-    // Return school with user roles
-    const schoolWithRoles = await prisma.school.findUnique({
-      where: { id: school.id },
-      include: {
-        address: {
-          include: {
-            city: {
-              include: {
-                state: {
-                  include: {
-                    country: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        user_roles: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
+    // Create or update users and add school to their schools array
+    const allUsers = [...data.in_charges, ...data.principals, ...data.correspondents];
+    console.log(`Processing ${allUsers.length} users for school: ${school.id}`);
+    console.log('User data:', allUsers.map(u => ({ email: u.email, first_name: u.first_name, last_name: u.last_name })));
+    
+    await Promise.all(
+      allUsers.map(userData => createOrUpdateUser(userData, school.id))
+    );
+    
+    console.log('All users processed successfully');
 
     return {
-      ...schoolWithRoles!,
-      id: schoolWithRoles!.id.toString(),
+      ...school,
+      id: school.id.toString(),
     };
   } catch (error) {
     console.error("Error creating school:", error);
@@ -196,11 +158,6 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
             },
           },
         },
-        user_roles: {
-          include: {
-            user: true,
-          },
-        },
       },
     });
 
@@ -232,11 +189,6 @@ export async function getSchoolById(id: string): Promise<SchoolWithAddress | nul
             },
           },
         },
-        user_roles: {
-          include: {
-            user: true,
-          },
-        },
       },
     });
 
@@ -256,13 +208,6 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
   try {
     const currentSchool = await prisma.school.findUnique({
       where: { id },
-      include: {
-        user_roles: {
-          include: {
-            user: true,
-          },
-        },
-      },
     });
 
     if (!currentSchool) {
@@ -281,50 +226,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       });
     }
 
-    // Remove all existing user roles for this school
-    await prisma.userRole.deleteMany({
-      where: { school_id: id },
-    });
-
-    // Create or update users and create new roles
-    const inChargeUsers = await Promise.all(
-      data.in_charges.map(userData => createOrUpdateUser(userData))
-    );
-    const principalUsers = await Promise.all(
-      data.principals.map(userData => createOrUpdateUser(userData))
-    );
-    const correspondentUsers = await Promise.all(
-      data.correspondents.map(userData => createOrUpdateUser(userData))
-    );
-
-    // Create user roles
-    const userRoles = [
-      ...inChargeUsers.map(user => ({
-        id: uuidv4(),
-        user_id: user.id,
-        school_id: id,
-        role: 'INCHARGE' as const,
-      })),
-      ...principalUsers.map(user => ({
-        id: uuidv4(),
-        user_id: user.id,
-        school_id: id,
-        role: 'PRINCIPAL' as const,
-      })),
-      ...correspondentUsers.map(user => ({
-        id: uuidv4(),
-        user_id: user.id,
-        school_id: id,
-        role: 'CORRESPONDENT' as const,
-      })),
-    ];
-
-    if (userRoles.length > 0) {
-      await prisma.userRole.createMany({
-        data: userRoles,
-      });
-    }
-
+    // Update school data
     const school = await prisma.school.update({
       where: { id },
       data: {
@@ -351,13 +253,14 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             },
           },
         },
-        user_roles: {
-          include: {
-            user: true,
-          },
-        },
       },
     });
+
+    // Create or update users and add school to their schools array
+    const allUsers = [...data.in_charges, ...data.principals, ...data.correspondents];
+    await Promise.all(
+      allUsers.map(userData => createOrUpdateUser(userData, school.id))
+    );
 
     return {
       ...school,
@@ -365,6 +268,22 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     };
   } catch (error) {
     console.error(`Error updating school with id ${id}:`, error);
+    throw error;
+  }
+}
+
+export async function getSchoolUsers(schoolId: string) {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        schools: {
+          has: schoolId,
+        },
+      },
+    });
+    return users;
+  } catch (error) {
+    console.error(`Error fetching users for school ${schoolId}:`, error);
     throw error;
   }
 }

@@ -201,60 +201,74 @@ export default function Page() {
       }
       const data = await response.json();
 
-      const transformedData = data.map((school: Record<string, unknown>) => {
-        const address = school.address || {};
-        const city = address.city || {};
-        const state = city.state || {};
-        const country = state.country || {};
-        const userRoles = school.user_roles || [];
+      // Fetch users for all schools
+      const schoolsWithUsers = await Promise.all(
+        data.map(async (school: Record<string, unknown>) => {
+          try {
+            const usersResponse = await fetch(`/api/schools/${school.id}/users`);
+            const users = usersResponse.ok ? await usersResponse.json() : [];
+            
+            const address = school.address || {};
+            const city = address.city || {};
+            const state = city.state || {};
+            const country = state.country || {};
 
-        const principalsList = userRoles
-          .filter((role: UserRole) => role.role === 'PRINCIPAL')
-          .map((role: UserRole) => ({
-            name: `${role.user.first_name} ${role.user.last_name}`,
-            email: role.user.email,
-            phone: role.user.user_meta_data?.phone_number || 'N/A'
-          }));
-        
-        const correspondentsList = userRoles
-          .filter((role: UserRole) => role.role === 'CORRESPONDENT')
-          .map((role: UserRole) => ({
-            name: `${role.user.first_name} ${role.user.last_name}`,
-            email: role.user.email,
-            phone: role.user.user_meta_data?.phone_number || 'N/A'
-          }));
-        
-        const inChargesList = userRoles
-          .filter((role: UserRole) => role.role === 'INCHARGE')
-          .map((role: UserRole) => ({
-            name: `${role.user.first_name} ${role.user.last_name}`,
-            email: role.user.email,
-            phone: role.user.user_meta_data?.phone_number || 'N/A'
-          }));
+            // For now, we'll show all users as "Staff" since we removed role distinction
+            // In the future, we could use user_meta_data to determine roles
+            const usersList = users.map((user: any) => ({
+              name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+              email: user.email,
+              phone: user.user_meta_data?.phone_number || 'N/A'
+            }));
 
-        // Keep legacy string format for DetailViewer compatibility
-        const principals = principalsList.map(p => `${p.name} (${p.email})`).join(', ') || 'None';
-        const correspondents = correspondentsList.map(c => `${c.name} (${c.email})`).join(', ') || 'None';
-        const inCharges = inChargesList.map(i => `${i.name} (${i.email})`).join(', ') || 'None';
+            // Keep legacy string format for DetailViewer compatibility
+            const staffDisplay = usersList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
 
-        return {
-          ...school,
-          addressLine1: address.address_line1 || "N/A",
-          addressLine2: address.address_line2 || "",
-          city: city.city_name || "N/A",
-          state: state.state_name || "N/A",
-          country: country.country_name || "N/A",
-          pincode: address.pincode || "N/A",
-          principals,
-          correspondents,
-          inCharges,
-          principalsList,
-          correspondentsList,
-          inChargesList,
-        };
-      });
+            return {
+              ...school,
+              addressLine1: address.address_line1 || "N/A",
+              addressLine2: address.address_line2 || "",
+              city: city.city_name || "N/A",
+              state: state.state_name || "N/A",
+              country: country.country_name || "N/A",
+              pincode: address.pincode || "N/A",
+              principals: staffDisplay, // Simplified to show all staff
+              correspondents: staffDisplay,
+              inCharges: staffDisplay,
+              principalsList: usersList,
+              correspondentsList: usersList,
+              inChargesList: usersList,
+              usersList,
+            };
+          } catch (error) {
+            console.error(`Error fetching users for school ${school.id}:`, error);
+            // Return school without users if fetch fails
+            const address = school.address || {};
+            const city = address.city || {};
+            const state = city.state || {};
+            const country = state.country || {};
+            
+            return {
+              ...school,
+              addressLine1: address.address_line1 || "N/A",
+              addressLine2: address.address_line2 || "",
+              city: city.city_name || "N/A",
+              state: state.state_name || "N/A",
+              country: country.country_name || "N/A",
+              pincode: address.pincode || "N/A",
+              principals: 'None',
+              correspondents: 'None',
+              inCharges: 'None',
+              principalsList: [],
+              correspondentsList: [],
+              inChargesList: [],
+              usersList: [],
+            };
+          }
+        })
+      );
 
-      setSchools(transformedData);
+      setSchools(schoolsWithUsers);
     } catch (error) {
       setError("Error loading schools");
       console.error(error);

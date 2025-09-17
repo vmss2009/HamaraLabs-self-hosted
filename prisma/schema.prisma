@@ -10,6 +10,7 @@ datasource db {
 model User {
   id             String        @id
   email          String        @unique
+  schools        String[]      @default([])
   user_meta_data Json?         @default("{}")
   created_at     DateTime      @default(now())
   updated_at     DateTime      @updatedAt
@@ -17,7 +18,6 @@ model User {
   last_name      String?
   school_visits  SchoolVisit[] @relation("VisitPOC")
   students       Student[]
-  user_roles     UserRole[]
 }
 
 model Country {
@@ -73,27 +73,8 @@ model School {
   visits                 SchoolVisit[]
   students               Student[]
   hub_spokes             Hub[]         @relation("HubSpokes")
-  user_roles             UserRole[]
 }
 
-enum UserRoleType {
-  INCHARGE
-  PRINCIPAL
-  CORRESPONDENT
-}
-
-model UserRole {
-  id         String       @id @default(uuid())
-  created_at DateTime     @default(now())
-  updated_at DateTime     @updatedAt
-  user_id    String
-  school_id  String
-  role       UserRoleType
-  user       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  school     School       @relation(fields: [school_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, school_id, role])
-}
 
 model Student {
   id                    String                        @id @default(uuid())

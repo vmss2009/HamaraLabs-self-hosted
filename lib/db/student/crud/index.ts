@@ -10,30 +10,35 @@ export async function createStudent(data: StudentCreateInput) {
 
     // Create a User record if email is provided
     if (validatedData.email && validatedData.email.trim() !== "") {
+      console.log(`Creating/updating user for student email: ${validatedData.email}, school: ${validatedData.schoolId}`);
+      
       // Check if user with this email already exists
       const existingUser = await prisma.user.findUnique({
         where: { email: validatedData.email },
       });
 
       if (existingUser) {
+        console.log(`Found existing user: ${existingUser.id}, current schools: ${existingUser.schools}`);
+        // Add school to existing user's schools array if not already present
+        const updatedSchools = existingUser.schools.includes(validatedData.schoolId) 
+          ? existingUser.schools 
+          : [...existingUser.schools, validatedData.schoolId];
+          
+        console.log(`Updated schools array for student: ${updatedSchools}`);
+          
         // Update existing user with student information
         const updatedUser = await prisma.user.update({
           where: { id: existingUser.id },
           data: {
             first_name: validatedData.first_name,
             last_name: validatedData.last_name,
-            user_meta_data: {
-              student: true,
-              class: validatedData.class,
-              section: validatedData.section,
-              gender: validatedData.gender,
-              aspiration: validatedData.aspiration,
-              ...((existingUser.user_meta_data as object) || {}),
-            },
+            schools: updatedSchools,
+            user_meta_data: {},
           },
         });
         userId = updatedUser.id;
       } else {
+        console.log(`Creating new user for student email: ${validatedData.email}`);
         // Create new user
         const newUser = await prisma.user.create({
           data: {
@@ -41,15 +46,11 @@ export async function createStudent(data: StudentCreateInput) {
             email: validatedData.email,
             first_name: validatedData.first_name,
             last_name: validatedData.last_name,
-            user_meta_data: {
-              student: true,
-              class: validatedData.class,
-              section: validatedData.section,
-              gender: validatedData.gender,
-              aspiration: validatedData.aspiration,
-            },
+            schools: [validatedData.schoolId],
+            user_meta_data: {},
           },
         });
+        console.log(`Created new user: ${newUser.id} with schools: ${newUser.schools}`);
         userId = newUser.id;
       }
     }
@@ -165,6 +166,12 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
     // Handle User record updates
     if (validatedData.email && validatedData.email.trim() !== "") {
       if (currentStudent.user_id) {
+        // Add new school to existing user's schools array if not already present
+        const currentSchools = currentStudent.user?.schools || [];
+        const updatedSchools = currentSchools.includes(validatedData.schoolId) 
+          ? currentSchools 
+          : [...currentSchools, validatedData.schoolId];
+          
         // Update existing linked user
         await prisma.user.update({
           where: { id: currentStudent.user_id },
@@ -172,14 +179,8 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
             email: validatedData.email,
             first_name: validatedData.first_name,
             last_name: validatedData.last_name,
-            user_meta_data: {
-              student: true,
-              class: validatedData.class,
-              section: validatedData.section,
-              gender: validatedData.gender,
-              aspiration: validatedData.aspiration,
-              ...((currentStudent.user?.user_meta_data as object) || {}),
-            },
+            schools: updatedSchools,
+            user_meta_data: {},
           },
         });
       } else {
@@ -189,20 +190,19 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
         });
 
         if (existingUser) {
+          // Add school to existing user's schools array if not already present
+          const updatedSchools = existingUser.schools.includes(validatedData.schoolId) 
+            ? existingUser.schools 
+            : [...existingUser.schools, validatedData.schoolId];
+            
           // Link to existing user and update their info
           const updatedUser = await prisma.user.update({
             where: { id: existingUser.id },
             data: {
               first_name: validatedData.first_name,
               last_name: validatedData.last_name,
-              user_meta_data: {
-                student: true,
-                class: validatedData.class,
-                section: validatedData.section,
-                gender: validatedData.gender,
-                aspiration: validatedData.aspiration,
-                ...((existingUser.user_meta_data as object) || {}),
-              },
+              schools: updatedSchools,
+              user_meta_data: {},
             },
           });
           userId = updatedUser.id;
@@ -214,13 +214,8 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
               email: validatedData.email,
               first_name: validatedData.first_name,
               last_name: validatedData.last_name,
-              user_meta_data: {
-                student: true,
-                class: validatedData.class,
-                section: validatedData.section,
-                gender: validatedData.gender,
-                aspiration: validatedData.aspiration,
-              },
+              schools: [validatedData.schoolId],
+              user_meta_data: {},
             },
           });
           userId = newUser.id;

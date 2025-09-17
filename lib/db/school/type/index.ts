@@ -61,11 +61,6 @@ export interface SchoolWithAddress {
       };
     };
   };
-  user_roles?: {
-    id: string;
-    role: 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
-    user: User;
-  }[];
 }
 
 export interface SchoolFilter {
