@@ -626,7 +626,11 @@ const removeFileAt = (idx: number) => {
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
 
   return (
-    <div ref={dropRef} className="relative flex h-screen w-screen overflow-hidden bg-[linear-gradient(135deg,#0b1220,45%,#0e1628)] text-slate-100">
+    <div
+      ref={dropRef}
+      className="relative flex h-screen w-full overflow-hidden"
+      style={{ background: 'var(--background)', color: 'var(--foreground)' }}
+    >
       <DragOverlay show={isDraggingFiles} remaining={MAX_FILES - selectedFiles.length} />
       <section className="flex-1 flex flex-col h-full min-w-0">
         {hasAccess === null && (
@@ -902,7 +906,10 @@ const removeFileAt = (idx: number) => {
               {!messagesLoading && !messages.length && <div className="text-xs text-slate-500">No messages yet. Start the conversation.</div>}
               <div ref={bottomRef} />
             </div>
-            <footer className="p-4 border-t border-slate-800/70 bg-slate-900/60 backdrop-blur-xl flex flex-col gap-3 relative">
+            <footer
+              className="p-4 border-t flex flex-col gap-3 relative"
+              style={{ background: 'var(--surface-2)', borderColor: 'var(--border-subtle)' }}
+            >
               {(error || recordError) && <div className="text-[11px] text-rose-300 bg-rose-950/40 border border-rose-800/50 px-3 py-1 rounded">{error || recordError}</div>}
               <div className="flex items-center gap-3">
                 <input
@@ -917,7 +924,11 @@ const removeFileAt = (idx: number) => {
                 />
                 <div className="flex-1 min-w-0 flex items-center gap-2">
                   <div className="flex flex-col flex-1 min-w-0 gap-2">
-                    <div ref={composerRef} className="rounded-lg bg-slate-800/70 border border-slate-700/70 px-3 py-2 shadow-inner shadow-black/30">
+                    <div
+                      ref={composerRef}
+                      className="rounded-lg px-3 py-2 shadow-inner"
+                      style={{ background: 'var(--surface-1)', border: '1px solid var(--border-subtle)' }}
+                    >
                       <div className="relative">
                         {editor && (
                           <MenuBar
@@ -941,8 +952,12 @@ const removeFileAt = (idx: number) => {
                         )}
                       </div>
                       <div
-                        className="relative rounded-xl border border-slate-600/60 bg-slate-900/40 cursor-text"
-                        style={{ height: composerHeight }}
+                        className="relative rounded-xl cursor-text"
+                        style={{
+                          height: composerHeight,
+                          background: 'var(--background)',
+                          border: '1px solid color-mix(in srgb, var(--foreground) 18%, transparent)'
+                        }}
                         onMouseDown={(e) => {
                           if (e.target === e.currentTarget) {
                             e.preventDefault();
@@ -979,9 +994,10 @@ const removeFileAt = (idx: number) => {
                             document.addEventListener('pointerup', onUp);
                             document.addEventListener('pointercancel', onUp);
                           }}
-                          className="absolute top-1 right-1 w-5 h-5 grid place-items-center rounded-md border border-slate-600/70 bg-slate-700/50 hover:bg-slate-600/70 cursor-ns-resize touch-none select-none"
+                          className="absolute top-1 right-1 w-5 h-5 grid place-items-center rounded-md cursor-ns-resize touch-none select-none border"
+                          style={{ background: 'color-mix(in srgb, var(--foreground) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--foreground) 25%, transparent)' }}
                         >
-                          <IconResizeNS className="h-3.5 w-3.5 text-slate-300" />
+                          <IconResizeNS className="h-3.5 w-3.5" />
                         </button>
                       </div>
                       {selectedFiles.length > 0 && (

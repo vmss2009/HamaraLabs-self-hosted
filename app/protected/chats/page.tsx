@@ -54,34 +54,44 @@ useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).th
   };
 
   return (
-    <div className="relative min-h-screen w-screen overflow-y-auto bg-[linear-gradient(135deg,#0b1220,45%,#0e1628)] text-slate-100">
-      <header className="sticky top-0 z-10 h-16 border-b border-slate-800/70 bg-slate-900/60 backdrop-blur-xl">
+    <div className="relative min-h-screen w-full overflow-y-auto" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      <header className="sticky top-0 z-10 h-14 border-b" style={{ background: 'var(--surface-2)', borderColor: 'var(--border-subtle)' }}>
         <div className="h-full w-full pl-14 pr-3 sm:pl-16 sm:pr-5 flex items-center justify-between">
-          <h1 className="text-sm font-semibold tracking-wide uppercase text-slate-200">Chats</h1>
-          <button onClick={() => setShowModal(true)} className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-medium shadow">Create chat</button>
+          <h1 className="text-sm font-semibold tracking-wide uppercase">Chats</h1>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-3 py-1.5 rounded text-xs font-medium border transition-colors"
+            style={{ background: 'color-mix(in srgb, var(--foreground) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--foreground) 18%, transparent)' }}
+          >
+            Create chat
+          </button>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6">
-        {error && <div className="mb-4 text-rose-300 text-xs">{error}</div>}
+        {error && <div className="mb-4 text-xs rounded-md border px-3 py-2" style={{ background: 'color-mix(in srgb, var(--foreground) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--foreground) 18%, transparent)' }}>{error}</div>}
         {roomsLoading ? (
-          <div className="text-sm text-slate-300">Loading chats…</div>
+          <div className="text-sm opacity-70">Loading chats…</div>
         ) : (
           <>
             {!rooms.length && (
-              <div className="text-xs text-slate-400 mb-4">No rooms yet. Create one to get started.</div>
+              <div className="text-xs opacity-60 mb-4">No rooms yet. Create one to get started.</div>
             )}
-            <ul className="overflow-hidden rounded-xl border border-slate-800/70 bg-slate-900/40 divide-y divide-slate-800/60">
+            <ul
+              className="overflow-hidden rounded-xl border divide-y"
+              style={{ background: 'var(--surface-1)', borderColor: 'var(--border-subtle)', '--tw-divide-opacity': '1' } as any}
+            >
               {rooms.map((r) => (
                 <li key={r.id} className="group">
                   <div className="flex items-center justify-between">
                     <Link
                       href={`/protected/chats/${r.id}`}
-                      className="block flex-1 px-4 py-4 hover:bg-slate-800/50 transition flex items-center justify-between gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
+                      className="block flex-1 px-4 py-4 transition flex items-center justify-between gap-3 focus:outline-none focus-visible:ring-2 rounded-none"
+                      style={{ borderColor: 'var(--border-subtle)' }}
                     >
                       <div className="min-w-0">
-                        <div className="font-medium text-slate-200 truncate">{r.name}</div>
+                        <div className="font-medium truncate" style={{ color: 'var(--foreground)' }}>{r.name}</div>
                       </div>
-                      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-slate-300"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 opacity-70"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </Link>
                   </div>
                 </li>
@@ -90,7 +100,6 @@ useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).th
           </>
         )}
       </main>
-
       <CreateRoomModal
         open={showModal}
         onClose={() => setShowModal(false)}
