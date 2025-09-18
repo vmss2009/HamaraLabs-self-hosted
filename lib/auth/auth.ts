@@ -35,6 +35,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Deny sign-in and redirect back with an error message
         return "/sign-in?error=not_allowed";
       }
+      try {
+        const meta: any = dbUser.user_meta_data || {};
+        const rbs = meta.rolesBySchool || {};
+        let isAdmin = false;
+        if (rbs && typeof rbs === 'object') {
+          for (const key of Object.keys(rbs)) {
+            const raw = rbs[key];
+            const arr = Array.isArray(raw) ? raw : [raw];
+            if (arr.some((r: any) => String(r).toUpperCase() === 'ADMIN')) { isAdmin = true; break; }
+          }
+        }
+        if (!isAdmin) return '/sign-in?error=not_admin';
+      } catch {
+        return '/sign-in?error=not_admin';
+      }
 
       // Attach our internal user id for downstream callbacks
       (user as any).id = dbUser.id;
