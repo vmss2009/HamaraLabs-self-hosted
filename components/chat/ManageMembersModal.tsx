@@ -51,7 +51,7 @@ export function ManageMembersModal({
                     Remove
                   </button>
                 ) : (
-                  <span className="text-slate-500 text-[10px]">{m.id === adminId ? 'Owner' : ''}</span>
+                  null
                 )}
               </div>
             ))}
@@ -59,36 +59,34 @@ export function ManageMembersModal({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="text-[11px] uppercase tracking-wider text-slate-400">Add New Member</div>
-          <input value={addQuery} onChange={(e)=> setAddQuery(e.target.value)} placeholder="Search users…" className="w-full rounded bg-slate-800/70 border border-slate-700/70 px-2 py-1 text-sm focus:outline-none focus:ring-0" />
-          <div className="space-y-1.5 max-h-44 overflow-y-auto custom-scroll pr-1">
-            {users
-              .filter(u => u.id !== currentUserId)
-              .filter(u => !roomMembers.some(m => m.id === u.id))
-              .filter(u => {
-                const q = addQuery.trim().toLowerCase();
-                if (!q) return true;
-                const t = (u.email || u.id).toLowerCase();
-                return t.includes(q);
-              })
-              .map(u => (
-                <div key={u.id} className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs border border-slate-700/70 bg-slate-800/50">
-                  <span className="truncate mr-2">{u.email || u.id}</span>
-                  {canManage ? (
+        {canManage && (
+          <div className="space-y-2">
+            <div className="text-[11px] uppercase tracking-wider text-slate-400">Add New Member</div>
+            <input value={addQuery} onChange={(e)=> setAddQuery(e.target.value)} placeholder="Search users…" className="w-full rounded bg-slate-800/70 border border-slate-700/70 px-2 py-1 text-sm focus:outline-none focus:ring-0" />
+            <div className="space-y-1.5 max-h-44 overflow-y-auto custom-scroll pr-1">
+              {users
+                .filter(u => u.id !== currentUserId)
+                .filter(u => !roomMembers.some(m => m.id === u.id))
+                .filter(u => {
+                  const q = addQuery.trim().toLowerCase();
+                  if (!q) return true;
+                  const t = (u.email || u.id).toLowerCase();
+                  return t.includes(q);
+                })
+                .map(u => (
+                  <div key={u.id} className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs border border-slate-700/70 bg-slate-800/50">
+                    <span className="truncate mr-2">{u.email || u.id}</span>
                     <button className="px-2 py-1 rounded bg-emerald-700/80 hover:bg-emerald-600 text-white"
                       onClick={() => onAdd(u.id)}
                     >
                       Add
                     </button>
-                  ) : (
-                    <span className="text-slate-500 text-[10px]">No permission</span>
-                  )}
-                </div>
-              ))}
-            {!users.length && <div className="text-[11px] text-slate-500">Loading users...</div>}
+                  </div>
+                ))}
+              {!users.length && <div className="text-[11px] text-slate-500">Loading users...</div>}
+            </div>
           </div>
-        </div>
+          )}
 
         <div className="flex justify-end pt-1">
           <button onClick={onClose} className="text-xs px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700/70">Close</button>
