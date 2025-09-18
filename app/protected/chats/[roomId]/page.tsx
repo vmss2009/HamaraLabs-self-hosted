@@ -712,18 +712,43 @@ const removeFileAt = (idx: number) => {
                         </div>
                       ) : null}
                       {m.content && <MessageBody html={m.content} />}
-                      <div className={clsx('flex gap-2 items-center', mine ? 'justify-end' : 'justify-start')}>
-                        {m.pending && <span className="text-[10px] text-yellow-200/90">sending…</span>}
+                      <div
+                        className={clsx(
+                          "flex gap-1 items-center mt-0.5 leading-none",
+                          mine ? "justify-end" : "justify-start"
+                        )}
+                      >
+                        {m.pending && (
+                          <span className="text-[10px] text-yellow-200/90">sending…</span>
+                        )}
+
                         {mine ? (
-                          <>
-                            <span className={clsx('text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition', mine ? 'text-indigo-100/80' : 'text-slate-400/80')}>
-                              {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <div
+                            className={clsx(
+                              "flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition",
+                              mine ? "text-indigo-100/80" : "text-slate-400/80"
+                            )}
+                          >
+                            <span>
+                              {new Date(m.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
+
                             {(showEdit || showDelete) && (
                               <div className="relative">
                                 <button
-                                  className={clsx('px-1.5 py-0.5 rounded text-[10px] border transition', mine ? 'bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white' : 'bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100')}
-                                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(menuOpen ? null : m.id); }}
+                                  className={clsx(
+                                    "px-1 py-0.5 rounded text-[10px] border transition",
+                                    mine
+                                      ? "bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white"
+                                      : "bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100"
+                                  )}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(menuOpen ? null : m.id);
+                                  }}
                                   aria-haspopup="menu"
                                   aria-expanded={menuOpen}
                                   title="Message actions"
@@ -731,13 +756,22 @@ const removeFileAt = (idx: number) => {
                                   •••
                                 </button>
                                 {menuOpen && (
-                                  <div className={clsx('absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50', mine ? 'right-0' : 'left-0')}>
+                                  <div
+                                    className={clsx(
+                                      "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
+                                      mine ? "right-0" : "left-0"
+                                    )}
+                                  >
                                     <ul className="py-1 text-[12px]">
                                       {showEdit && (
                                         <li>
                                           <button
                                             className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
-                                            onClick={(e)=> { e.stopPropagation(); setOpenMenuId(null); startEdit(m); }}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setOpenMenuId(null);
+                                              startEdit(m);
+                                            }}
                                           >
                                             Edit
                                           </button>
@@ -747,7 +781,11 @@ const removeFileAt = (idx: number) => {
                                         <li>
                                           <button
                                             className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
-                                            onClick={async (e)=> { e.stopPropagation(); setOpenMenuId(null); await removeMessage(m.id); }}
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              setOpenMenuId(null);
+                                              await removeMessage(m.id);
+                                            }}
                                           >
                                             Delete
                                           </button>
@@ -758,14 +796,27 @@ const removeFileAt = (idx: number) => {
                                 )}
                               </div>
                             )}
-                          </>
+                          </div>
                         ) : (
-                          <>
+                          <div
+                            className={clsx(
+                              "flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition",
+                              mine ? "text-indigo-100/80" : "text-slate-400/80"
+                            )}
+                          >
                             {(showEdit || showDelete) && (
                               <div className="relative">
                                 <button
-                                  className={clsx('px-1.5 py-0.5 rounded text-[10px] border transition', mine ? 'bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white' : 'bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100')}
-                                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(menuOpen ? null : m.id); }}
+                                  className={clsx(
+                                    "px-1 py-0.5 rounded text-[10px] border transition",
+                                    mine
+                                      ? "bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white"
+                                      : "bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100"
+                                  )}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(menuOpen ? null : m.id);
+                                  }}
                                   aria-haspopup="menu"
                                   aria-expanded={menuOpen}
                                   title="Message actions"
@@ -773,13 +824,22 @@ const removeFileAt = (idx: number) => {
                                   •••
                                 </button>
                                 {menuOpen && (
-                                  <div className={clsx('absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50', mine ? 'right-0' : 'left-0')}>
+                                  <div
+                                    className={clsx(
+                                      "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
+                                      mine ? "right-0" : "left-0"
+                                    )}
+                                  >
                                     <ul className="py-1 text-[12px]">
                                       {showEdit && (
                                         <li>
                                           <button
                                             className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
-                                            onClick={(e)=> { e.stopPropagation(); setOpenMenuId(null); startEdit(m); }}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setOpenMenuId(null);
+                                              startEdit(m);
+                                            }}
                                           >
                                             Edit
                                           </button>
@@ -789,7 +849,11 @@ const removeFileAt = (idx: number) => {
                                         <li>
                                           <button
                                             className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
-                                            onClick={async (e)=> { e.stopPropagation(); setOpenMenuId(null); await removeMessage(m.id); }}
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              setOpenMenuId(null);
+                                              await removeMessage(m.id);
+                                            }}
                                           >
                                             Delete
                                           </button>
@@ -800,10 +864,13 @@ const removeFileAt = (idx: number) => {
                                 )}
                               </div>
                             )}
-                            <span className={clsx('text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition', mine ? 'text-indigo-100/80' : 'text-slate-400/80')}>
-                              {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <span>
+                              {new Date(m.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
