@@ -10,9 +10,7 @@ export default function ChatsIndex() {
   const [roomsLoading, setRoomsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [users, setUsers] = useState<{ id: string; email: string }[]>([]);
   const [roomName, setRoomName] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -32,24 +30,18 @@ export default function ChatsIndex() {
     return () => { cancelled = true; };
   }, []);
 
-useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users) ? d.users : [])); } }, [showModal]);
-
-  const toggleMember = (id: string) => {
-    setSelectedMembers(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  };
-
-  const createRoom = async () => {
+  const createRoom = async (memberIds: string[]) => {
     if (!roomName.trim()) return;
     setError(null);
     try {
       const res = await fetch('/api/chat/rooms', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: roomName.trim(), memberIds: Array.from(selectedMembers) })
+        body: JSON.stringify({ name: roomName.trim(), memberIds })
       });
       const data = await res.json();
       if (!res.ok || !data.room) throw new Error(data.error || 'Failed to create room');
       setRooms(r => [data.room, ...r]);
-      setShowModal(false); setRoomName(''); setSelectedMembers(new Set());
+      setShowModal(false); setRoomName('');
     } catch (e: any) { setError(e.message || 'Failed to create'); }
   };
 
@@ -105,10 +97,7 @@ useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).th
         onClose={() => setShowModal(false)}
         roomName={roomName}
         setRoomName={setRoomName}
-        users={users as any}
         currentUserId={session?.user?.id as any}
-        selectedMembers={selectedMembers}
-        toggleMember={toggleMember}
         onCreate={createRoom}
       />
     </div>

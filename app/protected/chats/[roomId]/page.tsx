@@ -15,7 +15,6 @@ import TableCell from '@tiptap/extension-table-cell';
 import { useParams, useRouter } from 'next/navigation';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { DragOverlay } from '@/components/chat/DragOverlay';
-import { CreateRoomModal } from '@/components/chat/CreateRoomModal';
 import { ManageMembersModal } from '@/components/chat/ManageMembersModal';
 import { IconSpinner, IconX, IconResizeNS, IconPlus, IconMinus } from '../../../../components/chat/Icons';
 import { MessageBody } from '../../../../components/chat/MessageBody';
@@ -1020,17 +1019,6 @@ const removeFileAt = (idx: number) => {
         )}
       </section>
 
-      <CreateRoomModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        roomName={roomName}
-        setRoomName={setRoomName}
-        users={users as any}
-        currentUserId={session?.user?.id as any}
-        selectedMembers={selectedMembers}
-        toggleMember={toggleMember}
-        onCreate={createRoom}
-      />
 
       {viewerSrc && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col">

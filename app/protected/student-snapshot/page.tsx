@@ -1323,7 +1323,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   <GridToolbarContainer className="bg-gray-50 p-2">
                     <GridToolbarQuickFilter sx={{ width: "100%" }} />
                     <GridToolbarColumnsButton />
-<UIButton
+                    <UIButton
                       variant="default"
                       size="sm"
                       className="ml-2"
@@ -1692,8 +1692,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 <label className="block text-sm font-bold text-gray-800 mb-1.5">
                   Select Tinkering Activities
                 </label>
-
-{/* Select All Checkbox */}
+                {/* Select All Checkbox */}
                 <div className="mb-3">
                   <label className="inline-flex items-center gap-2 text-sm text-gray-700">
                     <input
