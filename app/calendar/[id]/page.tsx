@@ -251,14 +251,33 @@ notify({ title: "Couldn't book", description: message, variant: "destructive" })
                   <p className="text-sm">{selectedSchedule.timeSlots.length} time slot{selectedSchedule.timeSlots.length === 1 ? '' : 's'} available</p>
                 </div>
                 <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto">
-                  {selectedSchedule.timeSlots.map((slot) => (
-                    <button key={slot.id} onClick={() => setSelectedSlot(slot)} className={`p-3 border rounded-md text-left ${selectedSlot?.id === slot.id ? 'ring-2' : ''}`} style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium">{formatTimeTo12Hour(slot.startTime)}-{formatTimeTo12Hour(slot.endTime)}</div>
-                        <div className="text-sm text-opacity-70">{slot.maxSlots - slot.bookedSlots}/{slot.maxSlots} available</div>
-                      </div>
-                    </button>
-                  ))}
+                  {selectedSchedule.timeSlots.map((slot) => {
+                    const active = selectedSlot?.id === slot.id;
+                    return (
+                      <button
+                        key={slot.id}
+                        onClick={() => setSelectedSlot(slot)}
+                        aria-selected={active}
+                        className={`group relative p-3 border rounded-md text-left flex flex-col gap-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${active ? 'ring-2' : ''}`}
+                        style={{
+                          borderColor: active ? 'var(--foreground)' : 'color-mix(in srgb, var(--foreground) 20%, transparent)',
+                          background: active ? 'color-mix(in srgb, var(--foreground) 15%, transparent)' : 'color-mix(in srgb, var(--foreground) 5%, transparent)'
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium flex items-center gap-2">
+                            {active && (
+                              <span className="inline-flex items-center justify-center w-4 h-4 rounded-sm" style={{ background: 'var(--foreground)', color: 'var(--background)', fontSize: '0.65rem' }}>✓</span>
+                            )}
+                            {formatTimeTo12Hour(slot.startTime)}-{formatTimeTo12Hour(slot.endTime)}
+                          </div>
+                          <div className="text-sm opacity-70">
+                            {slot.maxSlots - slot.bookedSlots}/{slot.maxSlots} available
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-2">
