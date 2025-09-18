@@ -1,17 +1,29 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 const Drawer: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { data: session } = useSession();
+    const pathname = usePathname();
 
-    const toggleDrawer = () => {
-        setIsOpen(!isOpen);
-    };
+    const toggleDrawer = () => setIsOpen(o => !o);
+    const closeDrawer = useCallback(() => setIsOpen(false), []);
+
+    // Close drawer automatically when route changes
+    useEffect(() => {
+        if (isOpen) {
+            closeDrawer();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
+
+    // Helper to attach to Link onClick to ensure immediate close (optimistic)
+    const linkProps = { onClick: () => closeDrawer() } as const;
 
     return (
         <div className="relative">
@@ -43,6 +55,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/student-snapshot"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Snapshot
                                     </Link>
@@ -57,6 +70,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/sarthi"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Dashboard
                                     </Link>
@@ -71,6 +85,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/cluster/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -79,6 +94,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/cluster/report"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Report
                                     </Link>
@@ -93,6 +109,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/school-visits/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -107,6 +124,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/student/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -115,6 +133,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/student/report"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Report
                                     </Link>
@@ -129,6 +148,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/school/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -137,6 +157,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/school/report"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Report
                                     </Link>
@@ -151,6 +172,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/mentor/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -159,6 +181,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/mentor/report"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Report
                                     </Link>
@@ -173,6 +196,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/tinkering-activity/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -181,6 +205,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/tinkering-activity/report"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Report
                                     </Link>
@@ -195,6 +220,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/competition/form"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Form
                                     </Link>
@@ -203,6 +229,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/competition/report"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Report
                                     </Link>
@@ -217,6 +244,7 @@ const Drawer: React.FC = () => {
                                 <Link
                                     href="/protected/course/form"
                                     className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                    {...linkProps}
                                 >
                                     Form
                                 </Link>
@@ -225,6 +253,7 @@ const Drawer: React.FC = () => {
                                 <Link
                                     href="/protected/course/report"
                                     className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                    {...linkProps}
                                 >
                                     Report
                                 </Link>
@@ -240,6 +269,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/calendar"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Calendar
                                     </Link>
@@ -255,6 +285,7 @@ const Drawer: React.FC = () => {
                                     <Link
                                         href="/protected/chats"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
                                     >
                                         Chats
                                     </Link>
