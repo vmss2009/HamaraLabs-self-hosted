@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "../styles/chat.css";
+@import "../components/chat/chat.css";
 
 :root {
   --background: #ffffff;
