@@ -38,6 +38,11 @@ export default auth(async (req, res) => {
       return Response.redirect(newUrl);
     }
 
+    // Block any calendar path containing an '@' (email leakage prevention)
+    if (req.nextUrl.pathname.startsWith("/calendar/") && req.nextUrl.pathname.includes("@")) {
+      return new Response("Not Found", { status: 404 });
+    }
+
     // Allowlist public calendar endpoints (public schedules, public user info, and booking creation)
     const path = req.nextUrl.pathname;
     const method = (req as any).method || req.method; // method may be available on the request

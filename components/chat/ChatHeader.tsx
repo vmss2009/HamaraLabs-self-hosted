@@ -60,8 +60,23 @@ export function ChatHeader({ roomName, membersCount, loading, onManage, onBack, 
             )}
             {onDelete && (
               <button
-                className="px-2 py-1 rounded-md text-white"
-                style={{ background: 'color-mix(in srgb, var(--foreground) 85%, transparent)' }}
+                className="px-2 py-1 rounded-md font-medium text-white transition-colors border"
+                style={{
+                  background: 'rgba(220,38,38,0.92)', /* red-600 with slight opacity */
+                  borderColor: 'rgba(185,28,28,0.9)'
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(220,38,38,1)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(220,38,38,0.92)';
+                }}
+                onMouseDown={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(185,28,28,1)';
+                }}
+                onMouseUp={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(220,38,38,1)';
+                }}
                 onClick={onDelete}
                 title="Delete chat"
                 aria-label="Delete chat"
