@@ -32,7 +32,7 @@ export default function ChatsIndex() {
     return () => { cancelled = true; };
   }, []);
 
-useEffect(() => { if (showModal) { fetch('/api/chats/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users) ? d.users : [])); } }, [showModal]);
+useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users) ? d.users : [])); } }, [showModal]);
 
   const toggleMember = (id: string) => {
     setSelectedMembers(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });

@@ -194,8 +194,8 @@ export default function ChatRoomPage() {
     load();
   }, []);
 
-useEffect(() => { if (showModal) { fetch('/api/chats/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users)? d.users: [])); } }, [showModal]);
-  useEffect(() => { if (manageOpen) { fetch('/api/chats/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users)? d.users: [])); } }, [manageOpen]);
+useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users)? d.users: [])); } }, [showModal]);
+  useEffect(() => { if (manageOpen) { fetch('/api/chat/users').then(r=>r.json()).then(d=> setUsers(Array.isArray(d.users)? d.users: [])); } }, [manageOpen]);
 
   useEffect(() => {
     if (!activeRoom) { setMessages([]); setRoomMembers([]); setNextCursor(null); setHasAccess(null); return; }
