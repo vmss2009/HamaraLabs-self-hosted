@@ -238,22 +238,58 @@ useEffect(() => { if (showModal) { fetch('/api/chats/users').then(r=>r.json()).t
         if (esRef.current) { esRef.current.close(); }
         es = new EventSource(`/api/chat/events?roomId=${encodeURIComponent(activeRoom)}`);
         esRef.current = es;
-        es.addEventListener('message', async () => {
+        es.addEventListener('message', async (ev: MessageEvent) => {
           try {
-            const r = await fetch(`/api/chat/messages?roomId=${encodeURIComponent(activeRoom)}&take=20`);
-            const d = await r.json();
-            if (Array.isArray(d.messages)) {
-              setMessages(curr => {
-                const byId = new Map<string, any>(curr.map(m => [m.id, m]));
-                for (const m of d.messages) byId.set(m.id, m);
-                const arr = Array.from(byId.values());
-                arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                return arr;
-              });
+            const payload = (() => { try { return JSON.parse(ev?.data || '{}'); } catch { return {}; } })();
+            const msgId = payload?.messageId as string | undefined;
+            if (msgId) {
+              const r = await fetch(`/api/chat/message?id=${encodeURIComponent(msgId)}`);
+              if (r.ok) {
+                const d = await r.json();
+                const m = d?.message;
+                if (m && m.chatRoomId === activeRoom) {
+                  setMessages(curr => {
+                    const byId = new Map<string, any>(curr.map(mm => [mm.id, mm]));
+                    byId.set(m.id, m);
+                    const arr = Array.from(byId.values());
+                    arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                    return arr;
+                  });
+                }
+              } else if (r.status === 404) {
+                // Deleted message — remove if present
+                setMessages(curr => curr.filter(mm => mm.id !== msgId));
+              } else {
+                // Fallback: refresh window
+                const rr = await fetch(`/api/chat/messages?roomId=${encodeURIComponent(activeRoom)}&take=20`);
+                const dd = await rr.json();
+                if (Array.isArray(dd.messages)) {
+                  setMessages(curr => {
+                    const byId = new Map<string, any>(curr.map(mm => [mm.id, mm]));
+                    for (const x of dd.messages) byId.set(x.id, x);
+                    const arr = Array.from(byId.values());
+                    arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                    return arr;
+                  });
+                }
+              }
               const el = listRef.current;
               if (el) {
                 const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
                 if (nearBottom) setShouldAutoScroll(true);
+              }
+            } else {
+              // No id in payload — refresh
+              const rr = await fetch(`/api/chat/messages?roomId=${encodeURIComponent(activeRoom)}&take=20`);
+              const dd = await rr.json();
+              if (Array.isArray(dd.messages)) {
+                setMessages(curr => {
+                  const byId = new Map<string, any>(curr.map(mm => [mm.id, mm]));
+                  for (const x of dd.messages) byId.set(x.id, x);
+                  const arr = Array.from(byId.values());
+                  arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                  return arr;
+                });
               }
             }
           } catch { /* ignore */ }

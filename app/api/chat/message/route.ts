@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { updateMessage, deleteMessage } from '@/lib/chat/messages';
+import { prisma } from '@/lib/db/prisma';
 
 export async function PATCH(req: Request) {
   const session = await auth();
@@ -31,4 +32,16 @@ export async function DELETE(req: Request) {
     const status = msg.includes('window expired') ? 403 : (msg.includes('authorized') ? 403 : 400);
     return NextResponse.json({ error: msg }, { status });
   }
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  const message = await prisma.message.findUnique({
+    where: { id },
+    include: { attachments: true, sender: true },
+  });
+  if (!message) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  return NextResponse.json({ message });
 }
