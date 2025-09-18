@@ -24,7 +24,7 @@ import { MenuBar } from '../../../../components/chat/MenuBar';
 
 interface Room { id: string; name: string; _count?: { messages: number }; }
 interface Message { id: string; content?: string; createdAt: string; sender: any; attachments?: any[]; type: string; pending?: boolean; }
-interface User { id: string; email: string; }
+interface User { id: string; email?: string; first_name?: string | null; last_name?: string | null; }
 
 export default function ChatRoomPage() {
   const { data: session } = useSession();
@@ -710,7 +710,7 @@ const removeFileAt = (idx: number) => {
                       title={new Date(m.createdAt).toLocaleString()}
                     >
                       <div className={clsx('text-[11px] font-semibold leading-none', mine ? 'text-indigo-100/90' : 'text-emerald-300')}>
-                        {m.sender?.email || 'Unknown'}
+                        {(m as any)?.sender?.first_name?.trim?.() || (m as any)?.sender?.email || 'Unknown'}
                       </div>
                       {m.attachments?.length ? (
                         <div className="relative">
