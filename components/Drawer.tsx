@@ -240,7 +240,7 @@ const Drawer: React.FC = () => {
                                         href="/protected/chats"
                                         className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
                                     >
-                                        Open Chats
+                                        Chats
                                     </Link>
                                 </li>
                             </ul>

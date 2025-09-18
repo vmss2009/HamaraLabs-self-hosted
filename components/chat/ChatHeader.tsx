@@ -10,7 +10,7 @@ type Props = {
 
 export function ChatHeader({ roomName, membersCount, loading, onManage, onBack }: Props) {
   return (
-    <header className="h-14 flex items-center justify-between px-3 sm:px-5 border-b border-slate-800/70 bg-slate-900/60 backdrop-blur-xl">
+    <header className="relative z-40 mt-4 h-10 flex items-center justify-between pl-14 pr-3 sm:pl-16 sm:pr-5 border-b border-slate-800/70 bg-slate-900/60 backdrop-blur-xl">
       <div className="flex items-center gap-2">
         {onBack && (
           <button

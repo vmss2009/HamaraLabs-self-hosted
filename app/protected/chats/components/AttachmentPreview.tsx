@@ -2,6 +2,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 
 export function AttachmentPreview({ a, onImageClick, onVideoClick }: { a: any; onImageClick?: (src: string) => void; onVideoClick?: (src: string) => void }) {
+  // Allow image viewer only when size is <= 20MB, or size unknown
   const canOpenViewer = typeof a.size === 'number' ? a.size <= 20 * 1024 * 1024 : true;
   if (a.type?.startsWith('image/')) return (
     <div className="relative group w-24 h-24 rounded-lg border border-slate-700/70 shadow-md shadow-black/40 bg-slate-900/40 overflow-hidden grid place-items-center">
@@ -12,6 +13,7 @@ export function AttachmentPreview({ a, onImageClick, onVideoClick }: { a: any; o
         className="max-w-full max-h-full object-contain cursor-zoom-in select-none"
         draggable={false}
       />
+      {/* Download button (appears on hover) */}
       <a
         href={a.url}
         download={a.filename || true}
@@ -39,6 +41,7 @@ export function AttachmentPreview({ a, onImageClick, onVideoClick }: { a: any; o
         <source src={a.url} type={(a.type || '').split(';')[0] || 'video/mp4'} />
         Your browser does not support the video tag.
       </video>
+      {/* Download button (appears on hover) */}
       <a
         href={a.url}
         download={a.filename || true}
@@ -90,6 +93,7 @@ export function SelectedAttachmentPreview({ file, onRemove }: { file: File; onRe
   const isAudio = file.type?.startsWith('audio/');
   const isVideo = file.type?.startsWith('video/');
 
+  // Images are shown as simple chips (no preview)
   if (isImage) {
     return (
       <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-slate-600/60 bg-slate-800/60 text-[11px]">
@@ -100,6 +104,7 @@ export function SelectedAttachmentPreview({ file, onRemove }: { file: File; onRe
     );
   }
 
+  // Audio keeps a small player for usability
   if (isAudio) {
     return (
       <div className="w-full p-2 border border-slate-600/60 bg-slate-800/60 rounded-md">
@@ -119,6 +124,7 @@ export function SelectedAttachmentPreview({ file, onRemove }: { file: File; onRe
     );
   }
 
+  // For videos, show a simple chip like other generic files (no inline player)
   if (isVideo) {
     return (
       <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-slate-600/60 bg-slate-800/60 text-[11px]">
@@ -129,6 +135,7 @@ export function SelectedAttachmentPreview({ file, onRemove }: { file: File; onRe
     );
   }
 
+  // Generic file chip
   return (
     <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-slate-600/60 bg-slate-800/60 text-[11px]">
       <span className="max-w-[14rem] truncate" title={`${file.name} • ${sizeKB} KB`}>{file.name}</span>

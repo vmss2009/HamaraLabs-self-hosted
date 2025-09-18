@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "../styles/chat.css";
 
 :root {
   --background: #ffffff;
@@ -19,5 +20,3 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
-
-@import "../styles/chat.css";

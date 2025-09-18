@@ -17,10 +17,10 @@ import { ChatHeader } from '@/components/chat/ChatHeader';
 import { DragOverlay } from '@/components/chat/DragOverlay';
 import { CreateRoomModal } from '@/components/chat/CreateRoomModal';
 import { ManageMembersModal } from '@/components/chat/ManageMembersModal';
-import { IconSpinner, IconX, IconResizeNS, IconPlus, IconMinus } from './components/Icons';
-import { MessageBody } from './components/MessageBody';
-import { AttachmentPreview, SelectedAttachmentPreview } from './components/AttachmentPreview';
-import { MenuBar } from './components/MenuBar';
+import { IconSpinner, IconX, IconResizeNS, IconPlus, IconMinus } from '../components/Icons';
+import { MessageBody } from '../components/MessageBody';
+import { AttachmentPreview, SelectedAttachmentPreview } from '../components/AttachmentPreview';
+import { MenuBar } from '../components/MenuBar';
 
 interface Room { id: string; name: string; _count?: { messages: number }; }
 interface Message { id: string; content?: string; createdAt: string; sender: any; attachments?: any[]; type: string; pending?: boolean; }

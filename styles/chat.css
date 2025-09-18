@@ -1,92 +1,105 @@
-/* Chat-specific global styles (ported to be consistent with chats project) */
-
 /* Basic editor styles */
-.tiptap {
-  :first-child {
-    margin-top: 0;
-  }
+.tiptap:first-child {
+  margin-top: 0;
+}
 
-  mark {
-    background-color: #faf594;
-    border-radius: 0.4rem;
-    box-decoration-break: clone;
-    padding: 0.1rem 0.3rem;
-  }
+.tiptap mark {
+  background-color: #faf594;
+  border-radius: 0.4rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.1rem 0.3rem;
+}
 
-  /* List styles */
-  ul,
-  ol {
-    padding: 0 1rem;
-    margin: 1.25rem 1rem 1.25rem 0.4rem;
-    list-style-position: outside;
-  }
+/* List styles */
+.tiptap ul,
+.tiptap ol {
+  padding: 0 1rem;
+  margin: 1.25rem 1rem 1.25rem 0.4rem;
+  list-style-position: outside;
+}
 
-  ul { list-style-type: disc; }
-  ol { list-style-type: decimal; }
-  ul ul { list-style-type: circle; }
-  ul ul ul { list-style-type: square; }
+.tiptap ul { list-style-type: disc; }
+.tiptap ol { list-style-type: decimal; }
+.tiptap ul ul { list-style-type: circle; }
+.tiptap ul ul ul { list-style-type: square; }
 
-  li p {
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
-  }
+.tiptap li p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
 
-  /* Heading styles */
-  h1, h2, h3, h4, h5, h6 {
-    line-height: 1.1;
-    margin-top: 2.5rem;
-    text-wrap: pretty;
-    color: #fff;
-  }
-  h1 { font-size: 1.4rem; }
-  h2 { font-size: 1.2rem; }
-  h3 { font-size: 1.1rem; }
-  h4, h5, h6 { font-size: 1rem; }
+/* Heading styles */
+.tiptap h1, 
+.tiptap h2, 
+.tiptap h3, 
+.tiptap h4, 
+.tiptap h5, 
+.tiptap h6 {
+  line-height: 1.1;
+  margin-top: 2.5rem;
+  text-wrap: pretty;
+  color: #fff;
+}
+.tiptap h1 { font-size: 1.4rem; }
+.tiptap h2 { font-size: 1.2rem; }
+.tiptap h3 { font-size: 1.1rem; }
+.tiptap h4, 
+.tiptap h5, 
+.tiptap h6 { font-size: 1rem; }
 
-  /* Code and preformatted text styles */
-  code {
-    background-color: #ffeb3b;
-    border-radius: 0.4rem;
-    color: #111;
-    font-size: 0.85rem;
-    padding: 0.25em 0.3em;
-  }
-  pre {
-    background: #111;
-    border-radius: 0.5rem;
-    color: #fff;
-    font-family: 'JetBrainsMono', monospace;
-    margin: 1.5rem 0;
-    padding: 0.75rem 1rem;
-  }
-  pre code {
-    background: none;
-    color: inherit;
-    font-size: 0.8rem;
-    padding: 0;
-  }
+/* Code and preformatted text styles */
+.tiptap code {
+  background-color: #ffeb3b;
+  border-radius: 0.4rem;
+  color: #111;
+  font-size: 0.85rem;
+  padding: 0.25em 0.3em;
+}
+.tiptap pre {
+  background: #111;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-family: 'JetBrainsMono', monospace;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+}
+.tiptap pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.8rem;
+  padding: 0;
+}
 
-  blockquote {
-    border-left: 3px solid #ffeb3b;
-    margin: 1.5rem 0;
-    padding-left: 1rem;
-    color: #e0e0e0;
-  }
+.tiptap blockquote {
+  border-left: 3px solid #ffeb3b;
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  color: #e0e0e0;
+}
 
-  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
-  th, td { border: 1px solid #445; padding: 0.4rem 0.5rem; text-align: left; }
-  th { background: #1e293b; }
+.tiptap table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin: 0.75rem 0; 
+}
+.tiptap th, 
+.tiptap td { 
+  border: 1px solid #445; 
+  padding: 0.4rem 0.5rem; 
+  text-align: left; 
+}
+.tiptap th { background: #1e293b; }
 
-  /* Prevent layout overflow clipping in message bubbles */
-  .hl-scroll-wrap {
-    -webkit-overflow-scrolling: touch;
-  }
+/* Prevent layout overflow clipping in message bubbles */
+.tiptap .hl-scroll-wrap {
+  -webkit-overflow-scrolling: touch;
+}
 
-  hr {
-    border: none;
-    border-top: 1px solid #bbb;
-    margin: 2rem 0;
-  }
+.tiptap hr {
+  border: none;
+  border-top: 1px solid #bbb;
+  margin: 2rem 0;
 }
 
 /* Prose defaults for rendered message bodies */
@@ -107,8 +120,58 @@
 body { zoom: 1.0; }
 
 /* Editor focus/outline adjustments and scroll behavior */
-.tiptap { outline: none; height: 100%; }
-.tiptap:focus, .tiptap:focus-visible { outline: none; box-shadow: none; }
-/* Make the contenteditable area fill the composer so clicking anywhere shows the caret */
-.tiptap .ProseMirror { min-height: 100%; height: 100%; width: 100%; box-sizing: border-box; cursor: text; }
-.resizable-editor { overflow-y: auto; overflow-x: hidden; min-height: 0; }
+.tiptap { 
+  outline: none; 
+  height: 100%; 
+  min-height: 8rem; /* matches min-h-32 */
+  border-radius: 0.75rem;
+}
+.tiptap:focus, 
+.tiptap:focus-visible { 
+  outline: none; 
+  box-shadow: none; 
+}
+.tiptap .ProseMirror { 
+  min-height: 100%; 
+  height: 100%; 
+  width: 100%; 
+  box-sizing: border-box; 
+  cursor: text; 
+}
+.tiptap p { margin: 0 0 .65rem; }
+
+.resizable-editor { 
+  overflow-y: auto; 
+  overflow-x: hidden; 
+  min-height: 0; 
+  max-height: 60vh; 
+}
+
+/* Ensure list markers are visible in rendered message content */
+.prose ul {
+  list-style-type: disc;
+  list-style-position: outside;
+  margin-left: 1.25rem;
+}
+.prose ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+  margin-left: 1.25rem;
+}
+.prose ul ul { list-style-type: circle; }
+.prose ul ul ul { list-style-type: square; }
+
+/* Default highlight style for message content */
+.prose mark {
+  background-color: #faf594;
+  border-radius: 0.4rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.1rem 0.3rem;
+  color: inherit;
+}
+
+/* Make blockquotes visible in rendered messages */
+.prose blockquote p { margin: 0.5rem 0; }
+.prose blockquote > :first-child { margin-top: 0; }
+.prose blockquote > :last-child { margin-bottom: 0; }
