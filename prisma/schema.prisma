@@ -19,10 +19,11 @@ model User {
   school_visits  SchoolVisit[] @relation("VisitPOC")
   students       Student[]
   mentors        Mentor[]
-  // Chat relations
   chatRooms      ChatRoom[]    @relation("ChatRoomMembers")
   messages       Message[]
-  adminOf       ChatRoom[]  @relation("ChatRoomAdmin")
+  adminOf        ChatRoom[]    @relation("ChatRoomAdmin")
+  Schedule       Schedule[]
+  Booking        Booking[]
 }
 
 model Country {
@@ -312,4 +313,76 @@ model Attachment {
   messageId String
 
   @@index([messageId])
+}
+
+// Calendar models (merged from hamaralabs-calendar)
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+}
+
+model Schedule {
+  id        String     @id @default(cuid())
+  userId    String
+  date      DateTime
+  timeSlots TimeSlot[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model TimeSlot {
+  id          String   @id @default(cuid())
+  scheduleId  String
+  startTime   String
+  endTime     String
+  maxSlots    Int      @default(1)
+  bookedSlots Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, startTime, endTime])
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  userId     String
+  date       DateTime
+  startTime  String
+  endTime    String
+  guestName  String
+  guestEmail String
+  notes      String?
+  status     BookingStatus @default(CONFIRMED)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Slot   Slot?   @relation(fields: [slotId], references: [id])
+  slotId String?
+
+  @@index([userId, date, startTime, endTime])
+}
+
+model Slot {
+  id                    String   @id @default(cuid())
+  merchantTransactionId String   @unique
+  merchantId            String
+  email                 String
+  phone                 String
+  amount                Int
+  status                String
+  items                 Json     @default("[]")
+  paidBy                String?
+  paymentMethod         String?
+  notes                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  bookings Booking[]
 }

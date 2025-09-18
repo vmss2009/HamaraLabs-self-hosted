@@ -6,6 +6,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Shared surfaces and borders derived from app tokens for consistent contrast */
+  --surface-1: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --surface-2: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --surface-3: color-mix(in srgb, var(--foreground) 15%, transparent);
+  --border-subtle: color-mix(in srgb, var(--foreground) 15%, transparent);
+  --border-strong: color-mix(in srgb, var(--foreground) 25%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,4 +25,116 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Global form control text color: enforce black typing across the app */
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  color: #000 !important;
+  caret-color: #000;
+}
+input::placeholder,
+textarea::placeholder {
+  /* Subtle placeholder that remains readable against white backgrounds */
+  color: #6b7280; /* Tailwind gray-500 equivalent */
+}
+
+/* Calendar styles (imported to keep visual parity with calendar project) */
+.rbc-calendar {
+  background: var(--background);
+  color: var(--foreground);
+}
+.rbc-toolbar label,
+.rbc-toolbar button {
+  color: var(--foreground);
+}
+.rbc-toolbar button {
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  background: transparent;
+}
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button:focus,
+.rbc-toolbar button:hover {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.rbc-month-view,
+.rbc-time-view {
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+.rbc-header {
+  color: var(--foreground);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+.rbc-off-range {
+  color: color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+.rbc-today {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+/* Toggle switch styles used in calendar UI */
+.toggle {
+  --toggle-w: 44px;
+  --toggle-h: 24px;
+  --toggle-pad: 2px;
+  --toggle-knob: calc(var(--toggle-h) - (var(--toggle-pad) * 2));
+  --toggle-shift: calc(var(--toggle-w) - var(--toggle-h));
+}
+.toggle {
+  position: relative;
+  inline-size: var(--toggle-w);
+  block-size: var(--toggle-h);
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 25%, transparent);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.toggle::before {
+  content: "";
+  position: absolute;
+  inset-block-start: var(--toggle-pad);
+  inset-inline-start: var(--toggle-pad);
+  inline-size: var(--toggle-knob);
+  block-size: var(--toggle-knob);
+  border-radius: 50%;
+  background: var(--foreground);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 20%, transparent);
+  transform: translateX(0);
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.toggle[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+.toggle[aria-pressed="true"]::before {
+  transform: translateX(var(--toggle-shift));
+  background: var(--background);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 25%, transparent);
+}
+.toggle:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+.toggle[aria-pressed="true"]:hover {
+  background: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+.toggle:active::before {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+.toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--foreground) 50%, transparent);
+  outline-offset: 2px;
+}
+.toggle:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }

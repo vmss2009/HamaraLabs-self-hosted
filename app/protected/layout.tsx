@@ -14,7 +14,7 @@ export default function ProtectedLayout({
       <AuthGuard>
         <div className="flex">
           <Drawer />
-          <main className="">{children}</main>
+          <main className="flex-1 w-full">{children}</main>
         </div>
       </AuthGuard>
     </SessionProvider>

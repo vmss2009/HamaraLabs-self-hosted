@@ -38,6 +38,17 @@ export default auth(async (req, res) => {
       return Response.redirect(newUrl);
     }
 
+    // Allowlist public calendar endpoints (public schedules, public user info, and booking creation)
+    const path = req.nextUrl.pathname;
+    const method = (req as any).method || req.method; // method may be available on the request
+if (
+      path.startsWith("/api/schedules/public") ||
+      (path.startsWith("/api/users/") && method === "GET") ||
+      (path === "/api/bookings" && method === "POST")
+    ) {
+      return;
+    }
+
     if (req.nextUrl.pathname.startsWith("/api") && !req.nextUrl.pathname.startsWith("/api/auth")) {
       const params = new URLSearchParams(req.nextUrl.search);
       const code = params.get("code");
