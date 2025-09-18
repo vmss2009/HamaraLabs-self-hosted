@@ -55,7 +55,7 @@ useEffect(() => { if (showModal) { fetch('/api/chats/users').then(r=>r.json()).t
 
   return (
     <div className="relative min-h-screen w-screen overflow-y-auto bg-[linear-gradient(135deg,#0b1220,45%,#0e1628)] text-slate-100">
-      <header className="sticky top-0 z-10 h-14 border-b border-slate-800/70 bg-slate-900/60 backdrop-blur-xl">
+      <header className="sticky top-0 z-10 h-16 border-b border-slate-800/70 bg-slate-900/60 backdrop-blur-xl">
         <div className="h-full w-full pl-14 pr-3 sm:pl-16 sm:pr-5 flex items-center justify-between">
           <h1 className="text-sm font-semibold tracking-wide uppercase text-slate-200">Chats</h1>
           <button onClick={() => setShowModal(true)} className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-medium shadow">Create chat</button>

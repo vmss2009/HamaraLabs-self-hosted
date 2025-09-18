@@ -10,11 +10,11 @@ import {
   GridToolbarColumnsButton,
   GridRowParams,
 } from "@mui/x-data-grid";
-import DetailViewer from "@/components/DetailViewer";
+import DetailViewer from "@/components/form/DetailViewer";
 import { useRouter } from "next/navigation";
-import { EditIcon, DeleteIcon } from "@/components/Icons";
-import Alert from "@/components/Alert";
-import ReportShell from "@/components/ReportShell";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import Alert from "@/components/form/Alert";
+import ReportShell from "@/components/form/ReportShell";
 
 interface Mentor {
   id: string;

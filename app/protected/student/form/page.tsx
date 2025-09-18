@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TextFieldGroup from "@/components/TextFieldGroup";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import SelectField from "@/components/SelectField";
-import RadioButtonGroup from "@/components/RadioButtonGroup";
+import TextFieldGroup from "@/components/form/TextFieldGroup";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
+import SelectField from "@/components/form/SelectField";
+import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import { useRouter } from "next/navigation";
 
 export default function StudentForm() {

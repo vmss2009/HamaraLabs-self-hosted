@@ -9,13 +9,13 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
-import Modal from "@/components/Modal";
-import { Button as UIButton } from "@/components/Button";
-import Alert from "@/components/Alert";
-import { Button } from "@/components/Button";
-import DetailViewer from "@/components/DetailViewer";
-import SearchableSelect from "@/components/SearchableSelect";
-import { Input } from "@/components/Input";
+import Modal from "@/components/form/Modal";
+import { Button as UIButton } from "@/components/form/Button";
+import Alert from "@/components/form/Alert";
+import { Button } from "@/components/form/Button";
+import DetailViewer from "@/components/form/DetailViewer";
+import SearchableSelect from "@/components/form/SearchableSelect";
+import { Input } from "@/components/form/Input";
 import { EditActivityDialog } from "./tinkering-activity/tinkering-activity-edit-form/edit";
 import { getCourseColumns } from "./course/columns";
 import { getCompetitionColumns } from "./competition/columns";

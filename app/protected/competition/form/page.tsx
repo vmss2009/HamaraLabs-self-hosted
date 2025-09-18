@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import MultiForm from "@/components/Multiform";
-import { Input } from "@/components/Input";
-import DateFieldGroup from "@/components/DateField";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
+import MultiForm from "@/components/form/Multiform";
+import { Input } from "@/components/form/Input";
+import DateFieldGroup from "@/components/form/DateField";
 
 export default function CompetitionForm() {
   const router = useRouter();

@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import Modal from "@/components/Modal";
-import { Input } from "@/components/Input";
-import SelectField from "@/components/SelectField";
-import { Button } from "@/components/Button";
+import Modal from "@/components/form/Modal";
+import { Input } from "@/components/form/Input";
+import SelectField from "@/components/form/SelectField";
+import { Button } from "@/components/form/Button";
 import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
 
 export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({

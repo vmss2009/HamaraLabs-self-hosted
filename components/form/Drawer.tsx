@@ -27,7 +27,8 @@ const Drawer: React.FC = () => {
                     isOpen ? "translate-x-0" : "-translate-x-full"
                 } transition-transform duration-300 ease-in-out z-40`}
             >
-                <nav className="flex flex-col h-full p-4 overflow-y-auto">
+                <nav className="flex flex-col h-full">
+                  <div className="flex-1 p-4 overflow-y-auto">
                     {/* User Info Section */}
                     <div className="mt-12  p-4 bg-gray-800 rounded-lg">
                         <p className="text-sm text-gray-400">Signed in as</p>
@@ -246,16 +247,17 @@ const Drawer: React.FC = () => {
                             </ul>
                         </div>
                         
-                    </div>
-                    <div className="mt-auto mb-4 p-4">
-                        <button
-                            onClick={() => {signOut()}}
-                            className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-500 transition-colors"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </nav>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 border-t border-gray-800 bg-gray-900/95 mt-auto">
+                                        <button
+                                            onClick={() => { signOut(); }}
+                                            className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-500 transition-colors"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                </nav>
             </div>
 
             {/* Overlay */}

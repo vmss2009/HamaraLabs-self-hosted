@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import TextFieldGroup from "@/components/TextFieldGroup";
-import SearchableSelect from "@/components/SearchableSelect";
-import CheckboxGroup from "@/components/CheckboxGroup";
-import RadioButtonGroup from "@/components/RadioButtonGroup";
-import DynamicFieldArray from "@/components/DynamicFieldArray";
-import MultipleUserInput from "@/components/MultipleUserInput";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
+import TextFieldGroup from "@/components/form/TextFieldGroup";
+import SearchableSelect from "@/components/form/SearchableSelect";
+import CheckboxGroup from "@/components/form/CheckboxGroup";
+import RadioButtonGroup from "@/components/form/RadioButtonGroup";
+import DynamicFieldArray from "@/components/form/DynamicFieldArray";
+import MultipleUserInput from "@/components/form/MultipleUserInput";
 import { useRouter } from "next/navigation";
 
 interface UserData {

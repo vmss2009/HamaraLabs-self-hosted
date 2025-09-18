@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import Modal from "@/components/Modal";
-import { Button } from "@/components/Button";
-import { Checkbox } from "@/components/Checkbox";
-import SearchableSelect from "@/components/SearchableSelect";
+import Modal from "@/components/form/Modal";
+import { Button } from "@/components/form/Button";
+import { Checkbox } from "@/components/form/Checkbox";
+import SearchableSelect from "@/components/form/SearchableSelect";
 
 function Alert({ children }: { children: React.ReactNode }) {
   return (

@@ -11,10 +11,10 @@ import {
   GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import { EditIcon, DeleteIcon } from "@/components/Icons";
-import ReportShell from "@/components/ReportShell";
-import DetailViewer from "@/components/DetailViewer";
-import Alert from "@/components/Alert";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import ReportShell from "@/components/form/ReportShell";
+import DetailViewer from "@/components/form/DetailViewer";
+import Alert from "@/components/form/Alert";
 import { Student } from "@/lib/db/student/type";
 
 export default function StudentReport() {

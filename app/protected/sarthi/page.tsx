@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/form/Button";
 import SchoolVisitReport from "./school-visits/report/page";
 
 export default function SarthiPage() {

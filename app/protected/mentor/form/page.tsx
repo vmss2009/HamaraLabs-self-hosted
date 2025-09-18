@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import { Input } from "@/components/Input";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
+import { Input } from "@/components/form/Input";
 import { Autocomplete, TextField, Chip } from "@mui/material";
 
 type School = {

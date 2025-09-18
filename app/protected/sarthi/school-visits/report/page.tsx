@@ -11,11 +11,11 @@ import {
   GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import { EditIcon, DeleteIcon } from "@/components/Icons";
-import Alert from "@/components/Alert";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import Alert from "@/components/form/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
-import DetailViewer from "@/components/DetailViewer";
-import ReportShell from "@/components/ReportShell";
+import DetailViewer from "@/components/form/DetailViewer";
+import ReportShell from "@/components/form/ReportShell";
 
 export default function SchoolVisitReport() {
   const router = useRouter();

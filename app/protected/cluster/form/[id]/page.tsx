@@ -2,10 +2,10 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import { Input } from "@/components/Input";
-import SearchableSelect from "@/components/SearchableSelect";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
+import { Input } from "@/components/form/Input";
+import SearchableSelect from "@/components/form/SearchableSelect";
 
 
 type School = {

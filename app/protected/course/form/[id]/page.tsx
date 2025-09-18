@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import React, { ChangeEvent } from "react";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import DateFieldGroup from "@/components/DateField";
-import { Input } from "@/components/Input";
-import MultiForm from "@/components/Multiform";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
+import DateFieldGroup from "@/components/form/DateField";
+import { Input } from "@/components/form/Input";
+import MultiForm from "@/components/form/Multiform";
 
 export default function EditCourseForm({
   params,

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useId } from "react";
-import { Checkbox } from "@/components/Checkbox";
+import { Checkbox } from "@/components/form/Checkbox";
 
 export type MultiSelectOption = { value: string; label: string };
 

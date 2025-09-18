@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import React, { ChangeEvent } from "react";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
 import { useRouter } from "next/navigation";
-import MultiForm from "@/components/Multiform";
-import DateFieldGroup from "@/components/DateField";
-import { Input } from "@/components/Input";
+import MultiForm from "@/components/form/Multiform";
+import DateFieldGroup from "@/components/form/DateField";
+import { Input } from "@/components/form/Input";
 
 export default function CourseForm() {
   const router = useRouter();

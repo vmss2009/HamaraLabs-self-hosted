@@ -1,5 +1,5 @@
 import React from "react";
-import DrawerPanel from "@/components/DrawerPanel";
+import DrawerPanel from "@/components/form/DrawerPanel";
 
 interface UserRole {
   name: string;

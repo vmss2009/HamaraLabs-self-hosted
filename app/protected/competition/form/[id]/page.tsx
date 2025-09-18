@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
+import { Button } from "@/components/form/Button";
+import FormSection from "@/components/form/FormSection";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/Input";
-import DateFieldGroup from "@/components/DateField";
-import MultiForm from "@/components/Multiform";
+import { Input } from "@/components/form/Input";
+import DateFieldGroup from "@/components/form/DateField";
+import MultiForm from "@/components/form/Multiform";
 
 export default function EditCompetitionForm({
   params,

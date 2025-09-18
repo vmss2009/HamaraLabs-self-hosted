@@ -1,7 +1,7 @@
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/form/Button";
 
-import { DeleteIcon } from "@/components/Icons";
+import { DeleteIcon } from "@/components/form/Icons";
 
 type SnapshotItem = Record<string, unknown>;
 

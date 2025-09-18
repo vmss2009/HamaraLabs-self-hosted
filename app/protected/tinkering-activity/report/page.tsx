@@ -11,14 +11,14 @@ import {
   GridToolbarColumnsButton,
   GridRowParams,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/form/Button";
 import { useRouter } from "next/navigation";
-import { EditIcon, DeleteIcon } from "@/components/Icons";
-import Alert from "@/components/Alert";
-import AssignDialog from "@/components/DialogBox";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import Alert from "@/components/form/Alert";
+import AssignDialog from "@/components/form/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
-import DetailViewer from "@/components/DetailViewer";
-import ReportShell from "@/components/ReportShell";
+import DetailViewer from "@/components/form/DetailViewer";
+import ReportShell from "@/components/form/ReportShell";
 import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {

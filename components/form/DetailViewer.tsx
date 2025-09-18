@@ -1,5 +1,5 @@
 import React from "react";
-import DrawerPanel from "@/components/DrawerPanel";
+import DrawerPanel from "@/components/form/DrawerPanel";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

@@ -10,13 +10,13 @@ import {
   GridToolbarColumnsButton,
   GridRowParams,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/form/Button";
 import { useRouter } from "next/navigation";
-import Alert from "@/components/Alert";
-import { EditIcon, DeleteIcon } from "@/components/Icons";
-import DetailViewer from "@/components/DetailViewer";
-import AssignDialog from "@/components/DialogBox";
-import ReportShell from "@/components/ReportShell";
+import Alert from "@/components/form/Alert";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import DetailViewer from "@/components/form/DetailViewer";
+import AssignDialog from "@/components/form/DialogBox";
+import ReportShell from "@/components/form/ReportShell";
 import { Competition } from "@/lib/db/competition/type";
 
 export default function CompetitionReport() {
