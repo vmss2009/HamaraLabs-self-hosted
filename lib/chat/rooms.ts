@@ -20,6 +20,7 @@ export async function createRoom(userId: string, name: string, memberIds: string
   const room = await prisma.chatRoom.create({
     data: {
       name: (name || 'Untitled Room').trim(),
+      adminId: userId,
       members: { connect: existingIds.map(id => ({ id })) }
     },
     include: { members: true }
@@ -31,7 +32,14 @@ export async function getRoomWithMembers(roomId: string) {
   return prisma.chatRoom.findUnique({ where: { id: roomId }, include: { members: true } });
 }
 
-export async function updateRoomMembers(roomId: string, addIds: string[], removeIds: string[]) {
+export async function requireAdmin(roomId: string, userId: string) {
+  const room = await prisma.chatRoom.findUnique({ where: { id: roomId }, select: { adminId: true } });
+  if (!room) throw new Error('Room not found');
+  if (room.adminId && room.adminId !== userId) throw new Error('Forbidden');
+}
+
+export async function updateRoomMembers(roomId: string, addIds: string[], removeIds: string[], actingUserId?: string) {
+  if (actingUserId) await requireAdmin(roomId, actingUserId);
   const adds = Array.from(new Set((addIds || []).filter(Boolean)));
   const rems = Array.from(new Set((removeIds || []).filter(Boolean)));
   const existingAdds = await prisma.user.findMany({ where: { id: { in: adds } }, select: { id: true } });
@@ -47,4 +55,16 @@ export async function updateRoomMembers(roomId: string, addIds: string[], remove
     include: { members: true },
   });
   return room;
+}
+
+export async function updateRoomName(roomId: string, actingUserId: string, newName: string) {
+  await requireAdmin(roomId, actingUserId);
+  return prisma.chatRoom.update({ where: { id: roomId }, data: { name: (newName || '').trim() || 'Untitled Room' } });
+}
+
+export async function deleteRoom(roomId: string, actingUserId: string) {
+  await requireAdmin(roomId, actingUserId);
+  await prisma.attachment.deleteMany({ where: { message: { chatRoomId: roomId } } });
+  await prisma.message.deleteMany({ where: { chatRoomId: roomId } });
+  return prisma.chatRoom.delete({ where: { id: roomId } });
 }

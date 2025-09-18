@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
-import { getRoomWithMembers, updateRoomMembers } from '@/lib/chat/rooms';
+import { getRoomWithMembers, updateRoomMembers, updateRoomName, deleteRoom } from '@/lib/chat/rooms';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 

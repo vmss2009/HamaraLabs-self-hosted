@@ -72,16 +72,45 @@ useEffect(() => { if (showModal) { fetch('/api/chats/users').then(r=>r.json()).t
             )}
             <ul className="overflow-hidden rounded-xl border border-slate-800/70 bg-slate-900/40 divide-y divide-slate-800/60">
               {rooms.map((r) => (
-                <li key={r.id}>
-                  <Link
-                    href={`/protected/chats/${r.id}`}
-                    className="block w-full px-4 py-4 hover:bg-slate-800/50 transition flex items-center justify-between gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium text-slate-200 truncate">{r.name}</div>
-                    </div>
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-slate-300"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </Link>
+                <li key={r.id} className="group">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={`/protected/chats/${r.id}`}
+                      className="block flex-1 px-4 py-4 hover:bg-slate-800/50 transition flex items-center justify-between gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium text-slate-200 truncate">{r.name}</div>
+                      </div>
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-slate-300"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </Link>
+                    {session?.user?.id && (r as any).adminId === session.user.id && (
+                      <div className="pr-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                        <button
+                          className="text-[11px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const name = window.prompt('Rename chat', r.name);
+                            if (!name) return;
+                            const res = await fetch('/api/chat/room', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId: r.id, name }) });
+                            if (res.ok) setRooms(curr => curr.map(x => x.id === r.id ? { ...x, name } : x));
+                          }}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          className="text-[11px] px-2 py-1 rounded bg-rose-700/80 hover:bg-rose-600 text-white"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            if (!window.confirm('Delete this chat? This cannot be undone.')) return;
+                            const res = await fetch(`/api/chat/room?roomId=${encodeURIComponent(r.id)}`, { method: 'DELETE' });
+                            if (res.ok) setRooms(curr => curr.filter(x => x.id !== r.id));
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

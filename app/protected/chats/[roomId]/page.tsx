@@ -44,6 +44,7 @@ export default function ChatRoomPage() {
   const [roomMembers, setRoomMembers] = useState<User[]>([]);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [activeRoomName, setActiveRoomName] = useState<string>('');
+  const [roomAdminId, setRoomAdminId] = useState<string>('');
   const [manageOpen, setManageOpen] = useState(false);
   const [addQuery, setAddQuery] = useState('');
   const [roomName, setRoomName] = useState('');
@@ -220,6 +221,7 @@ useEffect(() => { if (showModal) { fetch('/api/chats/users').then(r=>r.json()).t
         setHasAccess(true);
         setRoomMembers(members as any);
         setActiveRoomName(d2.room?.name || '');
+        setRoomAdminId(d2.room?.adminId || '');
 
         const r1 = await fetch(`/api/chat/messages?roomId=${encodeURIComponent(activeRoom)}&take=20`);
         const d1 = await r1.json().catch(() => ({}));
@@ -609,6 +611,7 @@ const removeFileAt = (idx: number) => {
               roomName={activeRoomName || String(activeRoom || '')}
               membersCount={roomMembers.length}
               loading={messagesLoading}
+              canManage={!!session?.user?.id && roomAdminId === (session?.user?.id as any)}
               onManage={() => setManageOpen(true)}
               onBack={() => router.push('/protected/chats')}
             />
