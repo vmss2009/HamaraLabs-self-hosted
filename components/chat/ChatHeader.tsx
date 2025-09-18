@@ -31,14 +31,12 @@ export function ChatHeader({ roomName, membersCount, loading, onManage, onBack, 
       </div>
       <div className="flex items-center gap-2 text-[10px] text-slate-500">
         {loading && <span className="animate-pulse">Loading…</span>}
-        {canManage && (
-          <button
-            className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-[11px]"
-            onClick={onManage}
-          >
-            Members • {membersCount}
-          </button>
-        )}
+        <button
+          className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-[11px]"
+          onClick={onManage}
+        >
+          Members • {membersCount}
+        </button>
       </div>
     </header>
   );
