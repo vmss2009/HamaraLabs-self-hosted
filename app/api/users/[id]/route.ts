@@ -3,11 +3,11 @@ import prisma from "@/lib/db/prisma";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ email: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { email } = await params;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const { id } = await params;
+    const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

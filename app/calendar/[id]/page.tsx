@@ -127,13 +127,13 @@ function PublicCalendar({ selectedDate, onDateSelect, schedules, userName }: Pub
   );
 }
 
-interface SchedulePageProps { params: Promise<{ email: string }> }
+interface SchedulePageProps { params: Promise<{ id: string }> }
 interface TimeSlot { id: string; startTime: string; endTime: string; maxSlots: number; bookedSlots: number; }
 interface Schedule { id: string; userId: string; date: Date; timeSlots: TimeSlot[]; createdAt: Date; updatedAt: Date; }
 
 export default function PublicSchedulePage({ params }: SchedulePageProps) {
   const { notify } = useNotifications();
-  const { email } = use(params);
+  const { id } = use(params);
   const [user, setUser] = useState<{ id: string; email: string; name?: string; isPublic: boolean } | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +151,7 @@ export default function PublicSchedulePage({ params }: SchedulePageProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userResponse = await fetch(`/api/users/${email}`);
+        const userResponse = await fetch(`/api/users/${id}`);
         if (!userResponse.ok) {
           if (userResponse.status === 404) { setError("User not found"); return; }
           throw new Error("Failed to fetch user data");
@@ -159,8 +159,7 @@ export default function PublicSchedulePage({ params }: SchedulePageProps) {
         const userData = await userResponse.json();
         setUser(userData);
         if (userData && userData.isPublic === false) { setError("This user's schedule is currently private."); return; }
-
-        const schedulesResponse = await fetch(`/api/schedules/public/${email}?leadMinutes=30`);
+        const schedulesResponse = await fetch(`/api/schedules/public/${id}?leadMinutes=30`);
         if (!schedulesResponse.ok) throw new Error("Failed to fetch schedules");
         const schedulesData = await schedulesResponse.json();
         const formatted = schedulesData
@@ -174,7 +173,7 @@ export default function PublicSchedulePage({ params }: SchedulePageProps) {
       }
     };
     fetchData();
-  }, [email, today]);
+  }, [id, today]);
 
   useEffect(() => { if (!selectedDate) setSelectedDate(today); }, [selectedDate, today]);
 
@@ -200,7 +199,7 @@ notify({ title: "Cannot view past dates", description: "You can only view availa
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, date: format(selectedDate, "yyyy-MM-dd"), startTime: selectedSlot.startTime, endTime: selectedSlot.endTime, guestName, guestEmail, notes }),
+        body: JSON.stringify({ email: user?.email, date: format(selectedDate, "yyyy-MM-dd"), startTime: selectedSlot.startTime, endTime: selectedSlot.endTime, guestName, guestEmail, notes }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -208,7 +207,7 @@ notify({ title: "Cannot view past dates", description: "You can only view availa
       }
 notify({ title: "Booked!", description: `You're in for ${formatTimeTo12Hour(selectedSlot.startTime)}-${formatTimeTo12Hour(selectedSlot.endTime)}.` });
 
-      const schedulesResponse = await fetch(`/api/schedules/public/${email}?leadMinutes=30`);
+      const schedulesResponse = await fetch(`/api/schedules/public/${id}?leadMinutes=30`);
       const schedulesData = await schedulesResponse.json();
       const formatted = schedulesData
         .map((s: { id: string; userId: string; date: string; timeSlots: TimeSlot[]; createdAt: string; updatedAt: string }) => ({ ...s, date: new Date(s.date), createdAt: new Date(s.createdAt), updatedAt: new Date(s.updatedAt) }))

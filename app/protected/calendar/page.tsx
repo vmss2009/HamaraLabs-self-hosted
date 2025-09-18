@@ -17,7 +17,7 @@ export default async function CalendarDashboardPage() {
 
   return (
     <div className="w-full">
-      <Navigation email={user.email} userId={session.user.id!} />
+      <Navigation id={user.id} />
       <div className="w-full py-6 px-6">
         <Calendar userId={session.user.id!} />
       </div>

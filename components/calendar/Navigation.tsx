@@ -4,25 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface NavigationProps { email?: string; }
+interface NavigationProps { id?: string; }
 
-export default function Navigation({ email }: NavigationProps) {
+export default function Navigation({ id }: NavigationProps) {
   const pathname = usePathname();
   const [isPublic, setIsPublic] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     async function load() {
-      if (!email) return;
+      if (!id) return;
       try {
-        const res = await fetch(`/api/users/${email}`);
+        const res = await fetch(`/api/users/${id}`);
         if (!res.ok) return;
         const data = await res.json();
         if (typeof data.isPublic === "boolean") setIsPublic(data.isPublic); else setIsPublic(true);
       } catch { /* ignore */ }
     }
     load();
-  }, [email]);
+  }, [id]);
 
   async function toggleVisibility() {
     if (isPublic == null) return;
@@ -49,14 +49,14 @@ export default function Navigation({ email }: NavigationProps) {
             <Link href="/protected/calendar" className="text-xl font-bold" style={{ color: "var(--foreground)" }}>Calendar</Link>
             <div className="hidden md:flex items-center gap-2">
               <Link href="/protected/calendar" className={navItemClass} style={navItemStyle(isActive("/protected/calendar"))}>Dashboard</Link>
-              {email && (
-                <Link href={`/calendar/${email}`} className={navItemClass} style={navItemStyle(isActive(`/calendar/${email}`))}>Public link</Link>
+              {id && (
+                <Link href={`/calendar/${id}`} className={navItemClass} style={navItemStyle(isActive(`/calendar/${id}`))}>Public link</Link>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {email ? (
+            {id ? (
               <>
                 {isPublic !== null && (
                   <div className="inline-flex items-center gap-2">

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import prisma from "@/lib/db/prisma";
 
 const IST_OFFSET_MIN = 330; // +05:30
 function startOfDayIST(date: Date): Date {
@@ -12,10 +12,10 @@ function startOfDayIST(date: Date): Date {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await params;
+    const { id } = await params;
     const url = new URL(request.url);
     const leadMinutesParam = url.searchParams.get("leadMinutes");
     const leadMinutes = leadMinutesParam ? Math.max(0, parseInt(leadMinutesParam, 10) || 0) : 30;
@@ -23,39 +23,39 @@ export async function GET(
     const now = new Date();
     const todayStart = startOfDayIST(now);
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-  // Using any cast to align with existing generated client where schedule delegate exists
-  let schedules = await (prisma as any).schedule.findMany({
+    let schedules = await prisma.schedule.findMany({
       where: { userId: user.id },
       include: { timeSlots: { orderBy: { startTime: 'asc' } } },
       orderBy: { date: 'asc' },
     });
 
-    schedules = schedules.filter((sched: any) => {
+    schedules = schedules.filter((sched) => {
       const schedDate = new Date(sched.date);
       const schedDayStart = startOfDayIST(schedDate);
       return schedDayStart.getTime() >= todayStart.getTime();
     });
 
     const threshold = new Date(now.getTime() + leadMinutes * 60 * 1000);
-    schedules = schedules.map((sched: any) => {
+    schedules = schedules.map((sched) => {
       const schedDate = new Date(sched.date);
       const schedDayStart = startOfDayIST(schedDate);
       if (schedDayStart.getTime() !== todayStart.getTime()) return sched;
-      const availableTimeSlots = sched.timeSlots.filter((slot: any) => {
+      const availableTimeSlots = sched.timeSlots.filter((slot) => {
         const [h, m] = slot.startTime.split(":").map(Number);
         const slotStart = new Date(schedDayStart.getTime() + (h * 60 + m) * 60000);
         return slotStart.getTime() >= threshold.getTime() && slot.bookedSlots < slot.maxSlots;
       });
       return { ...sched, timeSlots: availableTimeSlots };
     });
+
     return NextResponse.json(schedules);
   } catch (error) {
-    console.error("Error fetching schedules by user id:", error);
+    console.error("Error fetching schedules:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
