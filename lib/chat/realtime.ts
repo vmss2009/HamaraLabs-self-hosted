@@ -21,4 +21,8 @@ export type ChatEvents = {
     roomId: string;
     messageId: string;
   };
+  room: {
+    roomId: string;
+    action: 'updated' | 'deleted';
+  };
 };

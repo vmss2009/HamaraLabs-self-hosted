@@ -7,9 +7,11 @@ type Props = {
   onManage: () => void;
   onBack?: () => void; // optional back button handler
   canManage?: boolean;
+  onRename?: () => void;
+  onDelete?: () => void;
 };
 
-export function ChatHeader({ roomName, membersCount, loading, onManage, onBack, canManage = true }: Props) {
+export function ChatHeader({ roomName, membersCount, loading, onManage, onBack, canManage = true, onRename, onDelete }: Props) {
   return (
     <header className="relative z-40 mt-4 h-10 flex items-center justify-between pl-14 pr-3 sm:pl-16 sm:pr-5 border-b border-slate-800/70 bg-slate-900/60 backdrop-blur-xl">
       <div className="flex items-center gap-2">
@@ -26,7 +28,7 @@ export function ChatHeader({ roomName, membersCount, loading, onManage, onBack, 
           </button>
         )}
         <div className="flex flex-col">
-        <h1 className="font-semibold text-sm leading-tight">{roomName}</h1>
+          <h1 className="font-semibold text-sm leading-tight">{roomName}</h1>
         </div>
       </div>
       <div className="flex items-center gap-2 text-[10px] text-slate-500">
@@ -37,6 +39,30 @@ export function ChatHeader({ roomName, membersCount, loading, onManage, onBack, 
         >
           Members • {membersCount}
         </button>
+        {canManage && (
+          <div className="flex items-center gap-1">
+            {onRename && (
+              <button
+                className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-[11px]"
+                onClick={onRename}
+                title="Rename chat"
+                aria-label="Rename chat"
+              >
+                Rename
+              </button>
+            )}
+            {onDelete && (
+              <button
+                className="px-2 py-1 rounded-md bg-rose-700/80 hover:bg-rose-600 text-[11px] text-white"
+                onClick={onDelete}
+                title="Delete chat"
+                aria-label="Delete chat"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );

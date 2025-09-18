@@ -144,6 +144,24 @@ export default function ChatRoomPage() {
           arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
           return arr;
         });
+        es.addEventListener('room', async (ev: MessageEvent) => {
+          try {
+            const payload = (() => { try { return JSON.parse(ev?.data || '{}'); } catch { return {}; } })();
+            if (payload?.action === 'deleted' && activeRoom) {
+              router.push('/protected/chats');
+              return;
+            }
+            if (payload?.action === 'updated' && activeRoom) {
+              const rinfo = await fetch(`/api/chat/room?roomId=${encodeURIComponent(activeRoom)}`);
+              if (rinfo.ok) {
+                const info = await rinfo.json();
+                setActiveRoomName(info?.room?.name || activeRoomName);
+                setRoomMembers(Array.isArray(info?.room?.members) ? info.room.members : roomMembers);
+                setRoomAdminId(info?.room?.adminId || roomAdminId);
+              }
+            }
+          } catch { /* ignore */ }
+        });
         setNextCursor(d.nextCursor || null);
         if (el) {
           setTimeout(() => {
@@ -643,14 +661,34 @@ const removeFileAt = (idx: number) => {
         )}
         {hasAccess === true && (
           <>
-              <ChatHeader
-                roomName={activeRoomName || String(activeRoom || '')}
-                membersCount={roomMembers.length}
-                loading={messagesLoading}
-                canManage={!!session?.user?.id && roomAdminId === (session?.user?.id as any)}
-                onManage={() => setManageOpen(true)}
-                onBack={() => router.push('/protected/chats')}
-              />
+            <ChatHeader
+              roomName={activeRoomName || String(activeRoom || '')}
+              membersCount={roomMembers.length}
+              loading={messagesLoading}
+              canManage={!!session?.user?.id && roomAdminId === (session?.user?.id as any)}
+              onManage={() => setManageOpen(true)}
+              onBack={() => router.push('/protected/chats')}
+              onRename={async () => {
+                try {
+                  const curr = activeRoomName || '';
+                  const name = window.prompt('Rename chat', curr);
+                  if (!name || name.trim() === curr.trim()) return;
+                  const r = await fetch('/api/chat/room', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId: activeRoom, name }) });
+                  const d = await r.json();
+                  if (!r.ok) throw new Error(d.error || 'Failed to rename');
+                  setActiveRoomName(d?.room?.name || name);
+                } catch (e: any) { setError(e.message || 'Rename failed'); }
+              }}
+              onDelete={async () => {
+                try {
+                  if (!window.confirm('Delete this chat? This cannot be undone.')) return;
+                  const r = await fetch(`/api/chat/room?roomId=${encodeURIComponent(activeRoom!)}`, { method: 'DELETE' });
+                  const d = await r.json().catch(() => ({}));
+                  if (!r.ok) throw new Error(d.error || 'Failed to delete');
+                  router.push('/protected/chats');
+                } catch (e: any) { setError(e.message || 'Delete failed'); }
+              }}
+            />
               <div ref={listRef} className="relative flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 space-y-3 md:space-y-4 custom-scroll" onClick={()=> setOpenMenuId(null)}>
               {olderLoading && (
                 <div className="absolute top-2 left-0 right-0 z-20 flex items-center justify-center pointer-events-none">

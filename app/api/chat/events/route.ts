@@ -15,19 +15,26 @@ export async function GET(req: Request) {
 
   const stream = new ReadableStream({
     start(controller) {
-      const listener = (payload: any) => {
+      const msgListener = (payload: any) => {
         if(payload.roomId === roomId) {
           controller.enqueue(new TextEncoder().encode(`event: message\ndata: ${JSON.stringify(payload)}\n\n`));
         }
       };
-      chatBus.on('message', listener);
+      const roomListener = (payload: any) => {
+        if(payload.roomId === roomId) {
+          controller.enqueue(new TextEncoder().encode(`event: room\ndata: ${JSON.stringify(payload)}\n\n`));
+        }
+      };
+      chatBus.on('message', msgListener);
+      chatBus.on('room', roomListener);
       controller.enqueue(new TextEncoder().encode(`event: open\ndata: {"status":"ok"}\n\n`));
       const heartbeat = setInterval(() => {
         controller.enqueue(new TextEncoder().encode(`event: ping\ndata: {}\n\n`));
       }, 30000);
       (req as any).signal?.addEventListener('abort', () => {
         clearInterval(heartbeat);
-        chatBus.off('message', listener);
+        chatBus.off('message', msgListener);
+        chatBus.off('room', roomListener);
       });
     }
   });

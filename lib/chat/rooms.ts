@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma";
+import { chatBus } from './realtime';
 
 export async function listRooms(userId: string) {
   return prisma.chatRoom.findMany({
@@ -65,12 +66,16 @@ export async function updateRoomMembers(roomId: string, addIds: string[], remove
 
 export async function updateRoomName(roomId: string, actingUserId: string, newName: string) {
   await requireAdmin(roomId, actingUserId);
-  return prisma.chatRoom.update({ where: { id: roomId }, data: { name: (newName || '').trim() || 'Untitled Room' } });
+  const updated = await prisma.chatRoom.update({ where: { id: roomId }, data: { name: (newName || '').trim() || 'Untitled Room' } });
+  chatBus.emit('room', { roomId, action: 'updated' });
+  return updated;
 }
 
 export async function deleteRoom(roomId: string, actingUserId: string) {
   await requireAdmin(roomId, actingUserId);
   await prisma.attachment.deleteMany({ where: { message: { chatRoomId: roomId } } });
   await prisma.message.deleteMany({ where: { chatRoomId: roomId } });
-  return prisma.chatRoom.delete({ where: { id: roomId } });
+  const res = await prisma.chatRoom.delete({ where: { id: roomId } });
+  chatBus.emit('room', { roomId, action: 'deleted' });
+  return res;
 }
