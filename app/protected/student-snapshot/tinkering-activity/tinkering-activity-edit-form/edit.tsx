@@ -4,7 +4,7 @@ import React from "react";
 import Modal from "@/components/form/Modal";
 import { Input } from "@/components/form/Input";
 import SelectField from "@/components/form/SelectField";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
 
 export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({

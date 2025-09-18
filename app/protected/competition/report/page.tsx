@@ -10,9 +10,9 @@ import {
   GridToolbarColumnsButton,
   GridRowParams,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import Alert from "@/components/form/Alert";
+import Alert from "@/components/ui/Alert";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import DetailViewer from "@/components/form/DetailViewer";
 import AssignDialog from "@/components/form/DialogBox";

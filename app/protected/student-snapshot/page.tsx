@@ -10,9 +10,9 @@ import {
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
 import Modal from "@/components/form/Modal";
-import { Button as UIButton } from "@/components/form/Button";
-import Alert from "@/components/form/Alert";
-import { Button } from "@/components/form/Button";
+import { Button as UIButton } from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 import DetailViewer from "@/components/form/DetailViewer";
 import SearchableSelect from "@/components/form/SearchableSelect";
 import { Input } from "@/components/form/Input";

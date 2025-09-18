@@ -14,7 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import SchoolDetailViewer from "@/components/form/SchoolDetailViewer";
-import Alert from "@/components/form/Alert";
+import Alert from "@/components/ui/Alert";
 import ReportShell from "@/components/form/ReportShell";
 
 interface UserRole {

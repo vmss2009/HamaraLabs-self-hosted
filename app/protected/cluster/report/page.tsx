@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/form/Card";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import { useRouter } from "next/navigation";
 import ReportShell from "@/components/form/ReportShell";
-import Alert from "@/components/form/Alert";
+import Alert from "@/components/ui/Alert";
 
 type ClusterSchool = { id: number; name: string };
 

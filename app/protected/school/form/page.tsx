@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import TextFieldGroup from "@/components/form/TextFieldGroup";
 import SearchableSelect from "@/components/form/SearchableSelect";

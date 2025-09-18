@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import { Input } from "@/components/form/Input";
 import SearchableSelect from "@/components/form/SearchableSelect";

@@ -1,5 +1,5 @@
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 
 import { DeleteIcon } from "@/components/form/Icons";
 

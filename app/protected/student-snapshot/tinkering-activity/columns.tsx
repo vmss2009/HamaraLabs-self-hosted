@@ -1,7 +1,7 @@
 import React from "react";
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { DeleteIcon, EditIcon } from "@/components/form/Icons";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 
 type SnapshotItem = Record<string, unknown>;
 

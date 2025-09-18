@@ -312,7 +312,7 @@ export function MenuBar({
               <button
                 title="Format"
                 aria-label="Format"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconBold className="h-4 w-4" />
               </button>
@@ -324,7 +324,7 @@ export function MenuBar({
                 sideOffset={6}
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-2 shadow-xl shadow-black/50 space-x-2 flex"
+                className="z-[1000] rounded-md popover-surface p-2 space-x-2 flex"
               >
                 <div className="flex gap-1">
                   <button
@@ -332,8 +332,8 @@ export function MenuBar({
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     disabled={!editorState.canBold}
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isBold && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isBold && "menu-icon-btn-active"
                     )}
                   >
                     <IconBold className="h-4 w-4" />
@@ -343,8 +343,8 @@ export function MenuBar({
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                     disabled={!editorState.canItalic}
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isItalic && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isItalic && "menu-icon-btn-active"
                     )}
                   >
                     <IconItalic className="h-4 w-4" />
@@ -354,8 +354,8 @@ export function MenuBar({
                     onClick={() => editor.chain().focus().toggleStrike().run()}
                     disabled={!editorState.canStrike}
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isStrike && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isStrike && "menu-icon-btn-active"
                     )}
                   >
                     <IconStrikethrough className="h-4 w-4" />
@@ -365,8 +365,8 @@ export function MenuBar({
                     onClick={() => editor.chain().focus().toggleCode().run()}
                     disabled={!editorState.canCode}
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isCode && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isCode && "menu-icon-btn-active"
                     )}
                   >
                     <IconCode className="h-4 w-4" />
@@ -381,7 +381,7 @@ export function MenuBar({
               <button
                 title="Blocks"
                 aria-label="Blocks"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconPilcrow className="h-4 w-4" />
               </button>
@@ -393,15 +393,15 @@ export function MenuBar({
                 sideOffset={6}
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-3 shadow-xl shadow-black/50 space-y-2"
+                className="z-[1000] rounded-md popover-surface p-3 space-y-2"
               >
                 <div className="flex gap-1">
                   <button
                     title="Paragraph"
                     onClick={() => editor.chain().focus().setParagraph().run()}
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isParagraph && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isParagraph && "menu-icon-btn-active"
                     )}
                   >
                     <IconPilcrow className="h-4 w-4" />
@@ -412,8 +412,8 @@ export function MenuBar({
                       editor.chain().focus().toggleBlockquote().run()
                     }
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isBlockquote && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isBlockquote && "menu-icon-btn-active"
                     )}
                   >
                     <IconQuote className="h-4 w-4" />
@@ -424,8 +424,8 @@ export function MenuBar({
                       editor.chain().focus().toggleCodeBlock().run()
                     }
                     className={clsx(
-                      "p-2 rounded border",
-                      editorState.isCodeBlock && "bg-indigo-600 text-white"
+                      "p-2 rounded menu-icon-btn",
+                      editorState.isCodeBlock && "menu-icon-btn-active"
                     )}
                   >
                     <IconBraces className="h-4 w-4" />
@@ -438,9 +438,9 @@ export function MenuBar({
                       title={`H${lvl}`}
                       onClick={() => applyHeading(lvl as any)}
                       className={clsx(
-                        "p-2 rounded border",
+                        "p-2 rounded menu-icon-btn",
                         editor.isActive("heading", { level: lvl }) &&
-                          "bg-indigo-600 text-white"
+                          "menu-icon-btn-active"
                       )}
                     >
                       <span className="text-[10px] font-semibold">H{lvl}</span>
@@ -453,14 +453,14 @@ export function MenuBar({
                     onClick={() =>
                       editor.chain().focus().setHorizontalRule().run()
                     }
-                    className="p-2 rounded border"
+                    className="p-2 rounded menu-icon-btn"
                   >
                     <IconHR className="h-4 w-4" />
                   </button>
                   <button
                     title="Hard break"
                     onClick={() => editor.chain().focus().setHardBreak().run()}
-                    className="p-2 rounded border"
+                    className="p-2 rounded menu-icon-btn"
                   >
                     <IconReturn className="h-4 w-4" />
                   </button>
@@ -474,7 +474,7 @@ export function MenuBar({
               <button
                 title="Lists"
                 aria-label="Lists"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconListBullet className="h-4 w-4" />
               </button>
@@ -486,7 +486,7 @@ export function MenuBar({
                 sideOffset={6}
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-2 shadow-xl shadow-black/50 flex gap-1"
+                className="z-[1000] rounded-md popover-surface p-2 flex gap-1"
               >
                 <button
                   title="Bulleted list"
@@ -494,8 +494,8 @@ export function MenuBar({
                     editor.chain().focus().toggleBulletList().run()
                   }
                   className={clsx(
-                    "p-2 rounded border",
-                    editorState.isBulletList && "bg-indigo-600 text-white"
+                    "p-2 rounded menu-icon-btn",
+                    editorState.isBulletList && "menu-icon-btn-active"
                   )}
                 >
                   <IconListBullet className="h-4 w-4" />
@@ -506,8 +506,8 @@ export function MenuBar({
                     editor.chain().focus().toggleOrderedList().run()
                   }
                   className={clsx(
-                    "p-2 rounded border",
-                    editorState.isOrderedList && "bg-indigo-600 text-white"
+                    "p-2 rounded menu-icon-btn",
+                    editorState.isOrderedList && "menu-icon-btn-active"
                   )}
                 >
                   <IconListOrdered className="h-4 w-4" />
@@ -521,7 +521,7 @@ export function MenuBar({
               <button
                 title="Align"
                 aria-label="Align"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconAlignCenter className="h-4 w-4" />
               </button>
@@ -533,7 +533,7 @@ export function MenuBar({
                 sideOffset={6}
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-2 shadow-xl shadow-black/50 flex gap-1"
+                className="z-[1000] rounded-md popover-surface p-2 flex gap-1"
               >
                 <button
                   title="Align left"
@@ -541,8 +541,8 @@ export function MenuBar({
                     editor.chain().focus().setTextAlign("left").run()
                   }
                   className={clsx(
-                    "p-2 rounded border",
-                    editorState.isAlignLeft && "bg-indigo-600 text-white"
+                    "p-2 rounded menu-icon-btn",
+                    editorState.isAlignLeft && "menu-icon-btn-active"
                   )}
                 >
                   <IconAlignLeft className="h-4 w-4" />
@@ -553,8 +553,8 @@ export function MenuBar({
                     editor.chain().focus().setTextAlign("center").run()
                   }
                   className={clsx(
-                    "p-2 rounded border",
-                    editorState.isAlignCenter && "bg-indigo-600 text-white"
+                    "p-2 rounded menu-icon-btn",
+                    editorState.isAlignCenter && "menu-icon-btn-active"
                   )}
                 >
                   <IconAlignCenter className="h-4 w-4" />
@@ -565,8 +565,8 @@ export function MenuBar({
                     editor.chain().focus().setTextAlign("right").run()
                   }
                   className={clsx(
-                    "p-2 rounded border",
-                    editorState.isAlignRight && "bg-indigo-600 text-white"
+                    "p-2 rounded menu-icon-btn",
+                    editorState.isAlignRight && "menu-icon-btn-active"
                   )}
                 >
                   <IconAlignRight className="h-4 w-4" />
@@ -577,8 +577,8 @@ export function MenuBar({
                     editor.chain().focus().setTextAlign("justify").run()
                   }
                   className={clsx(
-                    "p-2 rounded border",
-                    editorState.isAlignJustify && "bg-indigo-600 text-white"
+                    "p-2 rounded menu-icon-btn",
+                    editorState.isAlignJustify && "menu-icon-btn-active"
                   )}
                 >
                   <IconAlignJustify className="h-4 w-4" />
@@ -592,7 +592,7 @@ export function MenuBar({
               <button
                 title="Style"
                 aria-label="Style"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconPalette className="h-4 w-4" />
               </button>
@@ -605,11 +605,11 @@ export function MenuBar({
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-3 shadow-xl shadow-black/50 w-[26rem] sm:w-[30rem] max-w-[95vw] space-y-3"
+                className="z-[1000] rounded-md popover-surface p-3 w-[26rem] sm:w-[30rem] max-w-[95vw] space-y-3"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
-                  <div className="rounded-md border border-slate-700/70 p-2 bg-slate-800/40">
-                    <div className="text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+                  <div className="rounded-md popover-section p-2">
+                    <div className="text-[11px] uppercase tracking-wider opacity-70 mb-1">
                       Text
                     </div>
                     <div className="grid grid-cols-7 gap-2 mb-2">
@@ -631,7 +631,7 @@ export function MenuBar({
                             setTcColor(c);
                             setStyleOpen(false);
                           }}
-                          className="h-6 w-6 rounded border border-slate-600/60"
+                          className="h-6 w-6 rounded border"
                           style={{ backgroundColor: c }}
                         />
                       ))}
@@ -641,7 +641,7 @@ export function MenuBar({
                           editor.chain().focus().unsetColor().run();
                           setStyleOpen(false);
                         }}
-                        className="col-span-2 text-[11px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70"
+                        className="col-span-2 text-[11px] px-2 py-1 rounded menu-icon-btn hover:menu-icon-btn-active"
                       >
                         Clear
                       </button>
@@ -651,12 +651,12 @@ export function MenuBar({
                         type="color"
                         value={tcColor || "#000000"}
                         onChange={(e) => setTcColor(e.target.value)}
-                        className="h-6 w-10 rounded border border-slate-600/60 bg-slate-800/60"
+                        className="h-6 w-10 rounded border menu-icon-btn"
                       />
                       <input
                         value={tcColor}
                         onChange={(e) => setTcColor(e.target.value)}
-                        className="flex-1 rounded bg-slate-800/70 border border-slate-700/70 px-2 py-1 text-xs focus:outline-none focus:ring-0"
+                        className="flex-1 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-0 menu-icon-btn"
                       />
                     </div>
                     <div className="flex justify-end mt-2">
@@ -665,14 +665,14 @@ export function MenuBar({
                           editor.chain().focus().setColor(tcColor).run();
                           setStyleOpen(false);
                         }}
-                        className="text-[11px] px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500"
+                        className="text-[11px] px-3 py-1 rounded menu-icon-btn hover:menu-icon-btn-active"
                       >
                         Apply
                       </button>
                     </div>
                   </div>
-                  <div className="rounded-md border border-slate-700/70 p-2 bg-slate-800/40">
-                    <div className="text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+                  <div className="rounded-md popover-section p-2">
+                    <div className="text-[11px] uppercase tracking-wider opacity-70 mb-1">
                       Highlight
                     </div>
                     <div className="grid grid-cols-7 gap-2 mb-2">
@@ -698,7 +698,7 @@ export function MenuBar({
                             setHlColor(c);
                             setStyleOpen(false);
                           }}
-                          className="h-6 w-6 rounded border border-slate-600/60"
+                          className="h-6 w-6 rounded border"
                           style={{ backgroundColor: c }}
                         />
                       ))}
@@ -708,7 +708,7 @@ export function MenuBar({
                           editor.chain().focus().unsetHighlight().run();
                           setStyleOpen(false);
                         }}
-                        className="col-span-2 text-[11px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70"
+                        className="col-span-2 text-[11px] px-2 py-1 rounded menu-icon-btn hover:menu-icon-btn-active"
                       >
                         Clear
                       </button>
@@ -718,12 +718,12 @@ export function MenuBar({
                         type="color"
                         value={hlColor}
                         onChange={(e) => setHlColor(e.target.value)}
-                        className="h-6 w-10 rounded border border-slate-600/60 bg-slate-800/60"
+                        className="h-6 w-10 rounded border menu-icon-btn"
                       />
                       <input
                         value={hlColor}
                         onChange={(e) => setHlColor(e.target.value)}
-                        className="flex-1 rounded bg-slate-800/70 border border-slate-700/70 px-2 py-1 text-xs focus:outline-none focus:ring-0"
+                        className="flex-1 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-0 menu-icon-btn"
                       />
                     </div>
                     <div className="flex justify-end mt-2">
@@ -736,7 +736,7 @@ export function MenuBar({
                             .run();
                           setStyleOpen(false);
                         }}
-                        className="text-[11px] px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500"
+                        className="text-[11px] px-3 py-1 rounded menu-icon-btn hover:menu-icon-btn-active"
                       >
                         Apply
                       </button>
@@ -752,7 +752,7 @@ export function MenuBar({
               <button
                 title="Table"
                 aria-label="Table"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconTable className="h-4 w-4" />
               </button>
@@ -764,11 +764,11 @@ export function MenuBar({
                 sideOffset={6}
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-3 shadow-xl shadow-black/50 w-[18rem] space-y-2"
+                className="z-[1000] rounded-md popover-surface p-3 w-[18rem] space-y-2"
               >
                 <div className="flex gap-2">
                   <button
-                    className="px-2 py-1 text-xs rounded border"
+                    className="px-2 py-1 text-xs rounded menu-icon-btn"
                     onClick={() =>
                       editor
                         .chain()
@@ -780,7 +780,7 @@ export function MenuBar({
                     Insert 3x3
                   </button>
                   <button
-                    className="px-2 py-1 text-xs rounded border"
+                    className="px-2 py-1 text-xs rounded menu-icon-btn"
                     onClick={() => editor.chain().focus().deleteTable().run()}
                   >
                     Delete table
@@ -788,7 +788,7 @@ export function MenuBar({
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() =>
                       editor.chain().focus().addColumnBefore().run()
                     }
@@ -796,7 +796,7 @@ export function MenuBar({
                     Add column before
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() =>
                       editor.chain().focus().addColumnAfter().run()
                     }
@@ -804,31 +804,31 @@ export function MenuBar({
                     Add column after
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() => editor.chain().focus().deleteColumn().run()}
                   >
                     Delete column
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() => editor.chain().focus().addRowBefore().run()}
                   >
                     Add row before
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() => editor.chain().focus().addRowAfter().run()}
                   >
                     Add row after
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() => editor.chain().focus().deleteRow().run()}
                   >
                     Delete row
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() =>
                       editor.chain().focus().toggleHeaderRow().run()
                     }
@@ -836,7 +836,7 @@ export function MenuBar({
                     Toggle header row
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() =>
                       editor.chain().focus().toggleHeaderColumn().run()
                     }
@@ -844,7 +844,7 @@ export function MenuBar({
                     Toggle header column
                   </button>
                   <button
-                    className="px-2 py-1 rounded border"
+                    className="px-2 py-1 rounded menu-icon-btn"
                     onClick={() =>
                       editor.chain().focus().toggleHeaderCell().run()
                     }
@@ -861,7 +861,7 @@ export function MenuBar({
               <button
                 title="History"
                 aria-label="History"
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
               >
                 <IconUndo className="h-4 w-4" />
               </button>
@@ -873,13 +873,13 @@ export function MenuBar({
                 sideOffset={6}
                 collisionPadding={8}
                 onOpenAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-2 shadow-xl shadow-black/50 flex gap-1"
+                className="z-[1000] rounded-md popover-surface p-2 flex gap-1"
               >
                 <button
                   title="Undo"
                   onClick={() => editor.chain().focus().undo().run()}
                   disabled={!editorState.canUndo}
-                  className="p-2 rounded border disabled:opacity-50"
+                  className="p-2 rounded menu-icon-btn disabled:opacity-50"
                 >
                   <IconUndo className="h-4 w-4" />
                 </button>
@@ -887,7 +887,7 @@ export function MenuBar({
                   title="Redo"
                   onClick={() => editor.chain().focus().redo().run()}
                   disabled={!editorState.canRedo}
-                  className="p-2 rounded border disabled:opacity-50"
+                  className="p-2 rounded menu-icon-btn disabled:opacity-50"
                 >
                   <IconRedo className="h-4 w-4" />
                 </button>
@@ -903,7 +903,7 @@ export function MenuBar({
                   e.preventDefault();
                   setMathOpen((o) => !o);
                 }}
-                className="p-2 rounded border"
+                className="p-2 rounded menu-icon-btn"
                 title="Math"
                 aria-label="Math"
               >
@@ -918,7 +918,7 @@ export function MenuBar({
                 collisionPadding={{ left: 12, right: 12 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="z-[1000] rounded-md border border-slate-700/70 bg-slate-900/95 p-3 shadow-xl shadow-black/50 w-72 max-w-[90vw] max-h-[70vh] overflow-auto space-y-2"
+                className="z-[1000] rounded-md popover-surface p-3 w-72 max-w-[90vw] max-h-[70vh] overflow-auto space-y-2"
               >
                 <div className="text-[11px] uppercase tracking-wider text-slate-400">
                   Insert LaTeX
@@ -939,7 +939,7 @@ export function MenuBar({
                     }
                   }}
                   placeholder="e.g. x^2 + y^2 = z^2"
-                  className="w-full rounded bg-slate-800/70 border border-slate-700/70 px-2 py-1 text-sm focus:outline-none focus:ring-0"
+                  className="w-full rounded px-2 py-1 text-sm focus:outline-none focus:ring-0 menu-icon-btn"
                 />
                 <div className="text-[10px] text-slate-500">
                   Cmd/Ctrl+Enter inserts inline, Shift+Enter inserts block
@@ -949,10 +949,8 @@ export function MenuBar({
                     type="button"
                     onClick={() => setPreviewMode("inline")}
                     className={clsx(
-                      "text-[11px] px-2 py-1 rounded border",
-                      previewMode === "inline"
-                        ? "bg-slate-700 text-white border-slate-600"
-                        : "bg-slate-800/60 border-slate-700/70"
+                      "text-[11px] px-2 py-1 rounded menu-icon-btn",
+                      previewMode === "inline" && "menu-icon-btn-active"
                     )}
                   >
                     Preview: Inline
@@ -961,16 +959,14 @@ export function MenuBar({
                     type="button"
                     onClick={() => setPreviewMode("block")}
                     className={clsx(
-                      "text-[11px] px-2 py-1 rounded border",
-                      previewMode === "block"
-                        ? "bg-slate-700 text-white border-slate-600"
-                        : "bg-slate-800/60 border-slate-700/70"
+                      "text-[11px] px-2 py-1 rounded menu-icon-btn",
+                      previewMode === "block" && "menu-icon-btn-active"
                     )}
                   >
                     Preview: Block
                   </button>
                 </div>
-                <div className="rounded-md bg-slate-800/50 border border-slate-700/70 p-2 min-h-10 overflow-x-auto">
+                <div className="rounded-md popover-section p-2 min-h-10 overflow-x-auto">
                   <div
                     className="text-sm katex-preview"
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
@@ -982,7 +978,7 @@ export function MenuBar({
                       insertLatex(latex.trim(), "inline");
                       setMathOpen(false);
                     }}
-                    className="flex-1 text-xs px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500"
+                    className="flex-1 text-xs px-2 py-1 rounded menu-icon-btn hover:menu-icon-btn-active"
                   >
                     Insert Inline
                   </button>
@@ -991,7 +987,7 @@ export function MenuBar({
                       insertLatex(latex.trim(), "block");
                       setMathOpen(false);
                     }}
-                    className="flex-1 text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600"
+                    className="flex-1 text-xs px-2 py-1 rounded menu-icon-btn hover:menu-icon-btn-active"
                   >
                     Insert Block
                   </button>
@@ -1006,7 +1002,7 @@ export function MenuBar({
               title="Attach files"
               aria-label="Attach files"
               onClick={onAttach}
-              className="p-2 rounded border disabled:opacity-50"
+              className="p-2 rounded menu-icon-btn disabled:opacity-50"
               disabled={!!isUploading}
             >
               <IconPaperclip className="h-4 w-4" />
@@ -1016,7 +1012,7 @@ export function MenuBar({
               title={isRecording ? "Stop recording" : "Record audio"}
               aria-label={isRecording ? "Stop recording" : "Record audio"}
               onClick={onToggleRecording}
-              className="p-2 rounded border disabled:opacity-50"
+              className="p-2 rounded menu-icon-btn disabled:opacity-50"
               disabled={!!isUploading}
             >
               {isRecording ? (

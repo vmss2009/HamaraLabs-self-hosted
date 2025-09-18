@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "@/components/form/Modal";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/form/Checkbox";
 import SearchableSelect from "@/components/form/SearchableSelect";
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import SelectField from "@/components/form/SelectField";
 import SearchableSelect from "@/components/form/SearchableSelect";

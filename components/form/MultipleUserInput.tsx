@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import { FiPlus, FiX } from "react-icons/fi";
 
 interface UserData {

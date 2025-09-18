@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import React, { ChangeEvent } from "react";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import { useRouter } from "next/navigation";
 import MultiForm from "@/components/form/Multiform";

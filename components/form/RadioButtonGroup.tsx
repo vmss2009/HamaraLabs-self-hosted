@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/form/Button";
+import { Button } from "@/components/ui/Button";
 
 interface RadioOption {
   value: string;

@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import ReportShell from "@/components/form/ReportShell";
 import DetailViewer from "@/components/form/DetailViewer";
-import Alert from "@/components/form/Alert";
+import Alert from "@/components/ui/Alert";
 import { Student } from "@/lib/db/student/type";
 
 export default function StudentReport() {

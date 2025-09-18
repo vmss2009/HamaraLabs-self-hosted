@@ -12,7 +12,7 @@ import {
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
-import Alert from "@/components/form/Alert";
+import Alert from "@/components/ui/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
 import DetailViewer from "@/components/form/DetailViewer";
 import ReportShell from "@/components/form/ReportShell";
