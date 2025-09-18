@@ -607,15 +607,15 @@ const removeFileAt = (idx: number) => {
         )}
         {hasAccess === true && (
           <>
-            <ChatHeader
-              roomName={activeRoomName || String(activeRoom || '')}
-              membersCount={roomMembers.length}
-              loading={messagesLoading}
-              canManage={!!session?.user?.id && roomAdminId === (session?.user?.id as any)}
-              onManage={() => setManageOpen(true)}
-              onBack={() => router.push('/protected/chats')}
-            />
-            <div ref={listRef} className="relative flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 space-y-3 md:space-y-4 custom-scroll" onClick={()=> setOpenMenuId(null)}>
+              <ChatHeader
+                roomName={activeRoomName || String(activeRoom || '')}
+                membersCount={roomMembers.length}
+                loading={messagesLoading}
+                canManage={!!session?.user?.id && roomAdminId === (session?.user?.id as any)}
+                onManage={() => setManageOpen(true)}
+                onBack={() => router.push('/protected/chats')}
+              />
+              <div ref={listRef} className="relative flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 space-y-3 md:space-y-4 custom-scroll" onClick={()=> setOpenMenuId(null)}>
               {olderLoading && (
                 <div className="absolute top-2 left-0 right-0 z-20 flex items-center justify-center pointer-events-none">
                   <div className="flex items-center gap-2 px-2 py-1 rounded bg-slate-800/90 border border-slate-700/70 text-[11px]">
@@ -628,7 +628,9 @@ const removeFileAt = (idx: number) => {
                 let lastDateKey: string | null = null;
                 return messages.map((m, idx) => {
                   const mine = m.sender?.id ? (m.sender.id === meId) : (m.sender?.email && m.sender.email === session?.user?.email);
-                  const showActions = mine && withinWindow(m.createdAt);
+                  const isAdmin = !!session?.user?.id && roomAdminId === (session?.user?.id as any);
+                  const showEdit = mine && withinWindow(m.createdAt);
+                  const showDelete = (mine && withinWindow(m.createdAt)) || isAdmin;
                   const menuOpen = openMenuId === m.id;
                   const thisKey = getDateKey(m.createdAt);
                   const showDivider = thisKey !== lastDateKey;
@@ -679,6 +681,45 @@ const removeFileAt = (idx: number) => {
                         <span className={clsx('text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition', mine ? 'text-indigo-100/80' : 'text-slate-400/80')}>
                           {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
+                        {(showEdit || showDelete) && (
+                          <div className="relative">
+                            <button
+                              className={clsx('px-1.5 py-0.5 rounded text-[10px] border transition', mine ? 'bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white' : 'bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100')}
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(menuOpen ? null : m.id); }}
+                              aria-haspopup="menu"
+                              aria-expanded={menuOpen}
+                              title="Message actions"
+                            >
+                              •••
+                            </button>
+                            {menuOpen && (
+                              <div className="absolute right-0 mt-1 min-w-[120px] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50">
+                                <ul className="py-1 text-[12px]">
+                                  {showEdit && (
+                                    <li>
+                                      <button
+                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
+                                        onClick={(e)=> { e.stopPropagation(); setOpenMenuId(null); startEdit(m); }}
+                                      >
+                                        Edit
+                                      </button>
+                                    </li>
+                                  )}
+                                  {showDelete && (
+                                    <li>
+                                      <button
+                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
+                                        onClick={async (e)=> { e.stopPropagation(); setOpenMenuId(null); await removeMessage(m.id); }}
+                                      >
+                                        Delete
+                                      </button>
+                                    </li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                       </div>
@@ -901,6 +942,8 @@ const removeFileAt = (idx: number) => {
         addQuery={addQuery}
         setAddQuery={setAddQuery}
         currentUserId={session?.user?.id as any}
+        canManage={!!session?.user?.id && roomAdminId === (session?.user?.id as any)}
+        adminId={roomAdminId}
         onAdd={async (userId: string) => {
           try {
             const r = await fetch('/api/chat/room', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId: activeRoom, addIds: [userId], removeIds: [] })});

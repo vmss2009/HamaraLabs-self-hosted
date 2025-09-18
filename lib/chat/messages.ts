@@ -48,9 +48,14 @@ export async function updateMessage(messageId: string, userId: string, content: 
 export async function deleteMessage(messageId: string, userId: string) {
   const msg = await prisma.message.findUnique({ where: { id: messageId }, include: { attachments: true } as any });
   if (!msg) throw new Error('Message not found');
-  if (msg.senderId !== userId) throw new Error('Not authorized');
-  const windowMs = 10 * 60 * 1000;
-  if (Date.now() - new Date(msg.createdAt).getTime() > windowMs) throw new Error('Delete window expired');
+  // Load room to check admin
+  const room = await prisma.chatRoom.findUnique({ where: { id: msg.chatRoomId }, select: { adminId: true } });
+  const isAdmin = room?.adminId === userId;
+  if (!isAdmin) {
+    if (msg.senderId !== userId) throw new Error('Not authorized');
+    const windowMs = 10 * 60 * 1000;
+    if (Date.now() - new Date(msg.createdAt).getTime() > windowMs) throw new Error('Delete window expired');
+  }
   if ((msg as any).attachments?.length) {
     const ids = (msg as any).attachments.map((a: any) => a.id);
     await prisma.attachment.deleteMany({ where: { id: { in: ids } } });

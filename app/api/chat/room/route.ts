@@ -31,9 +31,11 @@ export async function PATCH(req: Request) {
   const isMember = !!session?.user?.id && current.members.some(m => m.id === session.user!.id);
   if (!isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
-    const updated = await updateRoomMembers(roomId, addIds, removeIds);
+    const updated = await updateRoomMembers(roomId, addIds, removeIds, session.user.id);
     return NextResponse.json({ room: updated });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Failed to update members' }, { status: 400 });
+    const message = e.message || 'Failed to update members';
+    const status = message.includes('Forbidden') ? 403 : (message.includes('not found') ? 404 : 400);
+    return NextResponse.json({ error: message }, { status });
   }
 }

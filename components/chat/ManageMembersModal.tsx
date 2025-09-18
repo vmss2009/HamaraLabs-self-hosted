@@ -12,6 +12,8 @@ export function ManageMembersModal({
   onAdd,
   onRemove,
   currentUserId,
+  canManage,
+  adminId,
 }: {
   open: boolean;
   onClose: () => void;
@@ -22,6 +24,8 @@ export function ManageMembersModal({
   onAdd: (userId: string) => void;
   onRemove: (userId: string) => void;
   currentUserId?: string | null;
+  canManage?: boolean;
+  adminId?: string | null;
 }) {
   if (!open) return null;
   return (
@@ -34,12 +38,21 @@ export function ManageMembersModal({
           <div className="space-y-1.5 max-h-44 overflow-y-auto custom-scroll pr-1">
             {roomMembers.map(m => (
               <div key={m.id} className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs border border-slate-700/70 bg-slate-800/50">
-                <span className="truncate mr-2">{m.email || m.id}</span>
-                <button className="px-2 py-1 rounded bg-rose-700/80 hover:bg-rose-600 text-white"
-                  onClick={() => onRemove(m.id)}
-                >
-                  Remove
-                </button>
+                <span className="truncate mr-2 flex items-center gap-2">
+                  {m.email || m.id}
+                  {adminId && m.id === adminId && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-600/80 text-[10px] uppercase tracking-wide">Admin</span>
+                  )}
+                </span>
+                {canManage && (!adminId || m.id !== adminId) ? (
+                  <button className="px-2 py-1 rounded bg-rose-700/80 hover:bg-rose-600 text-white"
+                    onClick={() => onRemove(m.id)}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <span className="text-slate-500 text-[10px]">{m.id === adminId ? 'Owner' : ''}</span>
+                )}
               </div>
             ))}
             {!roomMembers.length && <div className="text-[11px] text-slate-500">No members</div>}
@@ -62,11 +75,15 @@ export function ManageMembersModal({
               .map(u => (
                 <div key={u.id} className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs border border-slate-700/70 bg-slate-800/50">
                   <span className="truncate mr-2">{u.email || u.id}</span>
-                  <button className="px-2 py-1 rounded bg-emerald-700/80 hover:bg-emerald-600 text-white"
-                    onClick={() => onAdd(u.id)}
-                  >
-                    Add
-                  </button>
+                  {canManage ? (
+                    <button className="px-2 py-1 rounded bg-emerald-700/80 hover:bg-emerald-600 text-white"
+                      onClick={() => onAdd(u.id)}
+                    >
+                      Add
+                    </button>
+                  ) : (
+                    <span className="text-slate-500 text-[10px]">No permission</span>
+                  )}
                 </div>
               ))}
             {!users.length && <div className="text-[11px] text-slate-500">Loading users...</div>}

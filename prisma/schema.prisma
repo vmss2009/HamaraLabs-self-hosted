@@ -22,7 +22,7 @@ model User {
   // Chat relations
   chatRooms      ChatRoom[]    @relation("ChatRoomMembers")
   messages       Message[]
-  ChatRoom       ChatRoom[]
+  adminOf       ChatRoom[]  @relation("ChatRoomAdmin")
 }
 
 model Country {
@@ -282,7 +282,7 @@ model ChatRoom {
   updatedAt     DateTime  @updatedAt
   lastMessageAt DateTime? @default(now())
   adminId       String?
-  admin         User?     @relation(fields: [adminId], references: [id])
+  admin         User?     @relation("ChatRoomAdmin", fields: [adminId], references: [id])
   members       User[]    @relation("ChatRoomMembers")
   messages      Message[]
 }

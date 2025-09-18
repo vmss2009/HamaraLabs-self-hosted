@@ -38,13 +38,19 @@ export async function requireAdmin(roomId: string, userId: string) {
   if (room.adminId && room.adminId !== userId) throw new Error('Forbidden');
 }
 
-export async function updateRoomMembers(roomId: string, addIds: string[], removeIds: string[], actingUserId?: string) {
-  if (actingUserId) await requireAdmin(roomId, actingUserId);
+export async function updateRoomMembers(roomId: string, addIds: string[], removeIds: string[], actingUserId: string) {
+  // Only room admin can manage members
+  await requireAdmin(roomId, actingUserId);
   const adds = Array.from(new Set((addIds || []).filter(Boolean)));
   const rems = Array.from(new Set((removeIds || []).filter(Boolean)));
+  // Prevent removing the admin from the room
+  const room = await prisma.chatRoom.findUnique({ where: { id: roomId }, select: { adminId: true } });
+  if (!room) throw new Error('Room not found');
+  const filteredRems = rems.filter(id => id !== room.adminId);
+
   const existingAdds = await prisma.user.findMany({ where: { id: { in: adds } }, select: { id: true } });
-  const existingRems = await prisma.user.findMany({ where: { id: { in: rems } }, select: { id: true } });
-  const room = await prisma.chatRoom.update({
+  const existingRems = await prisma.user.findMany({ where: { id: { in: filteredRems } }, select: { id: true } });
+  const updated = await prisma.chatRoom.update({
     where: { id: roomId },
     data: {
       members: {
@@ -54,7 +60,7 @@ export async function updateRoomMembers(roomId: string, addIds: string[], remove
     },
     include: { members: true },
   });
-  return room;
+  return updated;
 }
 
 export async function updateRoomName(roomId: string, actingUserId: string, newName: string) {
