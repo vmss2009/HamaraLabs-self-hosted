@@ -707,13 +707,15 @@ const removeFileAt = (idx: number) => {
                       <div className={clsx('flex w-full overflow-visible', mine ? 'justify-end' : 'justify-start')}>
                     <div
                       className={clsx(
-                        'group relative max-w-[82%] md:max-w-[68%] rounded-2xl px-4 py-2 text-sm shadow/20 shadow-black/40 flex flex-col gap-2 ring-1 ring-transparent transition-all z-0',
+                        'group relative max-w-[82%] md:max-w-[68%] rounded-2xl px-4 py-2 text-sm flex flex-col gap-2 transition-all z-0 border',
                         menuOpen ? 'z-50' : 'z-0',
-                        mine ? 'bg-gradient-to-br from-indigo-600/90 to-indigo-500/80 text-white backdrop-blur ring-indigo-400/0 group-hover:ring-indigo-300/40' : 'bg-slate-800/70 backdrop-blur ring-slate-700/80 group-hover:ring-slate-500/50'
+                        mine
+                          ? 'outgoing-bubble'
+                          : 'incoming-bubble'
                       )}
                       title={new Date(m.createdAt).toLocaleString()}
                     >
-                      <div className={clsx('text-[11px] font-semibold leading-none', mine ? 'text-indigo-100/90' : 'text-emerald-300')}>
+                      <div className={clsx('text-[11px] font-semibold leading-none opacity-70')}>  
                         {(m as any)?.sender?.first_name?.trim?.() || (m as any)?.sender?.email || 'Unknown'}
                       </div>
                       {m.attachments?.length ? (
@@ -738,8 +740,8 @@ const removeFileAt = (idx: number) => {
                       {m.content && <MessageBody html={m.content} />}
                       <div
                         className={clsx(
-                          "flex gap-1 items-center mt-0.5 leading-none",
-                          mine ? "justify-end" : "justify-start"
+                          'flex gap-1 items-center mt-0.5 leading-none',
+                          mine ? 'justify-end' : 'justify-start'
                         )}
                       >
                         {m.pending && (
@@ -749,8 +751,7 @@ const removeFileAt = (idx: number) => {
                         {mine ? (
                           <div
                             className={clsx(
-                              "flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition",
-                              mine ? "text-indigo-100/80" : "text-slate-400/80"
+                              'flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition opacity-70'
                             )}
                           >
                             <span>
@@ -764,10 +765,10 @@ const removeFileAt = (idx: number) => {
                               <div className="relative">
                                 <button
                                   className={clsx(
-                                    "px-1 py-0.5 rounded text-[10px] border transition",
+                                    'px-1 py-0.5 rounded text-[10px] border transition',
                                     mine
-                                      ? "bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white"
-                                      : "bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100"
+                                      ? 'action-badge'
+                                      : 'action-badge'
                                   )}
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -824,18 +825,14 @@ const removeFileAt = (idx: number) => {
                         ) : (
                           <div
                             className={clsx(
-                              "flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition",
-                              mine ? "text-indigo-100/80" : "text-slate-400/80"
+                              'flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition opacity-70'
                             )}
                           >
                             {(showEdit || showDelete) && (
                               <div className="relative">
                                 <button
                                   className={clsx(
-                                    "px-1 py-0.5 rounded text-[10px] border transition",
-                                    mine
-                                      ? "bg-indigo-500/60 hover:bg-indigo-500/80 border-indigo-400/40 text-white"
-                                      : "bg-slate-700/60 hover:bg-slate-700/80 border-slate-600/60 text-slate-100"
+                                    'px-1 py-0.5 rounded text-[10px] border transition action-badge'
                                   )}
                                   onClick={(e) => {
                                     e.stopPropagation();

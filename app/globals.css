@@ -27,6 +27,32 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Chat bubble token-based surfaces (calendar aligned) */
+.incoming-bubble {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 18%, transparent);
+  color: #000; /* enforce black body text */
+}
+.outgoing-bubble {
+  background: color-mix(in srgb, var(--foreground) 16%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 28%, transparent);
+  color: #000; /* enforce black body text */
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 25%, transparent);
+}
+.incoming-bubble:hover,
+.outgoing-bubble:hover {
+  border-color: color-mix(in srgb, var(--foreground) 35%, transparent);
+}
+
+.action-badge {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 25%, transparent);
+  color: #000;
+}
+.action-badge:hover {
+  background: color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
 /* Global form control text color: enforce black typing across the app */
 input,
 textarea,

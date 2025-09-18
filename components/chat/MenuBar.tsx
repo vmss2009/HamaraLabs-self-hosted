@@ -1027,7 +1027,7 @@ export function MenuBar({
             </button>
             {typeof attachmentsCount === "number" &&
               typeof maxFiles === "number" && (
-                <span className="ml-1 text-[11px] text-slate-400">
+                <span className="ml-1 text-[11px] text-gray-900">
                   {attachmentsCount}/{maxFiles}
                 </span>
               )}

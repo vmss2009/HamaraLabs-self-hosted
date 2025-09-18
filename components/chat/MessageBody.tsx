@@ -44,6 +44,13 @@ export function MessageBody({ html }: { html?: string }) {
     });
   });
   if (!html) return null;
-  return <div ref={ref} className="prose prose-invert max-w-none text-sm break-words" dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <div
+      ref={ref}
+      className="prose max-w-none text-sm break-words message-body"
+      style={{ color: '#000' }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }
 
