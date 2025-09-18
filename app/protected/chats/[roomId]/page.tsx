@@ -144,24 +144,6 @@ export default function ChatRoomPage() {
           arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
           return arr;
         });
-        es.addEventListener('room', async (ev: MessageEvent) => {
-          try {
-            const payload = (() => { try { return JSON.parse(ev?.data || '{}'); } catch { return {}; } })();
-            if (payload?.action === 'deleted' && activeRoom) {
-              router.push('/protected/chats');
-              return;
-            }
-            if (payload?.action === 'updated' && activeRoom) {
-              const rinfo = await fetch(`/api/chat/room?roomId=${encodeURIComponent(activeRoom)}`);
-              if (rinfo.ok) {
-                const info = await rinfo.json();
-                setActiveRoomName(info?.room?.name || activeRoomName);
-                setRoomMembers(Array.isArray(info?.room?.members) ? info.room.members : roomMembers);
-                setRoomAdminId(info?.room?.adminId || roomAdminId);
-              }
-            }
-          } catch { /* ignore */ }
-        });
         setNextCursor(d.nextCursor || null);
         if (el) {
           setTimeout(() => {
