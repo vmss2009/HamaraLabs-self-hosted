@@ -456,6 +456,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                     {
                       name: "pincode",
                       label: "Pincode",
+                      showLabel: false,
                       required: true,
                       placeholder: "Enter pincode",
                     },

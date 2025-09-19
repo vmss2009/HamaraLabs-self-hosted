@@ -601,6 +601,7 @@ export default function EditSchoolForm({
                       {
                         name: "pincode",
                         label: "Pincode",
+                        showLabel: false,
                         required: true,
                         placeholder: "Enter pincode",
                       },
