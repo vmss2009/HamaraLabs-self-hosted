@@ -157,6 +157,26 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
     
     console.log('All users processed successfully');
 
+    // Connect role-based relations on School to Users by email
+    const inchargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());
+    const principalEmails = data.principals.map(u => u.email.toLowerCase().trim());
+    const correspondentEmails = data.correspondents.map(u => u.email.toLowerCase().trim());
+
+    const [inchargeUsers, principalUsers, correspondentUsers] = await Promise.all([
+      prisma.user.findMany({ where: { email: { in: inchargeEmails } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: principalEmails } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: correspondentEmails } }, select: { id: true } }),
+    ]);
+
+    await prisma.school.update({
+      where: { id: school.id },
+      data: {
+        incharges: { set: inchargeUsers.map(u => ({ id: u.id })) },
+        principals: { set: principalUsers.map(u => ({ id: u.id })) },
+        correspondents: { set: correspondentUsers.map(u => ({ id: u.id })) },
+      } as any,
+    });
+
     return {
       ...school,
       id: school.id.toString(),
@@ -350,6 +370,26 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     ]);
 
     console.log('User associations updated successfully');
+
+    // Rebuild role-based relations on School to match latest emails
+    const inchargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());
+    const principalEmails = data.principals.map(u => u.email.toLowerCase().trim());
+    const correspondentEmails = data.correspondents.map(u => u.email.toLowerCase().trim());
+
+    const [inchargeUsers, principalUsers, correspondentUsers] = await Promise.all([
+      prisma.user.findMany({ where: { email: { in: inchargeEmails } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: principalEmails } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: correspondentEmails } }, select: { id: true } }),
+    ]);
+
+    await prisma.school.update({
+      where: { id: school.id },
+      data: {
+        incharges: { set: inchargeUsers.map(u => ({ id: u.id })) },
+        principals: { set: principalUsers.map(u => ({ id: u.id })) },
+        correspondents: { set: correspondentUsers.map(u => ({ id: u.id })) },
+      } as any,
+    });
 
     return {
       ...school,
