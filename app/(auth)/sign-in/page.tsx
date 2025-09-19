@@ -1,11 +1,11 @@
 "use client"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function SignIn() {
+function SignInInner() {
   const params = useSearchParams();
   const error = params.get("error");
-  console.log(error);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 sm:p-20">
@@ -23,5 +23,13 @@ export default function SignIn() {
         Sign in with Authentik
       </button>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <SignInInner />
+    </Suspense>
   );
 }

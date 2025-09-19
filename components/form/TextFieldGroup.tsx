@@ -9,6 +9,7 @@ type Field = {
   multiline?: boolean;
   rows?: number;
   placeholder?: string;
+  helperText?: string;
   disabled?: boolean;
   value?: string | number;
   onChange?: (
@@ -43,34 +44,50 @@ function TextFieldGroup({ fields }: TextFieldGroupProps) {
             )}
 
             {field.multiline ? (
-              <textarea
-                id={field.name}
-                name={field.name}
-                rows={field.rows || 4}
-                required={field.required}
-                disabled={field.disabled}
-                value={field.value}
-                onChange={field.onChange}
-                aria-label={!showLabel ? field.label : undefined}
-                className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                  field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
-              />
+              <>
+                <textarea
+                  id={field.name}
+                  name={field.name}
+                  rows={field.rows || 4}
+                  required={field.required}
+                  disabled={field.disabled}
+                  value={field.value}
+                  onChange={field.onChange}
+                  aria-label={!showLabel ? field.label : undefined}
+                  aria-describedby={field.helperText ? `${field.name}-helper` : undefined}
+                  className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                    field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
+                />
+                {field.helperText && (
+                  <p id={`${field.name}-helper`} className="mt-1 text-sm text-gray-500">
+                    {field.helperText}
+                  </p>
+                )}
+              </>
             ) : (
-              <input
-                id={field.name}
-                name={field.name}
-                type={field.type || "text"}
-                required={field.required}
-                placeholder={field.placeholder}
-                disabled={field.disabled}
-                value={field.value}
-                onChange={field.onChange}
-                aria-label={!showLabel ? field.label : undefined}
-                className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none ${
-                  field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
-              />
+              <>
+                <input
+                  id={field.name}
+                  name={field.name}
+                  type={field.type || "text"}
+                  required={field.required}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                  value={field.value}
+                  onChange={field.onChange}
+                  aria-label={!showLabel ? field.label : undefined}
+                  aria-describedby={field.helperText ? `${field.name}-helper` : undefined}
+                  className={`p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none ${
+                    field.disabled ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
+                />
+                {field.helperText && (
+                  <p id={`${field.name}-helper`} className="mt-1 text-sm text-gray-500">
+                    {field.helperText}
+                  </p>
+                )}
+              </>
             )}
           </div>
         );

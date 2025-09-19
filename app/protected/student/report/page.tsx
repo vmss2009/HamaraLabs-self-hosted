@@ -15,15 +15,15 @@ import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import ReportShell from "@/components/form/ReportShell";
 import DetailViewer from "@/components/form/DetailViewer";
 import Alert from "@/components/ui/Alert";
-import { Student } from "@/lib/db/student/type";
+import { StudentWithSchool } from "@/lib/db/student/type";
 
 export default function StudentReport() {
   const router = useRouter();
-  const [students, setStudents] =useState<Student[]>([]);
+  const [students, setStudents] =useState<StudentWithSchool[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRow, setSelectedRow] = useState<Student | null>(null);
+  const [selectedRow, setSelectedRow] = useState<StudentWithSchool | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -70,7 +70,7 @@ export default function StudentReport() {
     }
   };
 
-  const handleRowClick = (params: GridRowParams<Student>) => {
+  const handleRowClick = (params: GridRowParams<StudentWithSchool>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -115,8 +115,8 @@ export default function StudentReport() {
       headerName: "School",
       width: 200,
       valueGetter: (params) => {
-        const anyParams = params as any;
-        return anyParams?.name ?? "N/A";
+        const p = params as any;
+        return p?.row?.school?.name ?? "N/A";
       },
     },
     { field: "class", headerName: "Class", width: 100 },
@@ -212,7 +212,7 @@ export default function StudentReport() {
             { label: "First Name", field: "first_name" },
             { label: "Last Name", field: "last_name" },
             { label: "Email", field: "email" },
-            { label: "User Account Status", field: "user_account_status", type: "custom" },
+            { label: "User Account Status", field: "user_account_status" },
             { label: "Gender", field: "gender" },
             { label: "School", field: "school.name" },
             { label: "Class", field: "class" },
