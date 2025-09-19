@@ -184,4 +184,40 @@ export const schoolSchema = z.object({
     message: "Duplicate emails found among correspondents",
     path: ["correspondents"],
   }
-);
+).superRefine((data, ctx) => {
+  // Cross-role uniqueness: the same email must not appear in more than one role list
+  const norm = (s: string) => s.toLowerCase().trim();
+  const inchargeSet = new Set(data.in_charges.map(u => norm(u.email)));
+  const principalSet = new Set(data.principals.map(u => norm(u.email)));
+  const correspondentSet = new Set(data.correspondents.map(u => norm(u.email)));
+
+  const duplicates = new Set<string>();
+
+  // incharge overlapping with principal/correspondent
+  for (const e of inchargeSet) {
+    if (principalSet.has(e) || correspondentSet.has(e)) duplicates.add(e);
+  }
+  // principal overlapping with correspondent
+  for (const e of principalSet) {
+    if (correspondentSet.has(e)) duplicates.add(e);
+  }
+
+  if (duplicates.size > 0) {
+    const dupList = Array.from(duplicates).join(", ");
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Emails cannot repeat across In-charges, Principals, and Correspondents: ${dupList}`,
+      path: ["in_charges"],
+    });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Emails cannot repeat across In-charges, Principals, and Correspondents: ${dupList}`,
+      path: ["principals"],
+    });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Emails cannot repeat across In-charges, Principals, and Correspondents: ${dupList}`,
+      path: ["correspondents"],
+    });
+  }
+});

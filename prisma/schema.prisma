@@ -83,7 +83,6 @@ model School {
   visits                 SchoolVisit[]
   students               Student[]
   hub_spokes             Hub[]         @relation("HubSpokes")
-  // Role-based user connections
   incharges              User[]        @relation("SchoolIncharges")
   principals             User[]        @relation("SchoolPrincipals")
   correspondents         User[]        @relation("SchoolCorrespondents")
