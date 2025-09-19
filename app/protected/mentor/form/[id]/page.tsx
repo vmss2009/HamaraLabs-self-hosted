@@ -171,9 +171,8 @@ export default function EditMentorPage({
               <div className="w-full">
                 <Input
                   name="phoneNumber"
-                  label="Phone Number"
+                  label="WhatsApp Number"
                   type="tel"
-                  required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="focus:border-blue-500 focus:ring-blue-500"

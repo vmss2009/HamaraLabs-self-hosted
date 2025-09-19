@@ -40,6 +40,7 @@ export default function MentorReport() {
   const [selectedRow, setSelectedRow] = useState<Mentor | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [schoolNameById, setSchoolNameById] = useState<Record<string, string>>({});
 
   const fetchMentors = async () => {
     try {
@@ -58,7 +59,27 @@ export default function MentorReport() {
   };
 
   useEffect(() => {
-    fetchMentors();
+    // Load schools and mentors in parallel; map school IDs to names
+    const load = async () => {
+      try {
+        const [schoolsRes] = await Promise.all([
+          fetch('/api/schools'),
+        ]);
+        if (!schoolsRes.ok) throw new Error('Failed to fetch schools');
+        const schools = await schoolsRes.json();
+        const map: Record<string, string> = {};
+        for (const s of schools as Array<{id: string; name: string}>) {
+          map[s.id] = s.name;
+        }
+        setSchoolNameById(map);
+      } catch (e) {
+        console.error(e);
+        // non-fatal: we'll still show IDs if names unavailable
+      } finally {
+        fetchMentors();
+      }
+    };
+    load();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -118,12 +139,13 @@ export default function MentorReport() {
       field: "school_ids",
       headerName: "Schools",
       width: 200,
-      renderCell: (params) => (
-        <div className="truncate">
-          {(params.value as string[] | undefined)
-            ?.join(", ") || "N/A"}
-        </div>
-      ),
+      renderCell: (params) => {
+        const ids = (params.value as string[] | undefined) ?? [];
+        const names = ids.map((id) => schoolNameById[id] || id).join(', ');
+        return (
+          <div className="truncate">{names || 'N/A'}</div>
+        );
+      },
     },
     {
       field: "phone_number",
@@ -211,6 +233,7 @@ export default function MentorReport() {
             ...selectedRow,
             index:
               mentors.findIndex((mentor) => mentor.id === selectedRow?.id) + 1,
+            school_ids: (selectedRow.school_ids || []).map((id) => schoolNameById[id] || id)
           } : null}
           formtype="Mentor"
           columns={[

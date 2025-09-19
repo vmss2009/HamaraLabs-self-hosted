@@ -191,7 +191,7 @@ export default function MultipleUserInput({
                   </div>
                   <input
                     type="tel"
-                    placeholder="WhatsApp Number (Optional)"
+                    placeholder="WhatsApp Number"
                     value={user.phone_number || ""}
                     onChange={(e) => updateUser(index, "phone_number", e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
