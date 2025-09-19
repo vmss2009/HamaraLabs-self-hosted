@@ -19,10 +19,10 @@ async function getUsersBySchoolBasic(school_id: string): Promise<Array<{ id: str
     });
 }
 
-async function getUsersBySchoolWithMeta(school_id: string): Promise<Array<{ id: string; email: string; schools: string[]; user_meta_data: Prisma.JsonValue | null }>> {
+async function getUsersBySchoolWithMeta(school_id: string): Promise<Array<{ id: string; email: string; first_name: string | null; last_name: string | null; schools: string[]; user_meta_data: Prisma.JsonValue | null }>> {
     return prisma.user.findMany({
         where: { schools: { has: school_id } },
-        select: { id: true, email: true, schools: true, user_meta_data: true },
+    select: { id: true, email: true, first_name: true, last_name: true, schools: true, user_meta_data: true },
     });
 }
 
@@ -44,30 +44,38 @@ async function addOrUpdateUserForSchoolRole(userData: UserInput, schoolId: strin
         else updatedForSchool = Array.from(new Set([existing, role]));
         rolesBySchool[schoolId] = updatedForSchool;
 
-        return updateUser(existingUser.id, {
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            schools: updatedSchools,
-            user_meta_data: {
-                ...currentMeta,
-                phone_number: userData.phone_number,
-                ...(userData.user_meta_data ?? {}),
-                rolesBySchool,
-            } as UserMeta,
-        });
+    // Only patch names when provided and non-empty after trim
+    const namePatch: Partial<{ first_name: string; last_name: string }> = {};
+    const fn = userData.first_name?.trim();
+    const ln = userData.last_name?.trim();
+    if (fn) namePatch.first_name = fn;
+    if (ln) namePatch.last_name = ln;
+
+    return updateUser(existingUser.id, {
+      ...namePatch,
+      schools: updatedSchools,
+      user_meta_data: {
+        ...currentMeta,
+        phone_number: userData.phone_number,
+        ...(userData.user_meta_data ?? {}),
+        rolesBySchool,
+      } as UserMeta,
+    });
     }
 
-    return createUser({
-        email: userData.email,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        schools: [schoolId],
-        user_meta_data: {
-            phone_number: userData.phone_number,
-            ...(userData.user_meta_data ?? {}),
-            rolesBySchool: { [schoolId]: [role] },
-        } as UserMeta,
-    });
+  const fn = userData.first_name?.trim() || undefined;
+  const ln = userData.last_name?.trim() || undefined;
+  return createUser({
+    email: userData.email,
+    first_name: fn,
+    last_name: ln,
+    schools: [schoolId],
+    user_meta_data: {
+      phone_number: userData.phone_number,
+      ...(userData.user_meta_data ?? {}),
+      rolesBySchool: { [schoolId]: [role] },
+    } as UserMeta,
+  });
 }
 
 async function cleanupOrphanedUser(userId: string) {

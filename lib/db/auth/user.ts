@@ -27,13 +27,15 @@ export async function createUser(data: {
     user_meta_data?: UserMeta;
     schools?: string[];
 }): Promise<User> {
-    const { id, email, first_name, last_name, user_meta_data, schools } = data;
+  const { id, email, user_meta_data, schools } = data;
+  const fn = typeof data.first_name === 'string' ? data.first_name.trim() : undefined;
+  const ln = typeof data.last_name === 'string' ? data.last_name.trim() : undefined;
     return prisma.user.create({
         data: {
             id: id ?? crypto.randomUUID(),
             email,
-            first_name,
-            last_name,
+      ...(fn ? { first_name: fn } : {}),
+      ...(ln ? { last_name: ln } : {}),
             user_meta_data,
             schools: schools ?? [],
         },
@@ -47,9 +49,18 @@ export async function updateUser(id: string, data: {
     user_meta_data?: UserMeta;
     schools?: string[];
 }): Promise<User> {
+  const patch: any = { ...data };
+  if (typeof data.first_name === 'string') {
+    const fn = data.first_name.trim();
+    if (fn) patch.first_name = fn; else delete patch.first_name;
+  }
+  if (typeof data.last_name === 'string') {
+    const ln = data.last_name.trim();
+    if (ln) patch.last_name = ln; else delete patch.last_name;
+  }
   return prisma.user.update({
     where: { id },
-    data,
+    data: patch,
   });
 }
 
