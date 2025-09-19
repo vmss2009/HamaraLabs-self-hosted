@@ -6,108 +6,101 @@ import {
   SchoolWithAddress,
   UserInput,
 } from "../type";
-import { v4 as uuidv4 } from "uuid";
 import type { Prisma } from "@prisma/client";
-
-async function cleanupOrphanedUser(userId: string) {
-  try {
-    // Check if user has any relationships that prevent deletion
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        students: true,
-        mentors: true,
-        school_visits: true,
-      },
-    });
-
-    if (!user) {
-      console.log(`User ${userId} not found, already deleted`);
-      return;
-    }
-
-    // Check if user has empty schools array and no other relationships
-    if (
-      user.schools.length === 0 && 
-      user.students.length === 0 && 
-      user.mentors.length === 0 && 
-      user.school_visits.length === 0
-    ) {
-      console.log(`Deleting orphaned user ${user.email} with no associations`);
-      await prisma.user.delete({
-        where: { id: userId },
-      });
-    } else {
-      console.log(`Keeping user ${user.email}: schools=${user.schools.length}, students=${user.students.length}, mentors=${user.mentors.length}, visits=${user.school_visits.length}`);
-    }
-  } catch (error) {
-    console.error(`Error cleaning up user ${userId}:`, error);
-  }
-}
+import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
 
 type SchoolRole = 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
+type UserMeta = Prisma.InputJsonValue;
 
-async function createOrUpdateUser(userData: UserInput, schoolId: string, role: SchoolRole) {
-  console.log(`Creating/updating user for email: ${userData.email}, school: ${schoolId}`);
-  
-  const existingUser = await prisma.user.findUnique({
-    where: { email: userData.email },
-  });
-
-  if (existingUser) {
-    console.log(`Found existing user: ${existingUser.id}, current schools: ${existingUser.schools}`);
-    // Add school to existing user's schools array if not already present
-    const updatedSchools = existingUser.schools.includes(schoolId) 
-      ? existingUser.schools 
-      : [...existingUser.schools, schoolId];
-    
-    console.log(`Updated schools array: ${updatedSchools}`);
-      
-    // Merge user_meta_data safely and append role under rolesBySchool
-    const currentMeta = (existingUser.user_meta_data ?? {}) as Record<string, any>;
-    const rolesBySchool: Record<string, string[] | string> = { ...(currentMeta.rolesBySchool ?? {}) };
-    const existing = rolesBySchool[schoolId];
-    let updatedForSchool: string[];
-    if (!existing) {
-      updatedForSchool = [role];
-    } else if (Array.isArray(existing)) {
-      updatedForSchool = Array.from(new Set([...existing, role]));
-    } else {
-      updatedForSchool = Array.from(new Set([existing, role]));
-    }
-    rolesBySchool[schoolId] = updatedForSchool;
-
-    return await prisma.user.update({
-      where: { id: existingUser.id },
-      data: {
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        schools: updatedSchools,
-        user_meta_data: {
-          ...currentMeta,
-          phone_number: userData.phone_number,
-          ...(userData.user_meta_data ?? {}),
-          rolesBySchool,
-        },
-      },
+async function getUsersBySchoolBasic(school_id: string): Promise<Array<{ id: string; email: string; schools: string[] }>> {
+    return prisma.user.findMany({
+        where: { schools: { has: school_id } },
+        select: { id: true, email: true, schools: true },
     });
-  } else {
-    console.log(`Creating new user for email: ${userData.email}`);
-    return await prisma.user.create({
-      data: {
-        id: uuidv4(),
+}
+
+async function getUsersBySchoolWithMeta(school_id: string): Promise<Array<{ id: string; email: string; schools: string[]; user_meta_data: Prisma.JsonValue | null }>> {
+    return prisma.user.findMany({
+        where: { schools: { has: school_id } },
+        select: { id: true, email: true, schools: true, user_meta_data: true },
+    });
+}
+
+async function addOrUpdateUserForSchoolRole(userData: UserInput, schoolId: string, role: SchoolRole) {
+    console.log(`addOrUpdateUserForSchoolRole: ${userData.email} -> ${schoolId} as ${role}`);
+    const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
+
+    if (existingUser) {
+        const updatedSchools = existingUser.schools.includes(schoolId)
+            ? existingUser.schools
+            : [...existingUser.schools, schoolId];
+
+        const currentMeta = (existingUser.user_meta_data ?? {}) as Record<string, any>;
+        const rolesBySchool: Record<string, string[] | string> = { ...(currentMeta.rolesBySchool ?? {}) };
+        const existing = rolesBySchool[schoolId];
+        let updatedForSchool: string[];
+        if (!existing) updatedForSchool = [role];
+        else if (Array.isArray(existing)) updatedForSchool = Array.from(new Set([...existing, role]));
+        else updatedForSchool = Array.from(new Set([existing, role]));
+        rolesBySchool[schoolId] = updatedForSchool;
+
+        return updateUser(existingUser.id, {
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            schools: updatedSchools,
+            user_meta_data: {
+                ...currentMeta,
+                phone_number: userData.phone_number,
+                ...(userData.user_meta_data ?? {}),
+                rolesBySchool,
+            } as UserMeta,
+        });
+    }
+
+    return createUser({
         email: userData.email,
         first_name: userData.first_name,
         last_name: userData.last_name,
         schools: [schoolId],
         user_meta_data: {
-          phone_number: userData.phone_number,
-          ...(userData.user_meta_data ?? {}),
-          rolesBySchool: { [schoolId]: [role] },
-        },
-      },
+            phone_number: userData.phone_number,
+            ...(userData.user_meta_data ?? {}),
+            rolesBySchool: { [schoolId]: [role] },
+        } as UserMeta,
     });
-  }
+}
+
+async function cleanupOrphanedUser(userId: string) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { students: true, mentors: true, school_visits: true },
+        });
+        if (!user) return;
+        if (
+            user.schools.length === 0 &&
+            user.students.length === 0 &&
+            user.mentors.length === 0 &&
+            user.school_visits.length === 0
+        ) {
+            await deleteUser(userId);
+        }
+    } catch (error) {
+        console.error(`Error cleaning up user ${userId}:`, error);
+    }
+}
+
+async function removeSchoolFromUserAndCleanup(userId: string, schoolId: string) {
+    const current = await prisma.user.findUnique({ where: { id: userId }, select: { schools: true, user_meta_data: true } });
+    if (!current) return [] as string[];
+    const updatedSchools = (current.schools || []).filter((s) => s !== schoolId);
+    const currentMeta = (current.user_meta_data ?? {}) as Record<string, any>;
+    const rolesBySchool: Record<string, string[] | string> = { ...(currentMeta.rolesBySchool ?? {}) };
+    if (rolesBySchool[schoolId]) delete rolesBySchool[schoolId];
+    const newMeta = { ...currentMeta, rolesBySchool };
+    await updateUser(userId, { schools: updatedSchools, user_meta_data: newMeta });
+    if (updatedSchools.length === 0) await cleanupOrphanedUser(userId);
+    return updatedSchools;
 }
 
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
@@ -151,7 +144,7 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
     console.log('User data:', usersWithRoles.map(({user, role}) => ({ email: user.email, role })));
 
     await Promise.all(
-      usersWithRoles.map(({user, role}) => createOrUpdateUser(user, school.id, role))
+      usersWithRoles.map(({user, role}) => addOrUpdateUserForSchoolRole(user, school.id, role))
     );
     
     console.log('All users processed successfully');
@@ -274,18 +267,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     }
 
     // Get current users associated with this school before update
-    const currentUsers = await prisma.user.findMany({
-      where: {
-        schools: {
-          has: id,
-        },
-      },
-      select: {
-        id: true,
-        email: true,
-        schools: true,
-      },
-    });
+    const currentUsers = await getUsersBySchoolBasic(id);
 
     console.log(`Found ${currentUsers.length} users currently associated with school ${id}`);
     console.log('Current users:', currentUsers.map(u => ({ email: u.email, schools: u.schools })));
@@ -347,23 +329,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       ...currentUsers.map(async (user) => {
         if (!newUserEmails.has(user.email.toLowerCase().trim())) {
           console.log(`Removing school ${id} from user ${user.email}`);
-          
-          const updatedSchools = user.schools.filter(schoolId => schoolId !== id);
-          console.log(`User ${user.email} schools after removal: ${updatedSchools}`);
-          
-          // Always update the user's schools array first
-          await prisma.user.update({
-            where: { id: user.id },
-            data: {
-              schools: updatedSchools,
-            },
-          });
-          
-          // Then check if user should be deleted
-          if (updatedSchools.length === 0) {
-            console.log(`User ${user.email} has no schools, checking if they should be deleted`);
-            await cleanupOrphanedUser(user.id);
-          }
+          await removeSchoolFromUserAndCleanup(user.id, id);
         }
       }),
       
@@ -372,7 +338,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
         ...data.in_charges.map(u => ({ user: u, role: 'INCHARGE' as const })),
         ...data.principals.map(u => ({ user: u, role: 'PRINCIPAL' as const })),
         ...data.correspondents.map(u => ({ user: u, role: 'CORRESPONDENT' as const })),
-      ].map(({user, role}) => createOrUpdateUser(user, school.id, role)),
+  ].map(({user, role}) => addOrUpdateUserForSchoolRole(user, school.id, role)),
     ]);
 
     console.log('User associations updated successfully');
@@ -389,13 +355,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
 
 export async function getSchoolUsers(schoolId: string) {
   try {
-    const users = await prisma.user.findMany({
-      where: {
-        schools: {
-          has: schoolId,
-        },
-      },
-    });
+    const users = await getUsersBySchoolWithMeta(schoolId);
     return users;
   } catch (error) {
     console.error(`Error fetching users for school ${schoolId}:`, error);
@@ -404,13 +364,8 @@ export async function getSchoolUsers(schoolId: string) {
 }
 
 export async function deleteSchool(id: string) {
-  // 1) Find users associated with this school
-  const users = await prisma.user.findMany({
-    where: { schools: { has: id } },
-    select: { id: true, schools: true, user_meta_data: true, email: true },
-  });
+  const users = await getUsersBySchoolWithMeta(id);
 
-  // 2) For each user, remove the school from schools[] and strip rolesBySchool[id]
   await Promise.all(
     users.map(async (user) => {
       const updatedSchools = user.schools.filter((sid) => sid !== id);
@@ -422,17 +377,11 @@ export async function deleteSchool(id: string) {
       if (rolesBySchool[id]) {
         delete rolesBySchool[id];
       }
-      const newMeta = { ...currentMeta, rolesBySchool };
+    const newMeta = { ...currentMeta, rolesBySchool };
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { schools: updatedSchools, user_meta_data: newMeta },
-      });
-
-      // If user has no schools left, consider them orphaned and delete
-      if (updatedSchools.length === 0) {
-        await cleanupOrphanedUser(user.id);
-      }
+    // Update the user using centralized helper instead of direct prisma call
+    await updateUser(user.id, { schools: updatedSchools, user_meta_data: newMeta as any });
+      if (updatedSchools.length === 0) { await removeSchoolFromUserAndCleanup(user.id, id); }
     })
   );
 
