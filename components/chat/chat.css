@@ -11,52 +11,65 @@
   padding: 0.1rem 0.3rem;
 }
 
-/* List styles */
+/* List styles (unified for editor and rendered messages) */
 .tiptap ul,
-.tiptap ol {
+.tiptap ol,
+.prose ul,
+.prose ol {
   padding: 0 1rem;
   margin: 1.25rem 1rem 1.25rem 0.4rem;
   list-style-position: outside;
 }
 
-.tiptap ul { list-style-type: disc; }
-.tiptap ol { list-style-type: decimal; }
-.tiptap ul ul { list-style-type: circle; }
-.tiptap ul ul ul { list-style-type: square; }
+.tiptap ul, .prose ul { list-style-type: disc; }
+.tiptap ol, .prose ol { list-style-type: decimal; }
+.tiptap ul ul, .prose ul ul { list-style-type: circle; }
+.tiptap ul ul ul, .prose ul ul ul { list-style-type: square; }
 
 .tiptap li p {
   margin-top: 0.25em;
   margin-bottom: 0.25em;
 }
 
-/* Heading styles */
+/* Heading styles (match rendered message appearance) */
 .tiptap h1, 
 .tiptap h2, 
 .tiptap h3, 
 .tiptap h4, 
 .tiptap h5, 
-.tiptap h6 {
+.tiptap h6,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
   line-height: 1.1;
   margin-top: 2.5rem;
   text-wrap: pretty;
-  color: #fff;
+  color: inherit; /* keep headings same color in editor and messages */
 }
-.tiptap h1 { font-size: 1.4rem; }
-.tiptap h2 { font-size: 1.2rem; }
-.tiptap h3 { font-size: 1.1rem; }
+.tiptap h1, .prose h1 { font-size: 1.4rem; }
+.tiptap h2, .prose h2 { font-size: 1.2rem; }
+.tiptap h3, .prose h3 { font-size: 1.1rem; }
 .tiptap h4, 
 .tiptap h5, 
-.tiptap h6 { font-size: 1rem; }
+.tiptap h6, 
+.prose h4,
+.prose h5,
+.prose h6 { font-size: 1rem; }
 
-/* Code and preformatted text styles */
-.tiptap code {
+/* Code and preformatted text styles (unified) */
+.tiptap code,
+.prose code {
   background-color: #ffeb3b;
   border-radius: 0.4rem;
   color: #111;
   font-size: 0.85rem;
   padding: 0.25em 0.3em;
 }
-.tiptap pre {
+.tiptap pre,
+.prose pre {
   background: #111;
   border-radius: 0.5rem;
   color: #fff;
@@ -64,32 +77,41 @@
   margin: 1.5rem 0;
   padding: 0.75rem 1rem;
 }
-.tiptap pre code {
+.tiptap pre code,
+.prose pre code {
   background: none;
   color: inherit;
   font-size: 0.8rem;
   padding: 0;
 }
 
-.tiptap blockquote {
+.tiptap blockquote,
+.prose blockquote {
   border-left: 3px solid #ffeb3b;
-  margin: 1.5rem 0;
   padding-left: 1rem;
-  color: #e0e0e0;
+  margin: 1rem 0;
+  background-color: rgba(148, 163, 184, 0.08);
+  color: inherit;
+  border-radius: 0.25rem;
 }
 
-.tiptap table { 
+.tiptap table,
+.prose table { 
   width: 100%; 
   border-collapse: collapse; 
   margin: 0.75rem 0; 
 }
 .tiptap th, 
-.tiptap td { 
-  border: 1px solid #445; 
+.tiptap td,
+.prose th,
+.prose td { 
+  border: 1px solid rgba(148,163,184,0.35); 
   padding: 0.4rem 0.5rem; 
   text-align: left; 
 }
-.tiptap th { background: #1e293b; }
+.tiptap th, .prose th { background-color: rgba(148,163,184,0.15); font-weight: 600; }
+.prose tbody tr:nth-child(even),
+.tiptap tbody tr:nth-child(even) { background-color: rgba(148,163,184,0.08); }
 
 /* Prevent layout overflow clipping in message bubbles */
 .tiptap .hl-scroll-wrap {
@@ -102,19 +124,7 @@
   margin: 2rem 0;
 }
 
-/* Prose defaults for rendered message bodies */
-.prose blockquote {
-  border-left: 3px solid #ffeb3b;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  background-color: rgba(148, 163, 184, 0.08);
-  color: inherit;
-  border-radius: 0.25rem;
-}
-.prose table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
-.prose th, .prose td { border: 1px solid rgba(148,163,184,0.35); padding: 0.4rem 0.5rem; text-align: left; }
-.prose th { background-color: rgba(148,163,184,0.15); font-weight: 600; }
-.prose tbody tr:nth-child(even) { background-color: rgba(148,163,184,0.08); }
+/* Prose defaults now unified above with .tiptap rules */
 
 /* Utility to scale chat UI slightly for parity */
 body { zoom: 1.0; }
@@ -147,19 +157,7 @@ body { zoom: 1.0; }
   max-height: 60vh; 
 }
 
-/* Ensure list markers are visible in rendered message content */
-.prose ul {
-  list-style-type: disc;
-  list-style-position: outside;
-  margin-left: 1.25rem;
-}
-.prose ol {
-  list-style-type: decimal;
-  list-style-position: outside;
-  margin-left: 1.25rem;
-}
-.prose ul ul { list-style-type: circle; }
-.prose ul ul ul { list-style-type: square; }
+/* List marker visibility handled in unified list rules */
 
 /* Default highlight style for message content */
 .prose mark {

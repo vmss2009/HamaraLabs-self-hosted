@@ -48,7 +48,7 @@ export function MessageBody({ html }: { html?: string }) {
     <div
       ref={ref}
       className="prose max-w-none text-sm break-words message-body"
-      style={{ color: '#000' }}
+  style={{ color: 'inherit' }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
