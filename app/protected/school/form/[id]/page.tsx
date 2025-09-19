@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { use } from "react";
 import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import TextFieldGroup from "@/components/form/TextFieldGroup";
+import SearchableSelect from "@/components/form/SearchableSelect";
 import CheckboxGroup from "@/components/form/CheckboxGroup";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import DynamicFieldArray from "@/components/form/DynamicFieldArray";
@@ -46,6 +47,10 @@ export default function EditSchoolForm({
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  // guards against setting state after unmount and to support abortable fetches
+  const mountedRef = useRef(true);
+  const countryCtrlRef = useRef<AbortController | null>(null);
+  const stateCtrlRef = useRef<AbortController | null>(null);
   const [syllabus, setSyllabus] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +73,7 @@ export default function EditSchoolForm({
   const [selectedCity, setSelectedCity] = useState<string>("");
 
   useEffect(() => {
+    mountedRef.current = true;
     const fetchSchoolData = async () => {
       try {
         const response = await fetch(`/api/schools/${resolvedParams.id}`);
@@ -159,6 +165,11 @@ export default function EditSchoolForm({
     };
 
     fetchSchoolData();
+    return () => {
+      mountedRef.current = false;
+      countryCtrlRef.current?.abort();
+      stateCtrlRef.current?.abort();
+    };
   }, [resolvedParams.id]);
 
   useEffect(() => {
@@ -371,7 +382,13 @@ export default function EditSchoolForm({
     }
   };
 
-  const countryOptions = countries.map((country) => ({
+  const sortedCountries = [...countries].sort((a, b) => {
+    if (a.country_name === "India") return -1;
+    if (b.country_name === "India") return 1;
+    return 0;
+  });
+
+  const countryOptions = sortedCountries.map((country) => ({
     value: country.id.toString(),
     label: country.country_name,
   }));
@@ -509,58 +526,76 @@ export default function EditSchoolForm({
               />
 
               <div className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-2 font-semibold text-gray-700">Country *</label>
-                    <select 
-                      value={selectedCountry}
-                      onChange={handleCountryChange}
-                      required
-                      className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    >
-                      <option value="">Select Country</option>
-                      {countryOptions.map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-2 font-semibold text-gray-700">State *</label>
-                    <select 
-                      value={selectedState}
-                      onChange={handleStateChange}
-                      required
-                      disabled={!selectedCountry}
-                      className={`w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                        !selectedCountry ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <option value="">Select State</option>
-                      {stateOptions.map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
+                  <SearchableSelect<string>
+                    label="Country"
+                    options={countryOptions}
+                    value={selectedCountry || null}
+                    onChange={(val) => {
+                      const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                      setSelectedCountry(v);
+                      // abort previous
+                      countryCtrlRef.current?.abort();
+                      const ctrl = new AbortController();
+                      countryCtrlRef.current = ctrl;
+                      (async () => {
+                        try {
+                          const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal });
+                          if (!response.ok) throw new Error("Failed to fetch states");
+                          const data = await response.json();
+                          if (ctrl.signal.aborted || !mountedRef.current) return;
+                          setStates(data);
+                          setCities([]);
+                          setSelectedState("");
+                          setSelectedCity("");
+                        } catch (err) {
+                          if (ctrl.signal.aborted || !mountedRef.current) return;
+                          setError("Error loading states. Please try again.");
+                          console.error(err);
+                        }
+                      })();
+                    }}
+                  />
+
+                  <SearchableSelect<string>
+                    label="State"
+                    options={stateOptions}
+                    value={selectedState || null}
+                    onChange={(val) => {
+                      const v = (Array.isArray(val) ? val[0] : val) ?? "";
+                      setSelectedState(v);
+                      // abort previous
+                      stateCtrlRef.current?.abort();
+                      const ctrl = new AbortController();
+                      stateCtrlRef.current = ctrl;
+                      (async () => {
+                        try {
+                          const response = await fetch(`/api/cities?stateId=${v}`, { signal: ctrl.signal });
+                          if (!response.ok) throw new Error("Failed to fetch cities");
+                          const data = await response.json();
+                          if (ctrl.signal.aborted || !mountedRef.current) return;
+                          setCities(data);
+                          setSelectedCity("");
+                        } catch (err) {
+                          if (ctrl.signal.aborted || !mountedRef.current) return;
+                          setError("Error loading cities. Please try again.");
+                          console.error(err);
+                        }
+                      })();
+                    }}
+                    className={!selectedCountry ? "opacity-50 pointer-events-none" : ""}
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-2 font-semibold text-gray-700">City *</label>
-                    <select 
-                      value={selectedCity}
-                      onChange={(e) => setSelectedCity(e.target.value)}
-                      required
-                      disabled={!selectedState}
-                      className={`w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                        !selectedState ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <option value="">Select City</option>
-                      {cityOptions.map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+                  <SearchableSelect<string>
+                    label="City"
+                    options={cityOptions}
+                    value={selectedCity || null}
+                    onChange={(val) => setSelectedCity((Array.isArray(val) ? val[0] : val) ?? "")}
+                    className={!selectedState ? "opacity-50 pointer-events-none" : ""}
+                  />
+
                   <TextFieldGroup
                     fields={[
                       {
