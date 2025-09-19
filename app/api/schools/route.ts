@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       name: validatedData.name,
       udise_code: validatedData.udise_code,
       is_ATL: validatedData.is_ATL,
-      ATL_establishment_year: validatedData.ATL_establishment_year,
+      ATL_establishment_year: validatedData.is_ATL ? (validatedData.ATL_establishment_year ?? null) : null,
       address_id: address.id,
       in_charges: validatedData.in_charges,
       correspondents: validatedData.correspondents,

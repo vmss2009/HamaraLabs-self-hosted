@@ -135,7 +135,7 @@ export const schoolSchema = z.object({
   name: z.string().min(1),
   udise_code: z.string().optional(),
   is_ATL: z.boolean(),
-  ATL_establishment_year: z.number().int().optional(),
+  ATL_establishment_year: z.number().int().nullable().optional(),
   address: addressSchema,
   in_charges: z.array(userSchema).min(1, "At least one in-charge is required"),
   correspondents: z.array(userSchema),
@@ -144,6 +144,13 @@ export const schoolSchema = z.object({
   website_url: z.string().url().optional().or(z.literal("")),
   paid_subscription: z.boolean(),
   social_links: z.array(z.string().url()).optional(),
+}).superRefine((data, ctx) => {
+  // If is_ATL is true, year must be provided (non-null number)
+  if (data.is_ATL) {
+    if (data.ATL_establishment_year === null || data.ATL_establishment_year === undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "ATL establishment year is required when ATL is enabled", path: ["ATL_establishment_year"] });
+    }
+  }
 }).refine(
   (data) => {
     // Check for duplicate emails within in_charges
