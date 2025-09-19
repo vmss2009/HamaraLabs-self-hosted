@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
 import { StudentCreateInput, StudentFilter } from "../type";
-import { v4 as uuidv4 } from "uuid";
+import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
 
 type StudentRole = 'STUDENT';
 
@@ -20,7 +20,7 @@ async function cleanupOrphanedUser(userId: string) {
       user.mentors.length === 0 &&
       user.school_visits.length === 0
     ) {
-      await prisma.user.delete({ where: { id: userId } });
+      await deleteUser(userId);
     }
   } catch (error) {
     console.error(`Error cleaning up user ${userId}:`, error);
@@ -74,26 +74,20 @@ async function ensureUserForStudent(
       ? existingUser.schools
       : [...existingUser.schools, schoolId];
     const newMeta = addRoleForSchool(existingUser.user_meta_data, schoolId, 'STUDENT');
-    const updated = await prisma.user.update({
-      where: { id: existingUser.id },
-      data: {
-        first_name,
-        last_name,
-        schools: updatedSchools,
-        user_meta_data: newMeta,
-      },
+    const updated = await updateUser(existingUser.id, {
+      first_name,
+      last_name,
+      schools: updatedSchools,
+      user_meta_data: newMeta,
     });
     return updated.id;
   } else {
-    const created = await prisma.user.create({
-      data: {
-        id: uuidv4(),
-        email,
-        first_name,
-        last_name,
-        schools: [schoolId],
-        user_meta_data: addRoleForSchool({}, schoolId, 'STUDENT'),
-      },
+    const created = await createUser({
+      email,
+      first_name,
+      last_name,
+      schools: [schoolId],
+      user_meta_data: addRoleForSchool({}, schoolId, 'STUDENT'),
     });
     return created.id;
   }
@@ -104,10 +98,7 @@ async function removeStudentAccessFromUser(userId: string, schoolId: string) {
   if (!user) return;
   const updatedSchools = user.schools.filter((s) => s !== schoolId);
   const newMeta = removeRoleForSchool(user.user_meta_data, schoolId, 'STUDENT');
-  await prisma.user.update({
-    where: { id: userId },
-    data: { schools: updatedSchools, user_meta_data: newMeta },
-  });
+  await updateUser(userId, { schools: updatedSchools, user_meta_data: newMeta });
   await cleanupOrphanedUser(userId);
 }
 
@@ -239,18 +230,16 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
     const oldSchoolId = currentStudent.school_id;
     const newSchoolId = validatedData.schoolId;
 
+    // Track old user for potential cleanup after student update
+    let oldUserIdForCleanup: string | undefined = undefined;
+
     // Case 1: email changed
     if (newEmail !== oldEmail) {
       // Remove access from old user if present and then delete the old user
       if (currentStudent.user_id) {
         await removeStudentAccessFromUser(currentStudent.user_id, oldSchoolId);
-        // Attempt to delete the previous user record as requested
-        try {
-          await prisma.user.delete({ where: { id: currentStudent.user_id } });
-        } catch (err) {
-          // Ignore if deletion is not possible due to other references or already deleted
-          console.warn(`Could not delete previous user ${currentStudent.user_id}:`, err);
-        }
+        // Defer cleanup until after student points to new user
+        oldUserIdForCleanup = currentStudent.user_id;
       }
 
       // Link/create new user for new email (if provided)
@@ -318,6 +307,11 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
       },
     });
 
+    // Now that student points to the new user, safely cleanup the old user if any
+    if (oldUserIdForCleanup) {
+      await cleanupOrphanedUser(oldUserIdForCleanup);
+    }
+
     return updatedStudent;
   } catch (error) {
     console.error(`Error updating student with id ${id}:`, error);
@@ -337,7 +331,7 @@ export async function deleteStudent(id: string) {
       throw new Error("Student not found");
     }
 
-    // Remove student access from user if present and delete the user as requested
+    // Remove student access from user if present
     if (student.user_id) {
       const userId = student.user_id;
       // Remove per-school role and association first
@@ -346,17 +340,15 @@ export async function deleteStudent(id: string) {
       // Detach any other optional relations that could block deletion
       await prisma.mentor.updateMany({ where: { user_id: userId }, data: { user_id: null } });
       await prisma.schoolVisit.updateMany({ where: { poc_id: userId }, data: { poc_id: null } });
-
-      // Attempt to delete the user
-      try {
-        await prisma.user.delete({ where: { id: userId } });
-      } catch (err) {
-        console.warn(`Could not delete user ${userId} during student deletion:`, err);
-      }
     }
 
     // Delete the student
     await prisma.student.delete({ where: { id } });
+    
+    // Attempt safe cleanup of user AFTER student deletion (only if no associations)
+    if (student.user_id) {
+      await cleanupOrphanedUser(student.user_id);
+    }
     
   } catch (error) {
     console.error(`Error deleting student with id ${id}:`, error);
