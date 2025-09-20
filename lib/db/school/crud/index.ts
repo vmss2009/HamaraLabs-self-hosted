@@ -27,7 +27,6 @@ async function getUsersBySchoolWithMeta(school_id: string): Promise<Array<{ id: 
 }
 
 async function addOrUpdateUserForSchoolRole(userData: UserInput, schoolId: string, role: SchoolRole) {
-    console.log(`addOrUpdateUserForSchoolRole: ${userData.email} -> ${schoolId} as ${role}`);
     const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
 
     if (existingUser) {
@@ -148,14 +147,11 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
       ...data.principals.map(u => ({ user: u, role: 'PRINCIPAL' as const })),
       ...data.correspondents.map(u => ({ user: u, role: 'CORRESPONDENT' as const })),
     ];
-    console.log(`Processing ${usersWithRoles.length} users for school: ${school.id}`);
-    console.log('User data:', usersWithRoles.map(({user, role}) => ({ email: user.email, role })));
 
     await Promise.all(
       usersWithRoles.map(({user, role}) => addOrUpdateUserForSchoolRole(user, school.id, role))
     );
     
-    console.log('All users processed successfully');
 
     // Connect role-based relations on School to Users by email
     const inchargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());
@@ -297,8 +293,6 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     // Get current users associated with this school before update
     const currentUsers = await getUsersBySchoolBasic(id);
 
-    console.log(`Found ${currentUsers.length} users currently associated with school ${id}`);
-    console.log('Current users:', currentUsers.map(u => ({ email: u.email, schools: u.schools })));
 
     if (data.address) {
       await prisma.address.update({
@@ -349,14 +343,11 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       ...data.correspondents.map(u => u.email.toLowerCase().trim()),
     ]);
 
-    console.log('New user emails:', Array.from(newUserEmails));
-
     // Process user associations
     await Promise.all([
       // 1. Remove school from users who are no longer associated
       ...currentUsers.map(async (user) => {
         if (!newUserEmails.has(user.email.toLowerCase().trim())) {
-          console.log(`Removing school ${id} from user ${user.email}`);
           await removeSchoolFromUserAndCleanup(user.id, id);
         }
       }),
@@ -369,7 +360,6 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
   ].map(({user, role}) => addOrUpdateUserForSchoolRole(user, school.id, role)),
     ]);
 
-    console.log('User associations updated successfully');
 
     // Rebuild role-based relations on School to match latest emails
     const inchargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());

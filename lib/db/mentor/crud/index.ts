@@ -74,7 +74,6 @@ async function removeMentorAccessFromUser(userId: string, schoolIds: string[]) {
 }
 
 async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds: string[]) {
-  console.log(`Creating/updating user for mentor email: ${mentorData.email}, schools: ${schoolIds}`);
   
   if (!mentorData.email || mentorData.email.trim() === "") {
     // No email provided, no user account needed
@@ -86,11 +85,8 @@ async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds
   });
 
   if (existingUser) {
-    console.log(`Found existing user: ${existingUser.id}, current schools: ${existingUser.schools}`);
     // Add schools to existing user's schools array if not already present
     const updatedSchools = [...new Set([...existingUser.schools, ...schoolIds])];
-    
-    console.log(`Updated schools array for mentor: ${updatedSchools}`);
     const newMeta = addMentorRoleForSchools(existingUser.user_meta_data, schoolIds);
     return await updateUser(existingUser.id, {
       first_name: mentorData.first_name,
@@ -99,7 +95,6 @@ async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds
       user_meta_data: { ...newMeta, phone_number: mentorData.phone_number },
     });
   } else {
-    console.log(`Creating new user for mentor email: ${mentorData.email}`);
     const meta = addMentorRoleForSchools({}, schoolIds);
     return await createUser({
       email: mentorData.email,
@@ -113,7 +108,6 @@ async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds
 
 export async function createMentor(data: MentorCreateInput): Promise<MentorWithUser> {
   try {
-    console.log(`Creating mentor with data:`, data);
     
     let userId: string | undefined = undefined;
 
@@ -138,7 +132,6 @@ export async function createMentor(data: MentorCreateInput): Promise<MentorWithU
       },
     });
 
-    console.log(`Created mentor: ${mentor.id} with user: ${userId}`);
     return mentor;
   } catch (error) {
     console.error("Error creating mentor:", error);

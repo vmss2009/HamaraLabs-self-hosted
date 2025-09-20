@@ -4,8 +4,6 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { auth } from '@/lib/auth/auth';
 import { randomUUID } from 'crypto';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {

@@ -33,7 +33,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const data = await request.json();
 
-    console.log('Received data for validation:', JSON.stringify(data, null, 2));
     const result = schoolSchema.safeParse(data);
 
     if (!result.success) {
