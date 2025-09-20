@@ -72,6 +72,8 @@ interface EditFormData {
   observations: string[];
   extensions: string[];
   resources: string[];
+  comments: string;
+  attachments: string[];
 }
 interface TinkeringActivitySelection extends SnapshotItem {
   name?: string;
@@ -83,6 +85,7 @@ interface TinkeringActivitySelection extends SnapshotItem {
   observations?: string[];
   extensions?: string[];
   resources?: string[];
+  comments?: string;
   subtopic?: { id: number; topic?: { id: number; subject?: { id: number } } };
 }
 
@@ -101,7 +104,7 @@ function StudentSnapshot() {
 
   const [schools, setSchools] = useState<School[]>([]);
   const [currentView, setCurrentView] = useState<"cluster" | "school">(
-    (searchParams.get("view") as "cluster" | "school") || "cluster"
+    (searchParams.get("view") as "cluster" | "school") || "school"
   );
 
   const [clusters, setClusters] = useState<Cluster[]>([]);
@@ -149,6 +152,8 @@ function StudentSnapshot() {
     observations: [],
     extensions: [],
     resources: [],
+    comments: "",
+    attachments: [],
   });
   const [subjects, setSubjects] = useState<
     Array<{ id: number; subject_name: string }>
@@ -798,6 +803,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       observations: activity.observations || [],
       extensions: activity.extensions || [],
       resources: activity.resources || [],
+      comments: (activity as any).comments || "",
+      attachments: Array.isArray((activity as any).attachments) ? (activity as any).attachments : [],
     });
 
     if (activity.subtopic?.topic?.subject) {
@@ -849,7 +856,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     });
   };
 
-  const handleEditSubmit = async () => {
+  const handleEditSubmit = async (uploadedMeta?: Array<{ url: string; filename?: string; type?: string; size?: number }>) => {
     if (!selectedActivity) return;
 
     try {
@@ -863,12 +870,30 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           body: JSON.stringify({
             ...editFormData,
             subtopic_id: parseInt(selectedSubtopic),
+            comments: editFormData.comments,
           }),
         }
       );
 
       if (!response.ok) {
         throw new Error("Failed to update tinkering activity");
+      }
+
+      // Save snapshot attachments (if any) after successful update
+      if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0 && selectedActivity) {
+        try {
+          const res2 = await fetch(`/api/customised-tinkering-activities/${selectedActivity.id}/attachments`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ attachments: uploadedMeta }),
+          });
+          if (!res2.ok) {
+            const t = await res2.text();
+            console.error("Failed to save attachments:", res2.status, t);
+          }
+        } catch (e) {
+          console.error("Error saving attachments:", e);
+        }
       }
 
       fetchTinkeringActivities();
@@ -1442,6 +1467,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 tinkeringActivities.findIndex(
                   (activity) => activity.id === selectedRow?.id
                 ) + 1,
+              attachment_links: Array.isArray((selectedRow as any)?.snapshot_attachments)
+                ? ((selectedRow as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename }))
+                : [],
             }}
             formtype="Tinkering-Activity"
             columns={[
@@ -1489,6 +1517,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 label: "Status",
                 field: "status",
               },
+              { label: "Comments", field: "comments" },
+              { label: "Files", type: "links", field: "attachment_links" },
             ]}
           />
         ) : activeTab === "competition" ? (
@@ -1654,10 +1684,10 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           onClose={() => setEditDialogOpen(false)}
           onSubmit={handleEditSubmit}
           editFormData={editFormData}
-          handleEditFormChange={handleEditFormChange}
-          handleArrayFieldChange={handleArrayFieldChange}
-          handleAddArrayItem={handleAddArrayItem}
-          handleRemoveArrayItem={handleRemoveArrayItem}
+          handleEditFormChange={(field, value) => handleEditFormChange(field as any, value)}
+          handleArrayFieldChange={(field, index, value) => handleArrayFieldChange(field as any, index, value)}
+          handleAddArrayItem={(field) => handleAddArrayItem(field as any)}
+          handleRemoveArrayItem={(field, index) => handleRemoveArrayItem(field as any, index)}
           selectedSubject={selectedSubject}
           setSelectedSubject={setSelectedSubject}
           selectedTopic={selectedTopic}
@@ -1667,6 +1697,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           subjects={subjects}
           topics={topics}
           subtopics={subtopics}
+          activityId={(selectedActivity as any)?.id as string}
         />
 
         {/* Generate TA Dialog */}

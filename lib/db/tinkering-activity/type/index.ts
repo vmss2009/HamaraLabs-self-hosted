@@ -57,17 +57,19 @@ export type EditActivityFormData = {
   observations: string[];
   extensions: string[];
   resources: string[];
+  comments?: string;
+  attachments?: string[];
 };
 
 export interface EditActivityDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (uploadedMeta?: Array<{ url: string; filename?: string; type?: string; size?: number }>) => void;
   editFormData: EditActivityFormData;
   handleEditFormChange: (field: keyof EditActivityFormData, value: string) => void;
-  handleArrayFieldChange: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources">, index: number, value: string) => void;
-  handleAddArrayItem: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources">) => void;
-  handleRemoveArrayItem: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources">, index: number) => void;
+  handleArrayFieldChange: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources" | "attachments">, index: number, value: string) => void;
+  handleAddArrayItem: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources" | "attachments">) => void;
+  handleRemoveArrayItem: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources" | "attachments">, index: number) => void;
   selectedSubject: string;
   setSelectedSubject: (value: string) => void;
   selectedTopic: string;
@@ -77,6 +79,7 @@ export interface EditActivityDialogProps {
   subjects: Array<{ id: number; subject_name: string }>;
   topics: Array<{ id: number; topic_name: string }>;
   subtopics: Array<{ id: number; subtopic_name: string }>;
+  activityId?: string; // customised TA id for uploads
 }
 
 export interface TinkeringActivityCreateInput {

@@ -18,7 +18,7 @@ export async function createCustomisedTinkeringActivity(
   data: CustomisedTinkeringActivityCreateInput
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.create({
-    data: {
+    data: ({
       name: data.name,
       subtopic_id: data.subtopic_id,
       introduction: data.introduction,
@@ -29,10 +29,12 @@ export async function createCustomisedTinkeringActivity(
       observations: data.observations,
       extensions: data.extensions,
       resources: data.resources,
+      comments: data.comments,
+      attachments: data.attachments,
       base_ta_id: data.base_ta_id,
       student_id: data.student_id,
       status: data.status,
-    },
+    } as any),
     include: {
       subtopic: {
         select: {
@@ -52,6 +54,7 @@ export async function createCustomisedTinkeringActivity(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -102,6 +105,7 @@ export async function getCustomisedTinkeringActivities(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -140,7 +144,7 @@ export async function updateCustomisedTinkeringActivity(
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   return prisma.customisedTinkeringActivity.update({
     where: { id },
-    data: {
+    data: ({
       name: data.name,
       subtopic_id: data.subtopic_id,
       introduction: data.introduction,
@@ -151,10 +155,12 @@ export async function updateCustomisedTinkeringActivity(
       observations: data.observations,
       extensions: data.extensions,
       resources: data.resources,
+      comments: data.comments,
+      attachments: data.attachments,
       base_ta_id: data.base_ta_id,
       student_id: data.student_id,
       status: data.status,
-    },
+    } as any),
     include: {
       subtopic: {
         select: {
@@ -174,6 +180,7 @@ export async function updateCustomisedTinkeringActivity(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
 }

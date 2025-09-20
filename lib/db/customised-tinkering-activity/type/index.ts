@@ -12,6 +12,8 @@ export interface CustomisedTinkeringActivityCreateInput {
   observations: string[];
   extensions: string[];
   resources: string[];
+  comments?: string;
+  attachments?: string[];
   base_ta_id: string;
   student_id: string;
   status: string[];
@@ -59,6 +61,8 @@ export const customisedTinkeringActivitySchema = z.object({
   observations: z.array(z.string()).optional().default([]),
   extensions: z.array(z.string()).optional().default([]),
   resources: z.array(z.string()).optional().default([]),
+  comments: z.string().trim().optional().default(""),
+  attachments: z.array(z.string()).optional().default([]),
   status: z.array(z.string()).optional().default([]),
 });
 

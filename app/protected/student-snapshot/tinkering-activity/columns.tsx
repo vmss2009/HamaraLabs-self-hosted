@@ -37,6 +37,12 @@ export function getTinkeringActivityColumns(
       renderCell: (params) => params.value ?? "N/A",
     },
     {
+      field: "comments",
+      headerName: "Comments",
+      width: 200,
+      renderCell: (params) => params.row?.comments ?? "",
+    },
+    {
       field: "subject",
       headerName: "Subject",
       width: 150,

@@ -210,6 +210,7 @@ model CustomisedCourse {
   status     String[]
   course     Course   @relation(fields: [course_id], references: [id])
   student    Student  @relation(fields: [student_id], references: [id])
+  snapshot_attachments SnapshotAttachments[]
 }
 
 model CustomisedTinkeringActivity {
@@ -225,12 +226,15 @@ model CustomisedTinkeringActivity {
   observations String[]
   extensions   String[]
   resources    String[]
+  comments     String?
+  attachments  String[]
   base_ta_id   String
   student_id   String
   status       String[]
   base_ta      TinkeringActivity @relation(fields: [base_ta_id], references: [id])
   student      Student           @relation(fields: [student_id], references: [id])
   subtopic     Subtopic          @relation(fields: [subtopic_id], references: [id])
+  snapshot_attachments SnapshotAttachments[]
 }
 
 model CustomisedCompetition {
@@ -241,6 +245,7 @@ model CustomisedCompetition {
   status         String[]
   competition    Competition @relation(fields: [competition_id], references: [id])
   student        Student     @relation(fields: [student_id], references: [id])
+  snapshot_attachments SnapshotAttachments[]
 }
 
 model Hub {
@@ -320,6 +325,28 @@ model Attachment {
   messageId String
 
   @@index([messageId])
+}
+
+// Snapshot attachments for customised entities in Student Snapshot
+model SnapshotAttachments {
+  id        String   @id @default(cuid())
+  url       String
+  type      String
+  filename  String?
+  size      Int?
+  createdAt DateTime @default(now())
+
+  customised_ta_id           String?
+  customised_competition_id  String?
+  customised_course_id       String?
+
+  customised_ta          CustomisedTinkeringActivity? @relation(fields: [customised_ta_id], references: [id])
+  customised_competition CustomisedCompetition?       @relation(fields: [customised_competition_id], references: [id])
+  customised_course      CustomisedCourse?            @relation(fields: [customised_course_id], references: [id])
+
+  @@index([customised_ta_id])
+  @@index([customised_competition_id])
+  @@index([customised_course_id])
 }
 
 // Calendar models (merged from hamaralabs-calendar)

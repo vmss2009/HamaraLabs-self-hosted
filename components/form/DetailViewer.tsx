@@ -69,7 +69,8 @@ type ColumnType =
   | { label: string; type: "date"; field: string }
   | { label: string; type: "address"; field?: undefined }
   | { label: string; type: "Details"; fields: [FieldLabelPair, FieldLabelPair, FieldLabelPair, FieldLabelPair] }
-  | { label: string; type: "compare"; fields: [FieldLabelPair, FieldLabelPair] };
+  | { label: string; type: "compare"; fields: [FieldLabelPair, FieldLabelPair] }
+  | { label: string; type: "links"; field: string };
 
 interface DetailsDrawerProps<T extends Record<string, unknown>> {
   drawerOpen: boolean;
@@ -115,6 +116,44 @@ function DetailsDrawer<T extends Record<string, unknown>>({
               </div>
             ) : col.type === "address" && isRecord(selectedRow) && isRecord((selectedRow as Record<string, unknown>).address) ? (
               <div className="text-gray-900">{formatAddress((selectedRow as Record<string, unknown>).address)}</div>
+            ) : col.type === "links" && "field" in col ? (
+              (() => {
+                const v = getNestedValue(selectedRow, col.field);
+                const items = Array.isArray(v) ? v : [];
+                if (items.length === 0) return <div className="text-gray-500">N/A</div>;
+                return (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {items.map((item: any, idx: number) => {
+                      const url = String(item?.url ?? item);
+                      const filename = String(item?.filename ?? "");
+                      const name = filename || (() => {
+                        try {
+                          const u = new URL(url);
+                          const last = u.pathname.split("/").filter(Boolean).pop();
+                          return last || url;
+                        } catch {
+                          const s = url.split("?")[0];
+                          const last = s.split("/").filter(Boolean).pop();
+                          return last || url;
+                        }
+                      })();
+                      return (
+                        <li key={idx}>
+                          <a
+                            href={url}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all"
+                          >
+                            {name}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              })()
             ) : "field" in col && typeof col.field === "string" ? (
               <div className="text-gray-900">{formatValue(getNestedValue(selectedRow, col.field as string))}</div>
             ) : null}
