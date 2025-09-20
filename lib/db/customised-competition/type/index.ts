@@ -4,6 +4,8 @@ export interface CustomisedCompetitionCreateInput {
   competition_id: string;
   student_id: string;
   status: string[];
+  comments?: string;
+  attachments?: string[];
 }
 
 export interface CustomisedCompetitionWithRelations
@@ -28,6 +30,14 @@ export interface CustomisedCompetitionWithRelations
     first_name: string;
     last_name: string;
   };
+  snapshot_attachments?: Array<{
+    id: string;
+    url: string;
+    filename: string | null;
+    type: string;
+    size: number | null;
+    createdAt: Date;
+  }>;
 }
 
 export interface CustomisedCompetitionFilter {

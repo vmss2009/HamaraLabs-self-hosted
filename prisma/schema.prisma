@@ -208,6 +208,8 @@ model CustomisedCourse {
   course_id  String
   student_id String
   status     String[]
+comments   String?
+  attachments String[] @default([])
   course     Course   @relation(fields: [course_id], references: [id])
   student    Student  @relation(fields: [student_id], references: [id])
   snapshot_attachments SnapshotAttachments[]
@@ -243,6 +245,8 @@ model CustomisedCompetition {
   competition_id String
   student_id     String
   status         String[]
+comments       String?
+  attachments    String[] @default([])
   competition    Competition @relation(fields: [competition_id], references: [id])
   student        Student     @relation(fields: [student_id], references: [id])
   snapshot_attachments SnapshotAttachments[]

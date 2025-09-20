@@ -13,6 +13,8 @@ export async function createCustomisedCompetition(
       competition_id: data.competition_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       competition: {
@@ -39,6 +41,7 @@ export async function createCustomisedCompetition(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -77,6 +80,7 @@ export async function getCustomisedCompetitions(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -111,6 +115,7 @@ export async function getCustomisedCompetitionById(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -125,6 +130,8 @@ export async function updateCustomisedCompetition(
       competition_id: data.competition_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       competition: {
@@ -151,6 +158,7 @@ export async function updateCustomisedCompetition(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }

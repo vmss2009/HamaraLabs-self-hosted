@@ -83,13 +83,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await request.json();
 
-    if (!body.status || !Array.isArray(body.status)) {
-      return failure("Status must be an array", 400, { code: "VALIDATION_ERROR" });
+    // Allow partial updates: status, comments, attachments
+    const patchData: any = {};
+    if (Array.isArray(body.status)) {
+      patchData.status = body.status;
+    }
+    if (typeof body.comments === 'string') {
+      patchData.comments = body.comments;
+    }
+    if (Array.isArray(body.attachments)) {
+      patchData.attachments = body.attachments;
     }
 
-    const updatedCourse = await updateCustomisedCourse(id, {
-      status: body.status,
-    });
+    if (Object.keys(patchData).length === 0) {
+      return failure("No valid fields to update", 400, { code: "VALIDATION_ERROR" });
+    }
+
+    const updatedCourse = await updateCustomisedCourse(id, patchData);
 
     return success(updatedCourse);
   } catch (error) {

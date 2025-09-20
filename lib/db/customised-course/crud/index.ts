@@ -9,6 +9,8 @@ export async function createCustomisedCourse(
       course_id: data.course_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       course: {
@@ -35,6 +37,7 @@ export async function createCustomisedCourse(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -73,6 +76,7 @@ export async function getCustomisedCourses(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -107,6 +111,7 @@ export async function getCustomisedCourseById(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -121,6 +126,8 @@ export async function updateCustomisedCourse(
       course_id: data.course_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       course: {
@@ -147,6 +154,7 @@ export async function updateCustomisedCourse(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }

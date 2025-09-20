@@ -20,6 +20,8 @@ import { EditActivityDialog } from "./tinkering-activity/tinkering-activity-edit
 import { getCourseColumns } from "./course/columns";
 import { getCompetitionColumns } from "./competition/columns";
 import { getTinkeringActivityColumns } from "./tinkering-activity/columns";
+import { EditCompetitionDialog } from "./competition/competition-edit-form/edit";
+import { EditCourseDialog } from "./course/course-edit-form/edit";
 
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
@@ -142,6 +144,9 @@ function StudentSnapshot() {
     "tinkering" | "competition" | "courses"
   >("tinkering");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [compEditDialogOpen, setCompEditDialogOpen] = useState(false);
+  const [courseEditDialogOpen, setCourseEditDialogOpen] = useState(false);
+  const [initialSimpleComments, setInitialSimpleComments] = useState("");
   const [editFormData, setEditFormData] = useState<EditFormData>({
     name: "",
     introduction: "",
@@ -793,6 +798,13 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
 
   const handleEditTinkeringActivity = (activity: TinkeringActivitySelection) => {
     setSelectedActivity(activity);
+    // Prepopulate attachments from both attachments[] and snapshot_attachments URLs
+    const urlsFromArray = Array.isArray((activity as any).attachments) ? ((activity as any).attachments as string[]) : [];
+    const urlsFromSnapshots = Array.isArray((activity as any).snapshot_attachments)
+      ? ((activity as any).snapshot_attachments as any[]).map((a) => String(a?.url)).filter(Boolean)
+      : [];
+    const urlSet = new Set<string>([...urlsFromArray, ...urlsFromSnapshots]);
+
     setEditFormData({
       name: activity.name || "",
       introduction: activity.introduction || "",
@@ -804,7 +816,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       extensions: activity.extensions || [],
       resources: activity.resources || [],
       comments: (activity as any).comments || "",
-      attachments: Array.isArray((activity as any).attachments) ? (activity as any).attachments : [],
+      attachments: Array.from(urlSet),
     });
 
     if (activity.subtopic?.topic?.subject) {
@@ -860,6 +872,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     if (!selectedActivity) return;
 
     try {
+      const uploadedUrls = Array.isArray(uploadedMeta) ? uploadedMeta.map(m => String(m.url)).filter(Boolean) : [];
+      const mergedAttachments = Array.from(new Set<string>([...(editFormData.attachments || []), ...uploadedUrls]));
+
       const response = await fetch(
         `/api/customised-tinkering-activities/${selectedActivity.id}`,
         {
@@ -869,6 +884,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           },
           body: JSON.stringify({
             ...editFormData,
+            attachments: mergedAttachments,
             subtopic_id: parseInt(selectedSubtopic),
             comments: editFormData.comments,
           }),
@@ -928,6 +944,18 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       console.error("Error deleting tinkering activity:", error);
       alert("Failed to delete tinkering activity. Please try again.");
     }
+  };
+
+  const handleEditCompetition = (competition: SnapshotItem) => {
+    setSelectedActivity(competition);
+    setInitialSimpleComments((competition as any).comments || "");
+    setCompEditDialogOpen(true);
+  };
+
+  const handleEditCourse = (course: SnapshotItem) => {
+    setSelectedActivity(course);
+    setInitialSimpleComments((course as any).comments || "");
+    setCourseEditDialogOpen(true);
   };
 
   const handleDeleteCompetition = async (competition: SnapshotItem) => {
@@ -997,10 +1025,12 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   ) as any;
   const competitionColumns = (getCompetitionColumns as any)(
     handleModifyCompetition as any,
+    handleEditCompetition as any,
     handleDeleteCompetition as any
   ) as any;
   const courseColumns = (getCourseColumns as any)(
     handleModifyCourse as any,
+    handleEditCourse as any,
     handleDeleteCourse as any
   ) as any;
 
@@ -1457,6 +1487,89 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         </div>
         </div>
 
+        {/* Edit dialogs for Competition and Course */}
+        <EditCompetitionDialog
+          open={compEditDialogOpen}
+          onClose={() => setCompEditDialogOpen(false)}
+          initialComments={initialSimpleComments}
+          initialAttachments={Array.isArray((selectedActivity as any)?.attachments) ? ((selectedActivity as any).attachments as string[]) : []}
+          initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
+          competitionId={selectedActivity?.id ?? null}
+          onSubmit={async (uploadedMeta, commentsValue, attachmentsValue) => {
+            if (!selectedActivity) return;
+            try {
+              // Update comments
+              const res = await fetch(`/api/customised-competitions/${selectedActivity.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ comments: commentsValue, attachments: attachmentsValue }),
+              });
+              if (!res.ok) {
+                const t = await res.text();
+                throw new Error(`Failed to update competition comments: ${res.status} ${t}`);
+              }
+              // Save attachments if present
+              if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0) {
+                const res2 = await fetch(`/api/customised-competitions/${selectedActivity.id}/attachments`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ attachments: uploadedMeta }),
+                });
+                if (!res2.ok) {
+                  const t = await res2.text();
+                  console.error('Failed to save competition attachments', res2.status, t);
+                }
+              }
+              setCompEditDialogOpen(false);
+              setSelectedActivity(null);
+              fetchCompetitions();
+            } catch (e) {
+              console.error(e);
+              alert('Failed to save changes for competition');
+            }
+          }}
+        />
+
+        <EditCourseDialog
+          open={courseEditDialogOpen}
+          onClose={() => setCourseEditDialogOpen(false)}
+          initialComments={initialSimpleComments}
+          initialAttachments={Array.isArray((selectedActivity as any)?.attachments) ? ((selectedActivity as any).attachments as string[]) : []}
+          initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
+          courseId={selectedActivity?.id ?? null}
+          onSubmit={async (uploadedMeta, commentsValue, attachmentsValue) => {
+            if (!selectedActivity) return;
+            try {
+              const res = await fetch(`/api/customised-courses/${selectedActivity.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ comments: commentsValue, attachments: attachmentsValue }),
+              });
+              if (!res.ok) {
+                const t = await res.text();
+                throw new Error(`Failed to update course comments: ${res.status} ${t}`);
+              }
+              if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0) {
+                const res2 = await fetch(`/api/customised-courses/${selectedActivity.id}/attachments`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ attachments: uploadedMeta }),
+                });
+                if (!res2.ok) {
+                  const t = await res2.text();
+                  console.error('Failed to save course attachments', res2.status, t);
+                }
+              }
+              setCourseEditDialogOpen(false);
+              setSelectedActivity(null);
+              fetchCourses();
+            } catch (e) {
+              console.error(e);
+              alert('Failed to save changes for course');
+            }
+          }}
+        />
+
         {activeTab === "tinkering" ? (
           <DetailViewer
             drawerOpen={drawerOpen}
@@ -1487,7 +1600,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 label: "Subtopic",
                 field: "subtopic.subtopic_name",
               },
-              { label: "Introduction", field: "introduction" },
+              { label: "Introduction", 
+                field: "introduction" 
+              },
               {
                 label: "Goals",
                 field: "goals",
@@ -1531,6 +1646,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 competitions.findIndex(
                   (competition) => competition.id === selectedRow?.id
                 ) + 1,
+              attachment_links: Array.isArray((selectedRow as any)?.snapshot_attachments)
+                ? ((selectedRow as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename }))
+                : [],
             }}
             formtype="Competition"
             columns={[
@@ -1579,7 +1697,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 label: "Status",
                 field: "status",
               },
-            ]}
+              { label: "Comments", field: "comments" },
+              { label: "Files", type: "links", field: "attachment_links" },
+]}
           />
         ) : activeTab === "courses" ? (
           <DetailViewer
@@ -1590,6 +1710,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               index:
                 courses.findIndex((course) => course.id === selectedRow?.id) +
                 1,
+              attachment_links: Array.isArray((selectedRow as any)?.snapshot_attachments)
+                ? ((selectedRow as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename }))
+                : [],
             }}
             formtype="Course"
             columns={[
@@ -1633,6 +1756,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 label: "Status",
                 field: "status",
               },
+              { label: "Comments", field: "comments" },
+              { label: "Files", type: "links", field: "attachment_links" },
             ]}
           />
         ) : null}
@@ -1698,6 +1823,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           topics={topics}
           subtopics={subtopics}
           activityId={(selectedActivity as any)?.id as string}
+          initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
         />
 
         {/* Generate TA Dialog */}

@@ -27,6 +27,7 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
   topics,
   subtopics,
   activityId,
+  initialAttachmentMetas,
 }) => {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -250,22 +251,34 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
           </div>
 
           {/* Existing attachments */}
-          <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
             {Array.isArray((editFormData as any).attachments) && (editFormData as any).attachments.length > 0 ? (
-              (editFormData as any).attachments.map((url: string, index: number) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-white border rounded">
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 break-all text-sm">
-                    {url}
-                  </a>
-                  <button
-                    type="button"
-                    className="ml-3 text-red-600 text-sm"
-                    onClick={() => handleRemoveArrayItem('attachments' as any, index)}
+              (editFormData as any).attachments.map((url: string, index: number) => {
+                const filename = (initialAttachmentMetas || []).find((m) => m?.url === url)?.filename || url.split('/').pop() || url;
+                return (
+                  <a
+                    key={index}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 max-w-full px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm hover:bg-blue-200"
                   >
-                    Remove
-                  </button>
-                </div>
-              ))
+                    <span className="truncate" title={filename}>{filename}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveArrayItem('attachments' as any, index)
+                      }}
+                      className="ml-1 text-blue-700 hover:text-blue-900"
+                      aria-label="Remove"
+                    >
+                      ×
+                    </button>
+                  </a>
+                );
+              })
             ) : (
               <div className="text-sm text-gray-600">No files attached.</div>
             )}

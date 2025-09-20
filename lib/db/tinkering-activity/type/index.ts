@@ -80,6 +80,7 @@ export interface EditActivityDialogProps {
   topics: Array<{ id: number; topic_name: string }>;
   subtopics: Array<{ id: number; subtopic_name: string }>;
   activityId?: string; // customised TA id for uploads
+  initialAttachmentMetas?: Array<{ url: string; filename?: string | null }>;
 }
 
 export interface TinkeringActivityCreateInput {

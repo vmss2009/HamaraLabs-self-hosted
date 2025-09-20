@@ -1,12 +1,13 @@
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
 
-import { DeleteIcon } from "@/components/form/Icons";
+import { DeleteIcon, EditIcon } from "@/components/form/Icons";
 
 type SnapshotItem = Record<string, unknown>;
 
 export const getCourseColumns = (
   handleModifyStatus: (row: SnapshotItem, type: string) => void,
+  handleEditCourse: (row: SnapshotItem) => void,
   handleDeleteCourse: (row: SnapshotItem) => void
 ): GridColDef[] => [
   {
@@ -85,6 +86,12 @@ export const getCourseColumns = (
     },
   },
   {
+    field: "comments",
+    headerName: "Comments",
+    width: 220,
+    renderCell: (params) => params.row?.comments ?? "",
+  },
+  {
     field: "reference_link",
     headerName: "Reference",
     width: 220,
@@ -140,6 +147,17 @@ export const getCourseColumns = (
         >
           Modify status
         </Button>
+
+        <GridActionsCellItem
+          key="edit"
+icon={<EditIcon />}
+          label="Edit"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEditCourse(params.row);
+          }}
+          showInMenu={false}
+        />
 
         <GridActionsCellItem
           key="delete"

@@ -4,6 +4,8 @@ export interface CustomisedCourseCreateInput {
   course_id: string;
   student_id: string;
   status: string[];
+  comments?: string;
+  attachments?: string[];
 }
 
 export interface CustomisedCourseWithRelations extends PrismaCustomisedCourse {
@@ -27,6 +29,14 @@ export interface CustomisedCourseWithRelations extends PrismaCustomisedCourse {
     first_name: string;
     last_name: string;
   };
+  snapshot_attachments?: Array<{
+    id: string;
+    url: string;
+    filename: string | null;
+    type: string;
+    size: number | null;
+    createdAt: Date;
+  }>;
 }
 
 export interface CustomisedCourseFilter {
