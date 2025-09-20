@@ -1,5 +1,6 @@
 import { prisma } from "../prisma";
 import { User, Prisma } from "@prisma/client";
+import { createAuthentikUser, updateAuthentikUserByEmail, deleteAuthentikUserByEmail } from "./authentik";
 
 type UserMeta = Prisma.InputJsonValue;
 
@@ -76,16 +77,30 @@ export async function createUser(data: {
   const { id, email, user_meta_data, schools } = data;
   const fn = typeof data.first_name === 'string' ? data.first_name.trim() : undefined;
   const ln = typeof data.last_name === 'string' ? data.last_name.trim() : undefined;
-    return prisma.user.create({
-        data: {
-            id: id ?? crypto.randomUUID(),
-            email,
+  const created = await prisma.user.create({
+    data: {
+      id: id ?? crypto.randomUUID(),
+      email,
       ...(fn ? { first_name: fn } : {}),
       ...(ln ? { last_name: ln } : {}),
-            user_meta_data,
-            schools: schools ?? [],
-        },
+      user_meta_data,
+      schools: schools ?? [],
+    },
+  });
+
+  // Best-effort sync to Authentik; do not block on failure
+  try {
+    await createAuthentikUser({
+      email: created.email,
+      first_name: created.first_name ?? undefined,
+      last_name: created.last_name ?? undefined,
+      password: `${created.email}@789`,
     });
+  } catch (e) {
+    console.error("Failed to sync create to Authentik:", e);
+  }
+
+  return created;
 }
 
 export async function updateUser(id: string, data: {
@@ -104,14 +119,42 @@ export async function updateUser(id: string, data: {
     const ln = data.last_name.trim();
     if (ln) patch.last_name = ln; else delete patch.last_name;
   }
-  return prisma.user.update({
+
+  const prev = await prisma.user.findUnique({ where: { id } });
+  const updated = await prisma.user.update({
     where: { id },
     data: patch,
   });
+
+  // Best-effort sync to Authentik, comparing with previous email if present
+  try {
+    const oldEmail = prev?.email ?? updated.email;
+    await updateAuthentikUserByEmail(oldEmail, {
+      email: updated.email,
+      first_name: updated.first_name ?? undefined,
+      last_name: updated.last_name ?? undefined,
+    });
+  } catch (e) {
+    console.error("Failed to sync update to Authentik:", e);
+  }
+
+  return updated;
 }
 
 export async function deleteUser(id: string): Promise<User> {
-  return prisma.user.delete({
+  const existing = await prisma.user.findUnique({ where: { id } });
+  const deleted = await prisma.user.delete({
     where: { id },
   });
+
+  // Best-effort deletion in Authentik by email
+  try {
+    if (existing?.email) {
+      await deleteAuthentikUserByEmail(existing.email);
+    }
+  } catch (e) {
+    console.error("Failed to sync delete to Authentik:", e);
+  }
+
+  return deleted;
 }
