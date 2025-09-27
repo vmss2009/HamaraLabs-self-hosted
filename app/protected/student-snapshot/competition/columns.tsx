@@ -145,8 +145,7 @@ icon={<EditIcon />}
           />
 
           <GridActionsCellItem
-            key="delete"
-icon={<DeleteIcon className="text-red-600 hover:text-red-700 transition-colors" />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();

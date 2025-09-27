@@ -39,6 +39,19 @@ export default function EditTinkeringActivityForm({
   const [observations, setObservations] = useState<string[]>([]);
   const [extensions, setExtensions] = useState<string[]>([]);
   const [resources, setResources] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<Record<number, { file: File; id: string; display: string }>>({});
+  const PENDING_PREFIX = '__PENDING_FILE__:';
+
+  function setResourcesWithCleanup(newArr: string[]) {
+    setResources(newArr);
+    setPendingFiles((prev) => {
+      const next: typeof prev = {};
+      newArr.forEach((val, idx) => {
+        if (val.startsWith(PENDING_PREFIX) && prev[idx]) next[idx] = prev[idx];
+      });
+      return next;
+    });
+  }
 
   useEffect(() => {
     const fetchTinkeringActivity = async () => {
@@ -59,8 +72,8 @@ export default function EditTinkeringActivityForm({
         setInstructions(data.instructions || []);
         setTips(data.tips || []);
         setObservations(data.observations || []);
-        setExtensions(data.extensions || []);
-        setResources(data.resources || []);
+    setExtensions(data.extensions || []);
+    setResources(Array.isArray(data.resources) ? data.resources : []);
 
         if (data.subtopic) {
           setSelectedSubtopic(data.subtopic.id.toString());
@@ -195,7 +208,23 @@ export default function EditTinkeringActivityForm({
         tips,
         observations,
         extensions,
-        resources,
+        // Resolve pending files first
+        resources: (await (async () => {
+          let finalResources = [...resources];
+          const entries = Object.entries(pendingFiles);
+          for (const [idxStr, meta] of entries) {
+            const idx = parseInt(idxStr, 10);
+            if (!finalResources[idx] || !finalResources[idx].startsWith(PENDING_PREFIX)) continue;
+            const fd = new FormData();
+            fd.append('file', meta.file);
+            fd.append('taId', resolvedParams.id);
+            const res = await fetch('/api/storage/upload-ta-resource', { method: 'POST', body: fd });
+            const data = await res.json().catch(()=>({}));
+            if(!res.ok || !data?.url) throw new Error(`Failed to upload resource file: ${meta.display}`);
+            finalResources[idx] = String(data.url);
+          }
+          return finalResources.filter(Boolean);
+        })()),
       };
 
       const response = await fetch(
@@ -380,12 +409,30 @@ export default function EditTinkeringActivityForm({
 
             <MultiForm
               className="mb-5"
-              values={resources}
               placeholder="Resource"
-              setArray={setResources}
+              values={resources}
+              setArray={setResourcesWithCleanup}
               legend="Resources"
               fieldLabel="Resource"
               name="resources"
+              onUpload={async (idx, file) => {
+                const id = Math.random().toString(36).slice(2);
+                setPendingFiles((prev) => ({ ...prev, [idx]: { file, id, display: file.name } }));
+                return { value: `${PENDING_PREFIX}${id}`, display: file.name, readOnly: true };
+              }}
+              uploadButtonLabel="Upload"
+              initializeMeta={(value) => {
+                if (!value || typeof value !== 'string') return null;
+                if (value.startsWith(PENDING_PREFIX)) return null; // pending placeholders handled separately
+                // Match any host but require the path segment pattern containing this activity id.
+                const pathNeedle = `/tinkering-activity/base-ta/${resolvedParams.id}/resources/`;
+                if (value.includes(pathNeedle)) {
+                  const withoutQuery = value.split('?')[0];
+                  const last = withoutQuery.split('/').filter(Boolean).pop();
+                  return { readOnly: true, display: last || value };
+                }
+                return null;
+              }}
             />
           </FormSection>
 

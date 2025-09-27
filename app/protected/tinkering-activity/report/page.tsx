@@ -331,10 +331,15 @@ export default function TinkeringActivityReport() {
           closeDrawer={closeDrawer}
           selectedRow={selectedRow ? {
             ...selectedRow,
-            index:
-              activities.findIndex(
-                (activity) => activity.id === selectedRow?.id
-              ) + 1,
+            index: activities.findIndex(a => a.id === selectedRow?.id) + 1,
+            resources: Array.isArray(selectedRow.resources) ? selectedRow.resources.map(r => {
+              if (!r) return r;
+              if (/^https?:\/\//i.test(r)) {
+                // Represent URL as object for DetailViewer links rendering by reusing existing 'links' type? We'll instead pass a special structure and adjust column to 'links'
+                return { url: r };
+              }
+              return r;
+            }) : []
           } : null}
           formtype="TinkeringActivity"
           columns={[
@@ -350,7 +355,7 @@ export default function TinkeringActivityReport() {
             { label: "Tips", field: "tips" },
             { label: "Observations", field: "observations" },
             { label: "Extensions", field: "extensions" },
-            { label: "Resources", field: "resources" },
+            { label: "Resources", type: 'links', field: 'resources' },
           ]}
         />
         

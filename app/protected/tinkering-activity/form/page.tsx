@@ -33,6 +33,21 @@ export default function TinkeringActivityForm() {
   const [observations, setObservations] = useState<string[]>([]);
   const [extensions, setExtensions] = useState<string[]>([]);
   const [resources, setResources] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<Record<number, { file: File; id: string; display: string }>>({});
+  const PENDING_PREFIX = '__PENDING_FILE__:';
+
+  function setResourcesWithCleanup(newArr: string[]) {
+    setResources(newArr);
+    setPendingFiles((prev) => {
+      const next: typeof prev = {};
+      newArr.forEach((val, idx) => {
+        if (val.startsWith(PENDING_PREFIX) && prev[idx]) {
+          next[idx] = prev[idx];
+        }
+      });
+      return next;
+    });
+  }
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -107,7 +122,8 @@ export default function TinkeringActivityForm() {
     setError(null);
 
     try {
-      const tinkeringActivityData = {
+      // Phase 1: create activity without resources (need id for file path)
+      const baseCreateData = {
         name,
         subtopicId: parseInt(selectedSubtopic),
         introduction,
@@ -117,23 +133,66 @@ export default function TinkeringActivityForm() {
         tips,
         observations,
         extensions,
-        resources,
+        resources: [],
       };
-
-      const response = await fetch("/api/tinkering-activities", {
+      const createResp = await fetch("/api/tinkering-activities", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(tinkeringActivityData),
+        body: JSON.stringify(baseCreateData),
       });
+      if (!createResp.ok) {
+        const errorData = await createResp.json().catch(()=>({}));
+        throw new Error(errorData.message || 'Failed to create activity');
+      }
+      const created = await createResp.json();
+      const activityId = created?.data?.id || created?.id;
+      if(!activityId) throw new Error('Activity ID missing in create response');
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit the form");
+      // Phase 2: upload pending files now that we have ID
+      let finalResources = [...resources];
+      const uploadEntries = Object.entries(pendingFiles);
+      if (uploadEntries.length) {
+        for (const [idxStr, meta] of uploadEntries) {
+          const idx = parseInt(idxStr, 10);
+          if (!finalResources[idx] || !finalResources[idx].startsWith(PENDING_PREFIX)) continue;
+          const fd = new FormData();
+          fd.append('file', meta.file);
+          fd.append('taId', activityId);
+          const res = await fetch('/api/storage/upload-ta-resource', { method: 'POST', body: fd });
+          const data = await res.json().catch(()=>({}));
+          if(!res.ok || !data?.url) throw new Error(`Failed to upload resource file: ${meta.display}`);
+          finalResources[idx] = String(data.url);
+        }
       }
 
-      router.push("/protected/tinkering-activity/report");
+      // Phase 3: PATCH activity to add resources (only if any)
+      const cleaned = finalResources.filter(Boolean);
+      if (cleaned.length) {
+        const patchResp = await fetch(`/api/tinkering-activities/${activityId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            subtopicId: parseInt(selectedSubtopic),
+            introduction,
+            goals,
+            materials,
+            instructions,
+            tips,
+            observations,
+            extensions,
+            resources: cleaned,
+          })
+        });
+        if(!patchResp.ok) {
+          const errJ = await patchResp.json().catch(()=>({}));
+            throw new Error(errJ.message || 'Failed to update resources after upload');
+        }
+      }
+
+      router.push('/protected/tinkering-activity/report');
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -297,12 +356,33 @@ export default function TinkeringActivityForm() {
 
             <MultiForm
               className="mb-5"
-              placeholder="Resourse"
+              placeholder="Resource"
               values={resources}
-              setArray={setResources}
+              setArray={setResourcesWithCleanup}
               legend="Resources"
               fieldLabel="Resource"
               name="resources"
+              onUpload={async (idx, file) => {
+                const id = Math.random().toString(36).slice(2);
+                setPendingFiles((prev) => ({ ...prev, [idx]: { file, id, display: file.name } }));
+                return { value: `${PENDING_PREFIX}${id}`, display: file.name, readOnly: true };
+              }}
+              uploadButtonLabel="Upload"
+              initializeMeta={(value) => {
+                if (!value) return null;
+                if (/^https?:\/\//i.test(value)) {
+                  try {
+                    const u = new URL(value);
+                    const last = u.pathname.split('/').filter(Boolean).pop();
+                    return { readOnly: true, display: last || value };
+                  } catch {
+                    const s = value.split('?')[0];
+                    const last = s.split('/').filter(Boolean).pop();
+                    return { readOnly: true, display: last || value };
+                  }
+                }
+                return null;
+              }}
             />
           </FormSection>
 

@@ -140,7 +140,7 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                     {items.map((item: any, idx: number) => {
                       const url = String(item?.url ?? item);
                       const filename = String(item?.filename ?? "");
-                      const name = filename || (() => {
+                      const rawName = filename || (() => {
                         try {
                           const u = new URL(url);
                           const last = u.pathname.split("/").filter(Boolean).pop();
@@ -151,6 +151,14 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                           return last || url;
                         }
                       })();
+                      let displayName = rawName;
+                      try {
+                        displayName = decodeURIComponent(rawName);
+                      } catch {
+                        // ignore decode errors
+                      }
+                      // Common cleanups: replace + with space (in some encodings) and trim
+                      displayName = displayName.replace(/\+/g, ' ').trim();
                       return (
                         <li key={idx} className="text-gray-900">
                           <a
@@ -160,7 +168,7 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                             rel="noopener noreferrer"
                             className="hover:underline break-all text-blue-600"
                           >
-                            {name}
+                            {displayName}
                           </a>
                         </li>
                       );
