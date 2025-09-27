@@ -5,8 +5,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function formatAddress(addrUnknown: unknown): string {
-  if (!isRecord(addrUnknown)) return "N/A";
+const NA_ELEMENT = <span className="text-gray-500">N/A</span>;
+
+function formatAddress(addrUnknown: unknown): React.ReactNode {
+  if (!isRecord(addrUnknown)) return NA_ELEMENT;
   const addr = addrUnknown as Record<string, unknown>;
   const city = isRecord(addr.city) ? (addr.city as Record<string, unknown>) : undefined;
   const state = isRecord(city?.state) ? (city!.state as Record<string, unknown>) : undefined;
@@ -21,17 +23,19 @@ function formatAddress(addrUnknown: unknown): string {
   ].filter((s) => s && s.trim() !== "");
 
   const pincode = String((addr.pincode as string) ?? "");
-  return `${parts.join(", ")}${pincode ? " - " + pincode : ""}`;
+  const formatted = `${parts.join(", ")}${pincode ? " - " + pincode : ""}`;
+  return formatted || NA_ELEMENT;
 }
 
 function formatValue(value: unknown): React.ReactNode {
-  if (value === null || value === undefined) return "N/A";
+  if (value === null || value === undefined) return NA_ELEMENT;
   if (Array.isArray(value)) {
     return (
-      <ul className="list-disc pl-5">
-        {value.map((item, index) => (
-          <li key={index}>{String(item)}</li>
-        ))}
+      <ul className="list-disc pl-5 text-gray-900">
+        {value.map((item, index) => {
+          const display = item === null || item === undefined || item === '' ? NA_ELEMENT : String(item);
+          return <li key={index} className="leading-snug">{display}</li>;
+        })}
       </ul>
     );
   }
@@ -44,7 +48,7 @@ function formatValue(value: unknown): React.ReactNode {
 }
 
 const formatDate = (dateString: string): string => {
-  if (!dateString) return "N/A";
+  if (!dateString) return ""; // Let caller wrap with NA_ELEMENT
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString();
@@ -107,20 +111,30 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                 </div>
               </div>
             ) : col.type === "date" && "field" in col ? (
-              <div className="text-gray-900">{formatDate(String(getNestedValue(selectedRow, col.field)))}</div>
+              (() => {
+                const raw = getNestedValue(selectedRow, col.field);
+                const formatted = typeof raw === 'string' ? formatDate(raw) : '';
+                return <div className="text-gray-900">{formatted || NA_ELEMENT}</div>;
+              })()
             ) : col.type === "compare" && Array.isArray(col.fields) ? (
-              <div className="text-gray-900">
-                {`${getNestedValue(selectedRow, col.fields[0]?.field) || "N/A"} - ${
-                  getNestedValue(selectedRow, col.fields[1]?.field) || "N/A"
-                }`}
-              </div>
+              (() => {
+                const left = getNestedValue(selectedRow, col.fields[0]?.field);
+                const right = getNestedValue(selectedRow, col.fields[1]?.field);
+                return (
+                  <div className="text-gray-900 flex gap-1">
+                    <span>{left === null || left === undefined || left === '' ? NA_ELEMENT : String(left)}</span>
+                    <span>-</span>
+                    <span>{right === null || right === undefined || right === '' ? NA_ELEMENT : String(right)}</span>
+                  </div>
+                );
+              })()
             ) : col.type === "address" && isRecord(selectedRow) && isRecord((selectedRow as Record<string, unknown>).address) ? (
               <div className="text-gray-900">{formatAddress((selectedRow as Record<string, unknown>).address)}</div>
             ) : col.type === "links" && "field" in col ? (
               (() => {
                 const v = getNestedValue(selectedRow, col.field);
                 const items = Array.isArray(v) ? v : [];
-                if (items.length === 0) return <div className="text-gray-500">N/A</div>;
+                if (items.length === 0) return <div className="">{NA_ELEMENT}</div>;
                 return (
                   <ul className="list-disc pl-5 space-y-1">
                     {items.map((item: any, idx: number) => {
@@ -138,13 +152,13 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                         }
                       })();
                       return (
-                        <li key={idx}>
+                        <li key={idx} className="text-gray-900">
                           <a
                             href={url}
                             download
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline break-all"
+                            className="hover:underline break-all text-blue-600"
                           >
                             {name}
                           </a>
@@ -155,7 +169,11 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                 );
               })()
             ) : "field" in col && typeof col.field === "string" ? (
-              <div className="text-gray-900">{formatValue(getNestedValue(selectedRow, col.field as string))}</div>
+              (() => {
+                const val = getNestedValue(selectedRow, col.field as string);
+                const rendered = formatValue(val);
+                return <div className="text-gray-900">{rendered === 'N/A' ? NA_ELEMENT : rendered}</div>;
+              })()
             ) : null}
             </div>
           ))}
