@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Modal from "@/components/form/Modal";
 import { Input } from "@/components/form/Input";
 import SelectField from "@/components/form/SelectField";
 import { Button } from "@/components/ui/Button";
 import { SelectedAttachmentPreview } from "@/components/chat/AttachmentPreview";
 import { EditActivityDialogProps } from "@/lib/db/tinkering-activity/type";
+import MultiForm from "@/components/form/Multiform";
 
 export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
   open,
@@ -33,6 +34,32 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // ---------- Resources (deferred file uploads similar to base TA) ----------
+  const PENDING_PREFIX = "__PENDING_FILE__:";
+  const [pendingResourceFiles, setPendingResourceFiles] = useState<Record<number, { file: File; id: string; display: string }>>({});
+
+  const resourcesArray: string[] = Array.isArray((editFormData as any).resources)
+    ? (editFormData as any).resources
+    : ((editFormData as any).resources ? [(editFormData as any).resources] : [""]);
+
+  const setResourcesArray = (arr: string[]) => {
+    handleEditFormChange("resources" as any, arr as any);
+  };
+
+  // Cleanup pending resource entries when rows removed
+  useEffect(() => {
+    setPendingResourceFiles((prev) => {
+      const next: typeof prev = {};
+      Object.entries(prev).forEach(([k, v]) => {
+        const idx = Number(k);
+        if (idx < resourcesArray.length && resourcesArray[idx].startsWith(PENDING_PREFIX)) {
+          next[idx] = v;
+        }
+      });
+      return next;
+    });
+  }, [resourcesArray.length]);
+
   function addPending(files: FileList | File[]) {
     setPendingFiles((prev) => {
       const existing = new Map(prev.map(f => [f.name + ':' + f.size + ':' + f.lastModified, true]));
@@ -56,32 +83,61 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
       footer={
         <>
           <Button onClick={onClose} variant="outline">Cancel</Button>
-          <Button onClick={async () => {
-            // Upload pending files (if any), then submit with uploaded metadata
-            try {
-              setUploading(true);
-              const metas: { url: string; filename?: string; type?: string; size?: number }[] = [];
-              if (activityId && pendingFiles.length > 0) {
-                const uploads = Array.from(pendingFiles).map(async (f) => {
-                  const fd = new FormData();
-                  fd.append('taId', activityId);
-                  fd.append('file', f);
-                  const res = await fetch('/api/storage/upload-customised-ta', { method: 'POST', body: fd });
-                  const data = await res.json().catch(() => ({}));
-                  if (res.ok && data?.url) {
-                    metas.push({ url: String(data.url), filename: String(data.filename || f.name), type: String(data.type || f.type || ''), size: Number(data.size || f.size || 0) });
-                  } else {
-                    console.error('Upload failed', data?.error || res.statusText);
-                  }
-                });
-                await Promise.all(uploads);
+          <Button
+            onClick={async () => {
+              try {
+                setUploading(true);
+                const metas: { url: string; filename?: string; type?: string; size?: number }[] = [];
+                // Upload pending attachments (existing behavior)
+                if (activityId && pendingFiles.length > 0) {
+                  const uploads = Array.from(pendingFiles).map(async (f) => {
+                    const fd = new FormData();
+                    fd.append('taId', activityId);
+                    fd.append('file', f);
+                    const res = await fetch('/api/storage/upload-customised-ta', { method: 'POST', body: fd });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.url) {
+                      metas.push({ url: String(data.url), filename: String(data.filename || f.name), type: String(data.type || f.type || ''), size: Number(data.size || f.size || 0) });
+                    } else {
+                      console.error('Upload failed', data?.error || res.statusText);
+                    }
+                  });
+                  await Promise.all(uploads);
+                }
+
+                // Upload pending resource files (deferred placeholders)
+                if (activityId && Object.keys(pendingResourceFiles).length > 0) {
+                  const entries = Object.entries(pendingResourceFiles);
+                  const current = [...resourcesArray];
+                  await Promise.all(entries.map(async ([idxStr, info]) => {
+                    const fd = new FormData();
+                    fd.append('taId', activityId);
+                    fd.append('file', info.file);
+                    const res = await fetch('/api/storage/upload-ta-resource', { method: 'POST', body: fd });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.url) {
+                      const placeholder = `${PENDING_PREFIX}${info.id}`;
+                      const finalUrl = String(data.url);
+                      const pos = current.findIndex(v => v === placeholder);
+                      if (pos !== -1) current[pos] = finalUrl;
+                    } else {
+                      console.error('Resource upload failed', data?.error || res.statusText);
+                    }
+                  }));
+                  setResourcesArray(current);
+                }
+
+                setPendingResourceFiles({});
+                setPendingFiles([]);
+                onSubmit(metas as any);
+              } finally {
+                setUploading(false);
               }
-              setPendingFiles([]);
-              onSubmit(metas as any);
-            } finally {
-              setUploading(false);
-            }
-          }} variant="default">{uploading ? 'Saving…' : 'Save Changes'}</Button>
+            }}
+            variant="default"
+          >
+            {uploading ? 'Saving…' : 'Save Changes'}
+          </Button>
         </>
       }
     >
@@ -156,16 +212,8 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
         </div>
 
 
-        {/* Dynamic Array Fields */}
-        {[
-          "goals",
-            "materials",
-            "instructions",
-            "tips",
-            "observations",
-            "extensions",
-            "resources",
-        ].map((field) => (
+        {/* Dynamic Array Fields (excluding resources) */}
+        {["goals","materials","instructions","tips","observations","extensions"].map((field) => (
           <div key={field} className="bg-gray-50 p-4 rounded-lg">
             <div className="text-lg font-semibold text-gray-900 mb-2">
               {field.charAt(0).toUpperCase() + field.slice(1)}
@@ -215,6 +263,38 @@ export const EditActivityDialog: React.FC<EditActivityDialogProps> = ({
             </div>
           </div>
         ))}
+
+        {/* Resources with file upload (single file per row, deferred) */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="text-lg font-semibold text-gray-900 mb-2">Resources</div>
+          <MultiForm
+            values={resourcesArray}
+            setArray={setResourcesArray}
+            placeholder="Resource"
+            legend="Resources"
+            fieldLabel="Resource"
+            name="resources"
+            onUpload={async (idx, file) => {
+              const id = Math.random().toString(36).slice(2);
+              setPendingResourceFiles((prev) => ({ ...prev, [idx]: { file, id, display: file.name } }));
+              return { value: `${PENDING_PREFIX}${id}`, display: file.name, readOnly: true };
+            }}
+            uploadButtonLabel="Upload"
+            initializeMeta={(value) => {
+              if (!value || typeof value !== 'string') return null;
+              if (value.startsWith(PENDING_PREFIX)) return null;
+              if (!activityId) return null;
+              const pathNeedle = `/tinkering-activity/base-ta/${activityId}/resources/`;
+              if (value.includes(pathNeedle)) {
+                const cleaned = value.split('?')[0];
+                const last = cleaned.split('/').filter(Boolean).pop();
+                return { readOnly: true, display: decodeURIComponent(last || '') };
+              }
+              return null;
+            }}
+          />
+          <p className="text-xs text-gray-500 mt-2">Each row can be a URL or an uploaded file (original filename kept). Use Replace to change a file.</p>
+        </div>
 
         {/* Comments (Customised TA only) */}
         <div className="bg-gray-50 p-4 rounded-lg">
