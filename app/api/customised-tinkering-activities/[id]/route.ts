@@ -62,7 +62,12 @@ export async function PUT(
 
     const updatedActivity = await updateCustomisedTinkeringActivity(
       id,
-      validatedData
+      {
+        ...validatedData,
+        keepSnapshotAttachmentUrls: Array.isArray((body as any)?.keepSnapshotAttachmentUrls)
+          ? (body as any).keepSnapshotAttachmentUrls as string[]
+          : [],
+      }
     );
 
     return success(updatedActivity);

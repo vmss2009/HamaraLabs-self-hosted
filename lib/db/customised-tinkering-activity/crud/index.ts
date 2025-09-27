@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { pruneTAAttachments } from "@/lib/db/snapshot-attachments/crud";
 import {
   CustomisedTinkeringActivityCreateInput,
   CustomisedTinkeringActivityFilter,
@@ -134,15 +135,17 @@ export async function getCustomisedTinkeringActivityById(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
 
 export async function updateCustomisedTinkeringActivity(
   id: string,
-  data: Partial<CustomisedTinkeringActivityCreateInput>
+  data: Partial<CustomisedTinkeringActivityCreateInput> & { keepSnapshotAttachmentUrls?: string[] }
 ): Promise<CustomisedTinkeringActivityWithRelations> {
-  return prisma.customisedTinkeringActivity.update({
+  const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const updated = await prisma.customisedTinkeringActivity.update({
     where: { id },
     data: ({
       name: data.name,
@@ -183,6 +186,11 @@ export async function updateCustomisedTinkeringActivity(
       snapshot_attachments: true,
     },
   });
+  // Prune snapshot attachments (not stored in attachments[] array) if caller provided urls to keep
+  if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
+    await pruneTAAttachments(id, keepUrls);
+  }
+  return updated;
 }
 
 export async function deleteCustomisedTinkeringActivity(

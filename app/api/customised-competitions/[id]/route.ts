@@ -50,7 +50,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const customisedCompetition = await updateCustomisedCompetition(
       id,
-      data as Partial<CustomisedCompetitionCreateInput>
+      {
+        ...(data as Partial<CustomisedCompetitionCreateInput>),
+        keepSnapshotAttachmentUrls: Array.isArray((data as any)?.keepSnapshotAttachmentUrls)
+          ? (data as any).keepSnapshotAttachmentUrls as string[]
+          : [],
+      }
     );
 
     return success(customisedCompetition);
@@ -99,7 +104,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return failure("No valid fields to update", 400, { code: "VALIDATION_ERROR" });
     }
 
-    const updatedCompetition = await updateCustomisedCompetition(id, patchData);
+    const updatedCompetition = await updateCustomisedCompetition(id, {
+      ...patchData,
+      keepSnapshotAttachmentUrls: Array.isArray((body as any)?.keepSnapshotAttachmentUrls)
+        ? (body as any).keepSnapshotAttachmentUrls as string[]
+        : [],
+    });
 
     return success(updatedCompetition);
   } catch (error) {

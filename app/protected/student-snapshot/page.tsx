@@ -172,6 +172,8 @@ function StudentSnapshot() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
+  // Track original snapshot attachment URLs for tinkering activity edit so we can compute keep list
+  const [editingSnapshotOriginalUrls, setEditingSnapshotOriginalUrls] = useState<string[]>([]);
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
@@ -805,6 +807,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       : [];
     const urlSet = new Set<string>([...urlsFromArray, ...urlsFromSnapshots]);
 
+    // Store original snapshot attachment URLs separately for pruning computation
+    setEditingSnapshotOriginalUrls(urlsFromSnapshots);
+
     setEditFormData({
       name: activity.name || "",
       introduction: activity.introduction || "",
@@ -875,6 +880,10 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       const uploadedUrls = Array.isArray(uploadedMeta) ? uploadedMeta.map(m => String(m.url)).filter(Boolean) : [];
       const mergedAttachments = Array.from(new Set<string>([...(editFormData.attachments || []), ...uploadedUrls]));
 
+      // Compute keep list for existing snapshot attachments (exclude removed ones). Newly uploaded snapshot attachments
+      // are created after the update (POST /attachments) so they don't need to be in keep list for this prune step.
+      const keepSnapshotAttachmentUrls = editingSnapshotOriginalUrls.filter(u => (editFormData.attachments || []).includes(u));
+
       const response = await fetch(
         `/api/customised-tinkering-activities/${selectedActivity.id}`,
         {
@@ -887,6 +896,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
             attachments: mergedAttachments,
             subtopic_id: parseInt(selectedSubtopic),
             comments: editFormData.comments,
+            keepSnapshotAttachmentUrls,
           }),
         }
       );
@@ -1490,85 +1500,93 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         {/* Edit dialogs for Competition and Course */}
         <EditCompetitionDialog
           open={compEditDialogOpen}
-          onClose={() => setCompEditDialogOpen(false)}
-          initialComments={initialSimpleComments}
-          initialAttachments={Array.isArray((selectedActivity as any)?.attachments) ? ((selectedActivity as any).attachments as string[]) : []}
-          initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
-          competitionId={selectedActivity?.id ?? null}
-          onSubmit={async (uploadedMeta, commentsValue, attachmentsValue) => {
-            if (!selectedActivity) return;
-            try {
-              // Update comments
-              const res = await fetch(`/api/customised-competitions/${selectedActivity.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ comments: commentsValue, attachments: attachmentsValue }),
-              });
-              if (!res.ok) {
-                const t = await res.text();
-                throw new Error(`Failed to update competition comments: ${res.status} ${t}`);
-              }
-              // Save attachments if present
-              if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0) {
-                const res2 = await fetch(`/api/customised-competitions/${selectedActivity.id}/attachments`, {
-                  method: 'POST',
+            onClose={() => setCompEditDialogOpen(false)}
+            initialComments={initialSimpleComments}
+            initialAttachments={Array.isArray((selectedActivity as any)?.attachments) ? ((selectedActivity as any).attachments as string[]) : []}
+            initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
+            competitionId={selectedActivity?.id ?? null}
+            onSubmit={async (uploadedMeta, commentsValue, allUrls, snapshotUrls) => {
+              if (!selectedActivity) return;
+              try {
+                const res = await fetch(`/api/customised-competitions/${selectedActivity.id}`, {
+                  method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ attachments: uploadedMeta }),
+                  body: JSON.stringify({ comments: commentsValue, attachments: allUrls, keepSnapshotAttachmentUrls: snapshotUrls }),
                 });
-                if (!res2.ok) {
-                  const t = await res2.text();
-                  console.error('Failed to save competition attachments', res2.status, t);
+                if (!res.ok) {
+                  const t = await res.text();
+                  throw new Error(`Failed to update competition: ${res.status} ${t}`);
                 }
+                // Persist newly uploaded snapshot attachments (if any) so they show up in sidebar detail viewer
+                if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0) {
+                  try {
+                    const res2 = await fetch(`/api/customised-competitions/${selectedActivity.id}/attachments`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ attachments: uploadedMeta }),
+                    });
+                    if (!res2.ok) {
+                      const t2 = await res2.text();
+                      console.error('Failed to save competition attachments:', res2.status, t2);
+                    }
+                  } catch (e) {
+                    console.error('Error saving competition attachments:', e);
+                  }
+                }
+                setCompEditDialogOpen(false);
+                setSelectedActivity(null);
+                fetchCompetitions();
+              } catch (e) {
+                console.error(e);
+                alert('Failed to save changes for competition');
               }
-              setCompEditDialogOpen(false);
-              setSelectedActivity(null);
-              fetchCompetitions();
-            } catch (e) {
-              console.error(e);
-              alert('Failed to save changes for competition');
-            }
-          }}
-        />
+            }}
+          />
 
         <EditCourseDialog
-          open={courseEditDialogOpen}
-          onClose={() => setCourseEditDialogOpen(false)}
-          initialComments={initialSimpleComments}
-          initialAttachments={Array.isArray((selectedActivity as any)?.attachments) ? ((selectedActivity as any).attachments as string[]) : []}
-          initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
-          courseId={selectedActivity?.id ?? null}
-          onSubmit={async (uploadedMeta, commentsValue, attachmentsValue) => {
-            if (!selectedActivity) return;
-            try {
-              const res = await fetch(`/api/customised-courses/${selectedActivity.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ comments: commentsValue, attachments: attachmentsValue }),
-              });
-              if (!res.ok) {
-                const t = await res.text();
-                throw new Error(`Failed to update course comments: ${res.status} ${t}`);
-              }
-              if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0) {
-                const res2 = await fetch(`/api/customised-courses/${selectedActivity.id}/attachments`, {
-                  method: 'POST',
+            open={courseEditDialogOpen}
+            onClose={() => setCourseEditDialogOpen(false)}
+            initialComments={initialSimpleComments}
+            initialAttachments={Array.isArray((selectedActivity as any)?.attachments) ? ((selectedActivity as any).attachments as string[]) : []}
+            initialAttachmentMetas={Array.isArray((selectedActivity as any)?.snapshot_attachments) ? ((selectedActivity as any).snapshot_attachments as any[]).map((a) => ({ url: a?.url, filename: a?.filename })) : []}
+            courseId={selectedActivity?.id ?? null}
+            onSubmit={async (uploadedMeta, commentsValue, allUrls, snapshotUrls) => {
+              if (!selectedActivity) return;
+              try {
+                const res = await fetch(`/api/customised-courses/${selectedActivity.id}`, {
+                  method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ attachments: uploadedMeta }),
+                  body: JSON.stringify({ comments: commentsValue, attachments: allUrls, keepSnapshotAttachmentUrls: snapshotUrls }),
                 });
-                if (!res2.ok) {
-                  const t = await res2.text();
-                  console.error('Failed to save course attachments', res2.status, t);
+                if (!res.ok) {
+                  const t = await res.text();
+                  throw new Error(`Failed to update course: ${res.status} ${t}`);
                 }
+                // Persist newly uploaded snapshot attachments (if any)
+                if (Array.isArray(uploadedMeta) && uploadedMeta.length > 0) {
+                  try {
+                    const res2 = await fetch(`/api/customised-courses/${selectedActivity.id}/attachments`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ attachments: uploadedMeta }),
+                    });
+                    if (!res2.ok) {
+                      const t2 = await res2.text();
+                      console.error('Failed to save course attachments:', res2.status, t2);
+                    }
+                  } catch (e) {
+                    console.error('Error saving course attachments:', e);
+                  }
+                }
+                setCourseEditDialogOpen(false);
+                setSelectedActivity(null);
+                fetchCourses();
+              } catch (e) {
+                console.error(e);
+                alert('Failed to save changes for course');
               }
-              setCourseEditDialogOpen(false);
-              setSelectedActivity(null);
-              fetchCourses();
-            } catch (e) {
-              console.error(e);
-              alert('Failed to save changes for course');
-            }
-          }}
-        />
+            }}
+          />
 
         {activeTab === "tinkering" ? (
           <DetailViewer

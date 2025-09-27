@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { pruneCompetitionAttachments } from "@/lib/db/snapshot-attachments/crud";
 import {
   CustomisedCompetitionCreateInput,
   CustomisedCompetitionFilter,
@@ -122,9 +123,10 @@ export async function getCustomisedCompetitionById(
 
 export async function updateCustomisedCompetition(
   id: string,
-  data: Partial<CustomisedCompetitionCreateInput>
+  data: Partial<CustomisedCompetitionCreateInput> & { keepSnapshotAttachmentUrls?: string[] }
 ): Promise<CustomisedCompetitionWithRelations> {
-  return prisma.customisedCompetition.update({
+  const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const updated = await prisma.customisedCompetition.update({
     where: { id },
     data: {
       competition_id: data.competition_id,
@@ -161,6 +163,10 @@ export async function updateCustomisedCompetition(
       snapshot_attachments: true,
     },
   });
+  if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
+    await pruneCompetitionAttachments(id, keepUrls);
+  }
+  return updated;
 }
 
 export async function deleteCustomisedCompetition(

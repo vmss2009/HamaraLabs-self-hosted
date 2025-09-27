@@ -1,5 +1,6 @@
 import { CustomisedCourseCreateInput, CustomisedCourseFilter, CustomisedCourseWithRelations } from "../type";
 import { prisma } from "@/lib/db/prisma";
+import { pruneCourseAttachments } from "@/lib/db/snapshot-attachments/crud";
 
 export async function createCustomisedCourse(
   data: CustomisedCourseCreateInput,
@@ -118,9 +119,10 @@ export async function getCustomisedCourseById(
 
 export async function updateCustomisedCourse(
   id: string,
-  data: Partial<CustomisedCourseCreateInput>,
+  data: Partial<CustomisedCourseCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
 ): Promise<CustomisedCourseWithRelations> {
-  return prisma.customisedCourse.update({
+  const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const updated = await prisma.customisedCourse.update({
     where: { id },
     data: {
       course_id: data.course_id,
@@ -157,6 +159,10 @@ export async function updateCustomisedCourse(
       snapshot_attachments: true,
     },
   });
+  if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
+    await pruneCourseAttachments(id, keepUrls);
+  }
+  return updated;
 }
 
 export async function deleteCustomisedCourse(

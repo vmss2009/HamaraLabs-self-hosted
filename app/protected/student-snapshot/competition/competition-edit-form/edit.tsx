@@ -5,13 +5,21 @@ import Modal from "@/components/form/Modal";
 import { Button } from "@/components/ui/Button";
 import { SelectedAttachmentPreview } from "@/components/chat/AttachmentPreview";
 
+type AttachmentSource = 'column' | 'snapshot' | 'new-snapshot';
+
+interface AttachmentItem {
+  url: string;
+  source: AttachmentSource;
+}
+
 export interface EditCompetitionDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (
     uploadedMeta: Array<{ url: string; filename?: string; type?: string; size?: number }>,
     comments: string,
-    attachments: string[]
+    allAttachmentUrls: string[],
+    keepSnapshotUrls: string[]
   ) => void | Promise<void>;
   initialComments: string;
   initialAttachments: string[];
@@ -29,7 +37,8 @@ export const EditCompetitionDialog: React.FC<EditCompetitionDialogProps> = ({
   competitionId,
 }) => {
   const [comments, setComments] = useState<string>(initialComments || "");
-  const [attachments, setAttachments] = useState<string[]>(Array.isArray(initialAttachments) ? initialAttachments : []);
+  // Internal unified list with source tagging
+  const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -39,8 +48,21 @@ export const EditCompetitionDialog: React.FC<EditCompetitionDialogProps> = ({
   }, [initialComments]);
 
   React.useEffect(() => {
-    setAttachments(Array.isArray(initialAttachments) ? initialAttachments : []);
-  }, [initialAttachments]);
+    const initial: AttachmentItem[] = [];
+    const snapshotSet = new Set<string>();
+    (initialAttachmentMetas || []).forEach(a => {
+      if (a?.url) {
+        snapshotSet.add(a.url);
+        initial.push({ url: a.url, source: 'snapshot' });
+      }
+    });
+    (initialAttachments || []).forEach(u => {
+      if (!u) return;
+      if (snapshotSet.has(u)) return; // avoid duplicate chip
+      initial.push({ url: u, source: 'column' });
+    });
+    setAttachments(initial);
+  }, [initialAttachments, initialAttachmentMetas]);
 
   function addPending(files: FileList | File[]) {
     setPendingFiles((prev) => {
@@ -89,7 +111,10 @@ export const EditCompetitionDialog: React.FC<EditCompetitionDialogProps> = ({
                   const res = await fetch('/api/storage/upload-customised-competition', { method: 'POST', body: fd });
                   const data = await res.json().catch(() => ({}));
                   if (res.ok && data?.url) {
-                    metas.push({ url: String(data.url), filename: String(data.filename || f.name), type: String(data.type || f.type || ''), size: Number(data.size || f.size || 0) });
+                    const meta = { url: String(data.url), filename: String(data.filename || f.name), type: String(data.type || f.type || ''), size: Number(data.size || f.size || 0) };
+                    metas.push(meta);
+                    // Add to unified list (tagged as new snapshot)
+                    setAttachments(prev => [...prev, { url: meta.url, source: 'new-snapshot' }]);
                   } else {
                     console.error('Upload failed', data?.error || res.statusText);
                   }
@@ -97,9 +122,9 @@ export const EditCompetitionDialog: React.FC<EditCompetitionDialogProps> = ({
                 await Promise.all(uploads);
               }
               setPendingFiles([]);
-              const newUrls = metas.map(m => m.url);
-              const merged = [...attachments, ...newUrls];
-              await onSubmit(metas as any, comments, merged);
+              const snapshotUrls = attachments.filter(a => a.source === 'snapshot' || a.source === 'new-snapshot').map(a => a.url);
+              const allUrls = attachments.map(a => a.url);
+              await onSubmit(metas as any, comments, allUrls, snapshotUrls);
             } finally {
               setUploading(false);
             }
@@ -125,16 +150,16 @@ export const EditCompetitionDialog: React.FC<EditCompetitionDialogProps> = ({
 
           {/* Existing attachments */}
           <div className="flex flex-wrap gap-2 mb-3">
-            {Array.isArray(attachments) && attachments.length > 0 ? (
-              attachments.map((url, index) => (
+            {attachments.length > 0 ? (
+              attachments.map((item, index) => (
                 <a
-                  key={index}
-                  href={url}
+                  key={item.url + index}
+                  href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 max-w-full px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm hover:bg-blue-200"
                 >
-                  <span className="truncate" title={displayName(url)}>{displayName(url)}</span>
+                  <span className="truncate" title={displayName(item.url)}>{displayName(item.url)}</span>
                   <button
                     type="button"
                     onClick={(e) => {
