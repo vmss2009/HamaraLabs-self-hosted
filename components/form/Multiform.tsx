@@ -45,16 +45,26 @@ const MultiForm: React.FC<MultiFormProps> = ({
     setRowMeta((prev) => {
       const next = { ...prev };
       internalValues.forEach((val, idx) => {
-        if (next[idx]) return; // preserve existing meta
-        const meta = initializeMeta(val, idx);
-        if (meta && (meta.readOnly || meta.display)) {
-          next[idx] = meta;
+        if (!next[idx]) {
+          const meta = initializeMeta(val, idx);
+          if (meta && (meta.readOnly || meta.display)) next[idx] = meta;
         }
       });
       return next;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initializeMeta, internalValues.length]);
+  }, [initializeMeta, internalValues]);
+
+  // Sync internalValues with external prop changes (e.g., async loaded edit form data)
+  React.useEffect(() => {
+    const incoming = values && values.length > 0 ? values : ["" ];
+    // Detect difference
+    if (
+      incoming.length !== internalValues.length ||
+      incoming.some((v, i) => v !== internalValues[i])
+    ) {
+      setInternalValues(incoming);
+    }
+  }, [values, internalValues]);
 
   const displayValues = values.length > 0 ? values : internalValues;
 
