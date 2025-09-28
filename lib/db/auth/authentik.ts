@@ -45,6 +45,59 @@ function authUserId(user: AuthentikUser): string | number | undefined {
   return user.id ?? user.pk ?? user.uuid;
 }
 
+interface AuthentikGroup {
+  uuid?: string;
+  pk?: string | number;
+  id?: string | number;
+  name?: string;
+}
+
+function mapRoleToGroupName(role?: string): string | undefined {
+  if (!role) return undefined;
+  const normalized = role.toUpperCase();
+  if (["PRINCIPAL", "INCHARGE", "MENTOR", "CORRESPONDENT"].includes(normalized)) return "mentor";
+  if (normalized === "STUDENT") return "student";
+  return undefined;
+}
+
+async function findGroupUuidByName(name: string): Promise<string | null> {
+  try {
+    const res = await akRequest<{ results?: AuthentikGroup[]; items?: AuthentikGroup[] }>(
+      `/api/v3/core/groups/?name=${encodeURIComponent(name)}`,
+      { method: "GET" }
+    );
+    if (!res.ok) {
+      console.error("Authentik: group lookup failed", name, res.status, res.json ?? res.text);
+      return null;
+    }
+    const groups = (res.json?.results ?? res.json?.items) ?? [];
+    const match = groups.find((g) => (g.name ?? "").toLowerCase() === name.toLowerCase()) ?? groups[0];
+    if (!match) return null;
+    return (match.uuid ?? match.pk ?? match.id) ? String(match.uuid ?? match.pk ?? match.id) : null;
+  } catch (error) {
+    console.error("Authentik: group lookup exception", name, error);
+    return null;
+  }
+}
+
+async function addAuthentikUserToGroup(userId: string | number, role?: string): Promise<void> {
+  const groupName = mapRoleToGroupName(role);
+  if (!groupName) return;
+  const groupUuid = await findGroupUuidByName(groupName);
+  if (!groupUuid) return;
+  try {
+    const res = await akRequest(`/api/v3/core/groups/${groupUuid}/add_user/`, {
+      method: "POST",
+      body: JSON.stringify({ pk: userId }),
+    });
+    if (!res.ok) {
+      console.error("Authentik: add user to group failed", groupUuid, res.status, res.json ?? res.text);
+    }
+  } catch (error) {
+    console.error("Authentik: add user to group exception", groupUuid, error);
+  }
+}
+
 export async function findAuthentikUserByEmail(email: string): Promise<AuthentikUser | null> {
   try {
     let res = await akRequest<{ results?: AuthentikUser[]; items?: AuthentikUser[] }>(
@@ -74,6 +127,7 @@ export async function createAuthentikUser(input: {
   name?: string;
   password?: string;
   is_active?: boolean;
+  role?: string;
 }): Promise<AuthentikUser | null> {
   try {
     const existing = await findAuthentikUserByEmail(input.email);
@@ -94,19 +148,20 @@ export async function createAuthentikUser(input: {
       return null;
     }
     const user = res.json as AuthentikUser;
-    if (input.password && user) {
-      const userId = authUserId(user);
-      if (userId) {
-        const passwordRes = await akRequest(`/api/v3/core/users/${userId}/set_password/`, {
-          method: "POST",
-          body: JSON.stringify({
-            password: input.password,
-          }),
-        });
-        if (!passwordRes.ok) {
-          console.error("Authentik: set password failed:", passwordRes.status, passwordRes.json ?? passwordRes.text);
-        }
+    const userId = user ? authUserId(user) : undefined;
+    if (input.password && userId !== undefined) {
+      const passwordRes = await akRequest(`/api/v3/core/users/${userId}/set_password/`, {
+        method: "POST",
+        body: JSON.stringify({
+          password: input.password,
+        }),
+      });
+      if (!passwordRes.ok) {
+        console.error("Authentik: set password failed:", passwordRes.status, passwordRes.json ?? passwordRes.text);
       }
+    }
+    if (userId !== undefined) {
+      await addAuthentikUserToGroup(userId, input.role);
     }
     return user ?? null;
   } catch (e) {

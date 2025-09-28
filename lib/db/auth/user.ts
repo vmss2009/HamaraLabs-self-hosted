@@ -4,6 +4,32 @@ import { createAuthentikUser, updateAuthentikUserByEmail, deleteAuthentikUserByE
 
 type UserMeta = Prisma.InputJsonValue;
 
+function derivePrimaryRole(meta?: UserMeta): string | undefined {
+  if (!meta || typeof meta !== "object") return undefined;
+  const metaObj = meta as Record<string, any>;
+  const rolesBySchool = metaObj?.rolesBySchool;
+  if (!rolesBySchool || typeof rolesBySchool !== "object") return undefined;
+
+  const collected = new Set<string>();
+  for (const value of Object.values(rolesBySchool)) {
+    const arr = Array.isArray(value) ? value : [value];
+    for (const role of arr) {
+      if (!role) continue;
+      collected.add(String(role).toUpperCase());
+    }
+  }
+
+  const priority = ["PRINCIPAL", "INCHARGE", "MENTOR", "STUDENT"];
+  for (const p of priority) {
+    if (collected.has(p)) {
+      return p;
+    }
+  }
+
+  const iterator = collected.values().next();
+  return iterator.done ? undefined : iterator.value;
+}
+
 export const getUserByEmail = async (email: string) => {
     return await prisma.user.findFirst({
         where: { email }
@@ -111,6 +137,7 @@ export async function createUser(data: {
       first_name: created.first_name ?? undefined,
       last_name: created.last_name ?? undefined,
       password: `${created.email}@789`,
+      role: derivePrimaryRole(user_meta_data),
     });
   } catch (e) {
     console.error("Failed to sync create to Authentik:", e);
