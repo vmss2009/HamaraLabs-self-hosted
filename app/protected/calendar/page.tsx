@@ -10,6 +10,8 @@ export default async function CalendarDashboardPage() {
     redirect("/sign-in");
   }
 
+  console.log("User session:", session.user);
+
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) {
     redirect("/sign-in");
