@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import AuthentikProvider from "next-auth/providers/authentik";
-import { getUserByEmail } from "../db/auth/user";
+import { getUserByEmail, checkRole } from "../db/auth/user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -36,16 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return "/sign-in?error=not_allowed";
       }
       try {
-        const meta: any = dbUser.user_meta_data || {};
-        const rbs = meta.rolesBySchool || {};
-        let isAdmin = false;
-        if (rbs && typeof rbs === 'object') {
-          for (const key of Object.keys(rbs)) {
-            const raw = rbs[key];
-            const arr = Array.isArray(raw) ? raw : [raw];
-            if (arr.some((r: any) => String(r).toUpperCase() === 'ADMIN')) { isAdmin = true; break; }
-          }
-        }
+        const isAdmin = checkRole(dbUser, 'ADMIN');
         if (!isAdmin) return '/sign-in?error=not_admin';
       } catch {
         return '/sign-in?error=not_admin';

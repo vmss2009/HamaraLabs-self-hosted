@@ -108,7 +108,6 @@ export async function createAuthentikUser(input: {
         }
       }
     }
-    
     return user ?? null;
   } catch (e) {
     console.error("Authentik: create exception:", e);

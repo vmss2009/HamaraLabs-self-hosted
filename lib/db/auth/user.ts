@@ -10,6 +10,22 @@ export const getUserByEmail = async (email: string) => {
     });
 };
 
+export const checkRole = (dbUser: User, role: string): boolean => {
+    const meta: any = dbUser.user_meta_data || {};
+    const rbs = meta.rolesBySchool || {};
+    console.log(meta);
+    if (rbs && typeof rbs === 'object') {
+        for (const key of Object.keys(rbs)) {
+            const raw = rbs[key];
+            const arr = Array.isArray(raw) ? raw : [raw];
+            if (arr.some((r: any) => String(r).toUpperCase() === role.toUpperCase())) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
 export async function getUsersBySchool(school_id: string): Promise<User[]> {
   return prisma.user.findMany({
     where: {

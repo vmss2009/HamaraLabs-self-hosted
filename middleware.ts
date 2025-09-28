@@ -43,10 +43,9 @@ export default auth(async (req, res) => {
       return new Response("Not Found", { status: 404 });
     }
 
-    // Allowlist public calendar endpoints (public schedules, public user info, and booking creation)
     const path = req.nextUrl.pathname;
     const method = (req as any).method || req.method; // method may be available on the request
-if (
+    if (
       path.startsWith("/api/schedules/public") ||
       (path.startsWith("/api/users/") && method === "GET") ||
       (path === "/api/bookings" && method === "POST")
