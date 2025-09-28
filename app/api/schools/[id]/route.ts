@@ -75,8 +75,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return success(updatedSchool);
   } catch (error) {
     console.error("Unexpected error:", error);
+    if (error instanceof Error) {
+      return failure(error.message, 400, {
+        details: error.message,
+      });
+    }
     return failure("Internal server error", 500, {
-      details: error instanceof Error ? error.message : String(error),
+      details: String(error),
     });
   }
 }

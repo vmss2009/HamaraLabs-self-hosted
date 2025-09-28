@@ -12,6 +12,29 @@ import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
 type SchoolRole = 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
 type UserMeta = Prisma.InputJsonValue;
 
+function normalizeEmail(email: string | null | undefined) {
+  return email ? email.trim().toLowerCase() : "";
+}
+
+async function ensureEmailsAvailable(emails: string[], allowedExisting: Set<string> = new Set()) {
+  const normalized = Array.from(new Set(emails.map(normalizeEmail).filter(Boolean)));
+  if (normalized.length === 0) return;
+
+  const conflicts = await prisma.user.findMany({
+    where: {
+      email: {
+        in: normalized,
+      },
+    },
+    select: { email: true },
+  });
+
+  const conflict = conflicts.find((user) => !allowedExisting.has(normalizeEmail(user.email)));
+  if (conflict) {
+    throw new Error(`Account already exists for email ${conflict.email}`);
+  }
+}
+
 async function getUsersBySchoolBasic(school_id: string): Promise<Array<{ id: string; email: string; schools: string[] }>> {
     return prisma.user.findMany({
         where: { schools: { has: school_id } },
@@ -112,6 +135,13 @@ async function removeSchoolFromUserAndCleanup(userId: string, schoolId: string) 
 
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
+    const candidateEmails = [
+      ...data.in_charges.map((u) => u.email),
+      ...data.principals.map((u) => u.email),
+      ...data.correspondents.map((u) => u.email),
+    ];
+    await ensureEmailsAvailable(candidateEmails);
+
     const school = await prisma.school.create({
       data: {
         name: data.name,
@@ -284,6 +314,11 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
   try {
     const currentSchool = await prisma.school.findUnique({
       where: { id },
+      include: {
+        incharges: { select: { email: true } },
+        principals: { select: { email: true } },
+        correspondents: { select: { email: true } },
+      },
     });
 
     if (!currentSchool) {
@@ -291,7 +326,22 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     }
 
     // Get current users associated with this school before update
+    const allowedEmails = new Set(
+      [
+        ...(currentSchool.incharges ?? []),
+        ...(currentSchool.principals ?? []),
+        ...(currentSchool.correspondents ?? []),
+      ]
+        .map((user) => normalizeEmail(user.email))
+        .filter(Boolean)
+    );
     const currentUsers = await getUsersBySchoolBasic(id);
+    const candidateEmails = [
+      ...data.in_charges.map((u) => u.email),
+      ...data.principals.map((u) => u.email),
+      ...data.correspondents.map((u) => u.email),
+    ];
+    await ensureEmailsAvailable(candidateEmails, allowedEmails);
 
 
     if (data.address) {

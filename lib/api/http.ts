@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 export type ApiError = {
   error: string;
+  message?: string;
   code?: string;
   details?: unknown;
 };
@@ -12,6 +13,7 @@ export function failure(
   opts?: { code?: string; details?: unknown }
 ) {
   const payload: ApiError = {
+    message: error,
     error,
     ...(opts?.code ? { code: opts.code } : {}),
     ...(opts?.details !== undefined ? { details: opts.details } : {}),
