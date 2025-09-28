@@ -62,8 +62,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return success(student);
   } catch (error) {
     console.error("Error updating student:", error);
+    if (error instanceof Error) {
+      return failure(error.message, 400, {
+        details: error.message,
+      });
+    }
     return failure("Failed to update student", 500, {
-      details: error instanceof Error ? error.message : String(error),
+      details: String(error),
     });
   }
 }

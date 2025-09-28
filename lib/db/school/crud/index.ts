@@ -8,32 +8,10 @@ import {
 } from "../type";
 import type { Prisma } from "@prisma/client";
 import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
+import { ensureEmailsAvailable, normalizeEmail } from "@/lib/db/shared/email";
 
 type SchoolRole = 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
 type UserMeta = Prisma.InputJsonValue;
-
-function normalizeEmail(email: string | null | undefined) {
-  return email ? email.trim().toLowerCase() : "";
-}
-
-async function ensureEmailsAvailable(emails: string[], allowedExisting: Set<string> = new Set()) {
-  const normalized = Array.from(new Set(emails.map(normalizeEmail).filter(Boolean)));
-  if (normalized.length === 0) return;
-
-  const conflicts = await prisma.user.findMany({
-    where: {
-      email: {
-        in: normalized,
-      },
-    },
-    select: { email: true },
-  });
-
-  const conflict = conflicts.find((user) => !allowedExisting.has(normalizeEmail(user.email)));
-  if (conflict) {
-    throw new Error(`Account already exists for email ${conflict.email}`);
-  }
-}
 
 async function getUsersBySchoolBasic(school_id: string): Promise<Array<{ id: string; email: string; schools: string[] }>> {
     return prisma.user.findMany({

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
 import { StudentCreateInput, StudentFilter } from "../type";
 import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
+import { ensureEmailsAvailable, normalizeEmail } from "@/lib/db/shared/email";
 
 type StudentRole = 'STUDENT';
 
@@ -68,7 +69,8 @@ async function ensureUserForStudent(
   last_name: string,
   schoolId: string
 ) {
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const sanitizedEmail = email.trim();
+  const existingUser = await prisma.user.findUnique({ where: { email: sanitizedEmail } });
   if (existingUser) {
     const updatedSchools = existingUser.schools.includes(schoolId)
       ? existingUser.schools
@@ -83,7 +85,7 @@ async function ensureUserForStudent(
     return updated.id;
   } else {
     const created = await createUser({
-      email,
+      email: sanitizedEmail,
       first_name,
       last_name,
       schools: [schoolId],
@@ -105,12 +107,18 @@ async function removeStudentAccessFromUser(userId: string, schoolId: string) {
 export async function createStudent(data: StudentCreateInput) {
   try {
     const validatedData = data;
+  const sanitizedEmail = validatedData.email?.trim() || undefined;
+
+    if (sanitizedEmail) {
+      await ensureEmailsAvailable([sanitizedEmail]);
+    }
+
     let userId: string | undefined = undefined;
 
     // Create or link a User if email is provided, and grant STUDENT role for the school
-    if (validatedData.email && validatedData.email.trim() !== "") {
+    if (sanitizedEmail) {
       userId = await ensureUserForStudent(
-        validatedData.email,
+        sanitizedEmail,
         validatedData.first_name,
         validatedData.last_name,
         validatedData.schoolId
@@ -123,7 +131,7 @@ export async function createStudent(data: StudentCreateInput) {
         last_name: validatedData.last_name,
         aspiration: validatedData.aspiration,
         gender: validatedData.gender,
-        email: validatedData.email,
+  email: sanitizedEmail ?? null,
         class: validatedData.class,
         section: validatedData.section,
         comments: validatedData.comments,
@@ -225,16 +233,22 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
 
     let userId: string | undefined = currentStudent.user_id || undefined;
 
-    const oldEmail = currentStudent.email || undefined;
-    const newEmail = validatedData.email || undefined;
+    const oldEmail = currentStudent.email?.trim() || undefined;
+    const newEmail = validatedData.email?.trim() || undefined;
     const oldSchoolId = currentStudent.school_id;
     const newSchoolId = validatedData.schoolId;
+
+    const emailChanged = normalizeEmail(newEmail) !== normalizeEmail(oldEmail);
+
+    if (emailChanged && newEmail) {
+      await ensureEmailsAvailable([newEmail], oldEmail ? [oldEmail] : []);
+    }
 
     // Track old user for potential cleanup after student update
     let oldUserIdForCleanup: string | undefined = undefined;
 
     // Case 1: email changed
-    if (newEmail !== oldEmail) {
+    if (emailChanged) {
       // Remove access from old user if present and then delete the old user
       if (currentStudent.user_id) {
         await removeStudentAccessFromUser(currentStudent.user_id, oldSchoolId);
@@ -243,7 +257,7 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
       }
 
       // Link/create new user for new email (if provided)
-      if (newEmail && newEmail.trim() !== "") {
+      if (newEmail) {
         userId = await ensureUserForStudent(
           newEmail,
           validatedData.first_name,
@@ -276,7 +290,7 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
             newSchoolId
           );
         }
-      } else if (newEmail && newEmail.trim() !== "") {
+      } else if (newEmail) {
         // No linked user previously but now we have an email
         userId = await ensureUserForStudent(
           newEmail,
@@ -294,7 +308,7 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
         last_name: validatedData.last_name,
         aspiration: validatedData.aspiration,
         gender: validatedData.gender,
-        email: validatedData.email,
+        email: newEmail ?? null,
         class: validatedData.class,
         section: validatedData.section,
         comments: validatedData.comments,
