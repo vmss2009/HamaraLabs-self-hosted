@@ -187,7 +187,6 @@ export default function Calendar() {
 
     return (
       <div className="w-full">
-        <Navigation id={userId} />
         <div className="w-full py-6 px-6">
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
@@ -391,129 +390,132 @@ export default function Calendar() {
   const cancelEditing = () => { setIsEditing(false); if (selectedDate) fetchSchedules(selectedDate); };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="w-full lg:w-2/3">
-        <div className="rounded-xl shadow-lg p-6 border" style={{ background: "var(--surface-1)", borderColor: "var(--border-subtle)" }}>
-          <ModernCalendar selectedDate={selectedDate} onDateSelect={handleDateSelect} schedules={monthlySchedules} onMonthChange={fetchMonthlySchedules} isLoading={monthlySchedulesLoading} />
-        </div>
-      </div>
-
-      {isFormOpen && selectedDate && (
-        <div className="w-full lg:w-1/3 rounded-xl shadow-lg p-6 border" style={{ background: "var(--surface-1)", borderColor: "var(--border-subtle)" }}>
-          <h2 className="text-xl font-semibold mb-4">{`Schedule for ${format(selectedDate, "MMMM d, yyyy")}`}</h2>
-
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-medium">Booked</h3>
-              <span className="text-sm">{isBookingsLoading ? "Loading..." : `${bookings.length} booking${bookings.length === 1 ? "" : "s"}`}</span>
-            </div>
-
-            {bookings.length === 0 ? (
-              <div className="p-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>No bookings for this date</div>
-            ) : (
-              <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
-                {bookings.map((b) => (
-                  <div key={b.id} className="p-3 border rounded-md group" style={{ background: "color-mix(in srgb, var(--foreground) 6%, transparent)", borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
-                    <div className="flex items-center justify-between">
-                      <div className="font-semibold">{formatTimeTo12Hour(b.startTime)}-{formatTimeTo12Hour(b.endTime)}</div>
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--foreground)", color: "var(--background)" }}>{b.status.toLowerCase()}</span>
-                    </div>
-                    <div className="text-sm mt-1">{b.guestName} • <a className="underline" href={`mailto:${b.guestEmail}`}>{b.guestEmail}</a></div>
-                    {b.notes ? <div className="text-sm mt-1">“{b.notes}”</div> : null}
-                    <div className="mt-2 flex justify-end opacity-80 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => deleteBooking(b.id)} className="text-xs px-2 py-1 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+    <div className="space-y-6">
+      <Navigation id={userId} />
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-2/3">
+          <div className="rounded-xl shadow-lg p-6 border" style={{ background: "var(--surface-1)", borderColor: "var(--border-subtle)" }}>
+            <ModernCalendar selectedDate={selectedDate} onDateSelect={handleDateSelect} schedules={monthlySchedules} onMonthChange={fetchMonthlySchedules} isLoading={monthlySchedulesLoading} />
           </div>
+        </div>
 
-          {schedules.length > 0 && schedules[0].timeSlots.length > 0 && !isEditing ? (
-            <div>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium mb-2">Available Time Slots</h3>
+        {isFormOpen && selectedDate && (
+          <div className="w-full lg:w-1/3 rounded-xl shadow-lg p-6 border" style={{ background: "var(--surface-1)", borderColor: "var(--border-subtle)" }}>
+            <h2 className="text-xl font-semibold mb-4">{`Schedule for ${format(selectedDate, "MMMM d, yyyy")}`}</h2>
+
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-medium">Booked</h3>
+                <span className="text-sm">{isBookingsLoading ? "Loading..." : `${bookings.length} booking${bookings.length === 1 ? "" : "s"}`}</span>
+              </div>
+
+              {bookings.length === 0 ? (
+                <div className="p-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>No bookings for this date</div>
+              ) : (
                 <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
-                  {schedules[0].timeSlots.map((slot, index) => (
-                    <div key={index} className="p-3 rounded-md border" style={{ background: "color-mix(in srgb, var(--foreground) 6%, transparent)", borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
+                  {bookings.map((b) => (
+                    <div key={b.id} className="p-3 border rounded-md group" style={{ background: "color-mix(in srgb, var(--foreground) 6%, transparent)", borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
                       <div className="flex items-center justify-between">
-                        <div className="font-medium">{formatTimeTo12Hour(slot.startTime)}-{formatTimeTo12Hour(slot.endTime)}</div>
-                        <div className="text-sm text-opacity-70">{slot.maxSlots - slot.bookedSlots}/{slot.maxSlots} available</div>
+                        <div className="font-semibold">{formatTimeTo12Hour(b.startTime)}-{formatTimeTo12Hour(b.endTime)}</div>
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--foreground)", color: "var(--background)" }}>{b.status.toLowerCase()}</span>
                       </div>
-                      {slot.bookedSlots > 0 && (<div className="mt-1 text-xs opacity-60">{slot.bookedSlots} booked</div>)}
+                      <div className="text-sm mt-1">{b.guestName} • <a className="underline" href={`mailto:${b.guestEmail}`}>{b.guestEmail}</a></div>
+                      {b.notes ? <div className="text-sm mt-1">“{b.notes}”</div> : null}
+                      <div className="mt-2 flex justify-end opacity-80 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => deleteBooking(b.id)} className="text-xs px-2 py-1 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Delete</button>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Edit Schedule</button>
-              </div>
+              )}
             </div>
-          ) : (
-            <div>
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-3">Configure Time Slots</h3>
 
+            {schedules.length > 0 && schedules[0].timeSlots.length > 0 && !isEditing ? (
+              <div>
                 <div className="mb-4">
-                  <button onClick={() => setShowReplicationModal(!showReplicationModal)} className="px-3 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>
-                    {showReplicationModal ? 'Hide replication' : 'Replicate to other dates'}
-                  </button>
-                  {showReplicationModal && (
-                    <div className="mt-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
-                      <ReplicationCalendar selectedDates={selectedReplicationDates} onDateToggle={toggleReplicationDate} currentDate={selectedDate} />
-                      {selectedReplicationDates.length > 0 && (
-                        <p className="px-3 pb-3 text-xs opacity-70">{selectedReplicationDates.length} additional date(s) selected. Saving will overwrite their schedules and cancel mismatched bookings.</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 border rounded-md mb-4" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
-                  <h4 className="text-sm font-medium mb-3">Add Time Slot</h4>
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div>
-                      <label className="text-xs font-medium block mb-1">Start Time</label>
-                      <input type="time" value={newSlotStart} onChange={(e) => setNewSlotStart(e.target.value)} className="w-full px-2 py-1 rounded border text-sm" />
-                      <p className="text-xs opacity-60 mt-1">Will display in 12-hour format</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium block mb-1">End Time</label>
-                      <input type="time" value={newSlotEnd} onChange={(e) => setNewSlotEnd(e.target.value)} className="w-full px-2 py-1 rounded border text-sm" />
-                      <p className="text-xs opacity-60 mt-1">Will display in 12-hour format</p>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="text-xs font-medium block mb-1">Available Slots</label>
-                    <input type="number" value={newSlotMaxSlots} onChange={(e) => setNewSlotMaxSlots(parseInt(e.target.value) || 1)} className="w-full px-2 py-1 rounded border text-sm" />
-                  </div>
-                  <button onClick={addTimeSlot} className="px-3 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Add</button>
-                </div>
-
-                {selectedTimeSlots.length > 0 && (
-                  <div className="grid grid-cols-1 gap-2">
-                    {selectedTimeSlots.map((slot, index) => (
-                      <div key={index} className="p-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
+                  <h3 className="text-lg font-medium mb-2">Available Time Slots</h3>
+                  <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+                    {schedules[0].timeSlots.map((slot, index) => (
+                      <div key={index} className="p-3 rounded-md border" style={{ background: "color-mix(in srgb, var(--foreground) 6%, transparent)", borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
                         <div className="flex items-center justify-between">
                           <div className="font-medium">{formatTimeTo12Hour(slot.startTime)}-{formatTimeTo12Hour(slot.endTime)}</div>
-                          <div className="flex items-center gap-2">
-                            <input type="number" min={1} value={slot.maxSlots} onChange={(e) => updateTimeSlotMaxSlots(index, parseInt(e.target.value) || 1)} className="w-20 px-2 py-1 rounded border text-sm" />
-                            <button onClick={() => removeTimeSlot(index)} className="text-xs px-2 py-1 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Remove</button>
-                          </div>
+                          <div className="text-sm text-opacity-70">{slot.maxSlots - slot.bookedSlots}/{slot.maxSlots} available</div>
                         </div>
+                        {slot.bookedSlots > 0 && (<div className="mt-1 text-xs opacity-60">{slot.bookedSlots} booked</div>)}
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
 
-              <div className="flex justify-end gap-2">
-                <button onClick={saveSchedule} className="px-4 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Save</button>
-                <button onClick={cancelEditing} className="px-4 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Cancel</button>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Edit Schedule</button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            ) : (
+              <div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium mb-3">Configure Time Slots</h3>
+
+                  <div className="mb-4">
+                    <button onClick={() => setShowReplicationModal(!showReplicationModal)} className="px-3 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>
+                      {showReplicationModal ? 'Hide replication' : 'Replicate to other dates'}
+                    </button>
+                    {showReplicationModal && (
+                      <div className="mt-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
+                        <ReplicationCalendar selectedDates={selectedReplicationDates} onDateToggle={toggleReplicationDate} currentDate={selectedDate} />
+                        {selectedReplicationDates.length > 0 && (
+                          <p className="px-3 pb-3 text-xs opacity-70">{selectedReplicationDates.length} additional date(s) selected. Saving will overwrite their schedules and cancel mismatched bookings.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 border rounded-md mb-4" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
+                    <h4 className="text-sm font-medium mb-3">Add Time Slot</h4>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div>
+                        <label className="text-xs font-medium block mb-1">Start Time</label>
+                        <input type="time" value={newSlotStart} onChange={(e) => setNewSlotStart(e.target.value)} className="w-full px-2 py-1 rounded border text-sm" />
+                        <p className="text-xs opacity-60 mt-1">Will display in 12-hour format</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium block mb-1">End Time</label>
+                        <input type="time" value={newSlotEnd} onChange={(e) => setNewSlotEnd(e.target.value)} className="w-full px-2 py-1 rounded border text-sm" />
+                        <p className="text-xs opacity-60 mt-1">Will display in 12-hour format</p>
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <label className="text-xs font-medium block mb-1">Available Slots</label>
+                      <input type="number" value={newSlotMaxSlots} onChange={(e) => setNewSlotMaxSlots(parseInt(e.target.value) || 1)} className="w-full px-2 py-1 rounded border text-sm" />
+                    </div>
+                    <button onClick={addTimeSlot} className="px-3 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Add</button>
+                  </div>
+
+                  {selectedTimeSlots.length > 0 && (
+                    <div className="grid grid-cols-1 gap-2">
+                      {selectedTimeSlots.map((slot, index) => (
+                        <div key={index} className="p-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium">{formatTimeTo12Hour(slot.startTime)}-{formatTimeTo12Hour(slot.endTime)}</div>
+                            <div className="flex items-center gap-2">
+                              <input type="number" min={1} value={slot.maxSlots} onChange={(e) => updateTimeSlotMaxSlots(index, parseInt(e.target.value) || 1)} className="w-20 px-2 py-1 rounded border text-sm" />
+                              <button onClick={() => removeTimeSlot(index)} className="text-xs px-2 py-1 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Remove</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <button onClick={saveSchedule} className="px-4 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Save</button>
+                  <button onClick={cancelEditing} className="px-4 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
