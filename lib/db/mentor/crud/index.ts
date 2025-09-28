@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
-import { v4 as uuidv4 } from 'uuid';
 import { MentorCreateInput, MentorFilter, MentorUpdateInput, MentorWithUser } from "../type";
 import { Prisma } from "@prisma/client";
 import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
+import { ensureEmailsAvailable, normalizeEmail } from "@/lib/db/shared/email";
 
 type MentorRole = 'MENTOR';
 
@@ -74,14 +74,15 @@ async function removeMentorAccessFromUser(userId: string, schoolIds: string[]) {
 }
 
 async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds: string[]) {
-  
-  if (!mentorData.email || mentorData.email.trim() === "") {
+  const sanitizedEmail = mentorData.email?.trim();
+
+  if (!sanitizedEmail) {
     // No email provided, no user account needed
     return undefined;
   }
 
   const existingUser = await prisma.user.findUnique({
-    where: { email: mentorData.email },
+    where: { email: sanitizedEmail },
   });
 
   if (existingUser) {
@@ -97,7 +98,7 @@ async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds
   } else {
     const meta = addMentorRoleForSchools({}, schoolIds);
     return await createUser({
-      email: mentorData.email,
+      email: sanitizedEmail,
       first_name: mentorData.first_name,
       last_name: mentorData.last_name,
       schools: schoolIds,
@@ -108,12 +109,22 @@ async function createOrUpdateMentorUser(mentorData: MentorCreateInput, schoolIds
 
 export async function createMentor(data: MentorCreateInput): Promise<MentorWithUser> {
   try {
-    
+    const sanitizedEmail = data.email?.trim() || undefined;
+
+    if (sanitizedEmail) {
+      await ensureEmailsAvailable([sanitizedEmail]);
+    }
+
+    const mentorInput: MentorCreateInput = {
+      ...data,
+      email: sanitizedEmail,
+    };
+
     let userId: string | undefined = undefined;
 
     // Create or update user if email is provided
-    if (data.email && data.email.trim() !== "") {
-      const user = await createOrUpdateMentorUser(data, data.school_ids);
+    if (sanitizedEmail) {
+      const user = await createOrUpdateMentorUser(mentorInput, data.school_ids);
       userId = user?.id;
     }
 
@@ -121,7 +132,7 @@ export async function createMentor(data: MentorCreateInput): Promise<MentorWithU
       data: {
         first_name: data.first_name,
         last_name: data.last_name,
-        email: data.email,
+        email: sanitizedEmail ?? null,
         phone_number: data.phone_number,
         school_ids: data.school_ids,
         comments: data.comments,
@@ -203,63 +214,83 @@ export async function updateMentor(id: string, data: MentorUpdateInput): Promise
 
     let userId: string | undefined = currentMentor.user_id || undefined;
 
-  const oldEmail = currentMentor.email || undefined;
-  const newEmail = (data.email || '').trim() || undefined;
-  const newSchoolIds = data.school_ids ?? currentMentor.school_ids;
+    const oldEmail = currentMentor.email?.trim() || undefined;
+    const emailProvided = data.email !== undefined;
+    const newEmail = emailProvided ? (data.email?.trim() || undefined) : oldEmail;
+    const newSchoolIds = data.school_ids ?? currentMentor.school_ids;
 
-  // Track old user for potential cleanup after mentor update
-  let oldUserIdForCleanup: string | undefined = undefined;
+    const emailChanged = normalizeEmail(newEmail) !== normalizeEmail(oldEmail);
 
-  // Handle email change: transfer access and then cleanup previous user
-    if (newEmail && newEmail !== oldEmail) {
-      // Collect old user's schools for transfer
-      const oldUser = currentMentor.user_id
-        ? await prisma.user.findUnique({ where: { id: currentMentor.user_id } })
-        : null;
-      const oldUserSchools = oldUser?.schools ?? [];
+    if (emailProvided && emailChanged && newEmail) {
+      await ensureEmailsAvailable([newEmail], oldEmail ? [oldEmail] : []);
+    }
 
-      // Find or create the new user by newEmail
-      const existingNewUser = await prisma.user.findUnique({ where: { email: newEmail } });
-      const combinedSchools = [...new Set([...(existingNewUser?.schools ?? []), ...oldUserSchools, ...newSchoolIds])];
+    // Track old user for potential cleanup after mentor update
+    let oldUserIdForCleanup: string | undefined = undefined;
 
-      let newUserId: string;
-      if (existingNewUser) {
-        const updated = await updateUser(existingNewUser.id, {
-          first_name: data.first_name || currentMentor.first_name,
-          last_name: data.last_name || currentMentor.last_name,
-          schools: combinedSchools,
-          user_meta_data: addMentorRoleForSchools({
-            ...((existingNewUser.user_meta_data ?? {}) as Record<string, any>),
-            phone_number: data.phone_number,
-          }, newSchoolIds),
-        });
-        newUserId = updated.id;
+    // Handle email change scenarios
+    if (emailChanged) {
+      if (newEmail) {
+        // Collect old user's schools for transfer
+        const oldUser = currentMentor.user_id
+          ? await prisma.user.findUnique({ where: { id: currentMentor.user_id } })
+          : null;
+        const oldUserSchools = oldUser?.schools ?? [];
+
+        // Find or create the new user by newEmail
+        const existingNewUser = await prisma.user.findUnique({ where: { email: newEmail } });
+        const combinedSchools = [...new Set([...(existingNewUser?.schools ?? []), ...oldUserSchools, ...newSchoolIds])];
+
+        let newUserId: string;
+        if (existingNewUser) {
+          const updated = await updateUser(existingNewUser.id, {
+            first_name: data.first_name || currentMentor.first_name,
+            last_name: data.last_name || currentMentor.last_name,
+            schools: combinedSchools,
+            user_meta_data: addMentorRoleForSchools({
+              ...((existingNewUser.user_meta_data ?? {}) as Record<string, any>),
+              phone_number: data.phone_number,
+            }, newSchoolIds),
+          });
+          newUserId = updated.id;
+        } else {
+          const created = await createUser({
+            email: newEmail,
+            first_name: data.first_name || currentMentor.first_name,
+            last_name: data.last_name || currentMentor.last_name,
+            schools: combinedSchools,
+            user_meta_data: addMentorRoleForSchools({ phone_number: data.phone_number }, newSchoolIds),
+          });
+          newUserId = created.id;
+        }
+
+        // Migrate POC references from old user to new user
+        if (currentMentor.user_id) {
+          await prisma.schoolVisit.updateMany({
+            where: { poc_id: currentMentor.user_id },
+            data: { poc_id: newUserId },
+          });
+          // Remove mentor access/roles from old user for current mentor schools
+          await removeMentorAccessFromUser(currentMentor.user_id, currentMentor.school_ids);
+        }
+
+        userId = newUserId;
+
+        // Defer cleanup of previous user until after mentor is updated to point to new user
+        if (currentMentor.user_id) {
+          oldUserIdForCleanup = currentMentor.user_id;
+        }
       } else {
-        const created = await createUser({
-          email: newEmail,
-          first_name: data.first_name || currentMentor.first_name,
-          last_name: data.last_name || currentMentor.last_name,
-          schools: combinedSchools,
-          user_meta_data: addMentorRoleForSchools({ phone_number: data.phone_number }, newSchoolIds),
-        });
-        newUserId = created.id;
-      }
-
-      // Migrate POC references from old user to new user
-      if (currentMentor.user_id) {
-        await prisma.schoolVisit.updateMany({
-          where: { poc_id: currentMentor.user_id },
-          data: { poc_id: newUserId },
-        });
-        // Remove mentor access/roles from old user for current mentor schools
-        await removeMentorAccessFromUser(currentMentor.user_id, currentMentor.school_ids);
-      }
-
-      userId = newUserId;
-
-      // Defer cleanup of previous user until after mentor is updated to point to new user
-      if (currentMentor.user_id) {
-        oldUserIdForCleanup = currentMentor.user_id;
+        // Email removed; detach existing user if any
+        if (currentMentor.user_id) {
+          await prisma.schoolVisit.updateMany({
+            where: { poc_id: currentMentor.user_id },
+            data: { poc_id: null },
+          });
+          await removeMentorAccessFromUser(currentMentor.user_id, currentMentor.school_ids);
+          oldUserIdForCleanup = currentMentor.user_id;
+        }
+        userId = undefined;
       }
     } else if (newEmail) {
       // Email unchanged; update existing or link/create if missing
@@ -275,7 +306,7 @@ export async function updateMentor(id: string, data: MentorUpdateInput): Promise
             phone_number: data.phone_number,
           }, newSchoolIds),
         });
-      } else {
+      } else if (emailProvided) {
         // No linked user previously but now we have an email
         const existing = await prisma.user.findUnique({ where: { email: newEmail } });
         if (existing) {
@@ -301,9 +332,6 @@ export async function updateMentor(id: string, data: MentorUpdateInput): Promise
           userId = created.id;
         }
       }
-    } else if (currentMentor.user_id) {
-      // Email was removed - unlink user from mentor
-      userId = undefined;
     }
 
     const updatedMentor = await prisma.mentor.update({
@@ -311,7 +339,7 @@ export async function updateMentor(id: string, data: MentorUpdateInput): Promise
       data: {
         first_name: data.first_name || currentMentor.first_name,
         last_name: data.last_name || currentMentor.last_name,
-        email: data.email,
+        email: data.email === undefined ? undefined : (newEmail ?? null),
         phone_number: data.phone_number,
         school_ids: data.school_ids || currentMentor.school_ids,
         comments: data.comments,

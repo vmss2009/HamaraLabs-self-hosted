@@ -86,7 +86,16 @@ export default function EditMentorPage({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update mentor");
+        let message = "Failed to update mentor";
+        try {
+          const errorData = await response.json();
+          if (errorData?.message) {
+            message = errorData.message;
+          }
+        } catch (parseError) {
+          console.error("Failed to parse mentor update error response", parseError);
+        }
+        throw new Error(message);
       }
 
       router.push("/protected/mentor/report");
