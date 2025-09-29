@@ -20,7 +20,7 @@ function SignInInner() {
         onClick={() => signIn("authentik", { callbackUrl: "/protected/student-snapshot" })}
         className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
       >
-        Sign in with Authentik
+        Sign in
       </button>
     </div>
   );
