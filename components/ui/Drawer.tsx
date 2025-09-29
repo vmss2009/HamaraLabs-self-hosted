@@ -48,6 +48,7 @@ const Drawer: React.FC = () => {
                     </div>
 
                     <div className="space-y-6 mt-6">
+
                         <div className="p-3 rounded-md bg-blue-800">
                             <h3 className="text-lg font-semibold mb-2 text-white">Student</h3>
                             <ul className="flex flex-col gap-4">
@@ -296,9 +297,16 @@ const Drawer: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="p-4 border-t border-gray-800 bg-gray-900/95 mt-auto">
+                                        <Link
+                                            href="/protected/notifications"
+                                            className="mb-3 block w-full rounded bg-cyan-500 py-2 px-4 text-center text-white transition-colors hover:bg-cyan-600"
+                                            {...linkProps}
+                                        >
+                                            Notifications
+                                        </Link>
                                         <button
                                             onClick={() => { signOut(); }}
-                                            className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-500 transition-colors"
+                                            className="w-full rounded bg-red-600 py-2 px-4 text-white transition-colors hover:bg-red-500"
                                         >
                                             Logout
                                         </button>

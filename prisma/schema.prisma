@@ -24,6 +24,7 @@ model User {
   adminOf        ChatRoom[]    @relation("ChatRoomAdmin")
   Schedule       Schedule[]
   Booking        Booking[]
+  notifications  Notification[]
   // Role-based school relations
   inchargeOf     School[]      @relation("SchoolIncharges")
   principalOf    School[]      @relation("SchoolPrincipals")
@@ -351,6 +352,23 @@ model SnapshotAttachments {
   @@index([customised_ta_id])
   @@index([customised_competition_id])
   @@index([customised_course_id])
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  readAt       DateTime?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  category     String   @default("general")
+  title        String
+  description  String?
+  resourceType String?
+  resourceId   String?
+  data         Json?
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
 }
 
 // Calendar models (merged from hamaralabs-calendar)

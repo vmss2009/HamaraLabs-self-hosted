@@ -1,5 +1,6 @@
 import { prisma } from "../db/prisma";
 import { chatBus } from './realtime';
+import { notifyChatMessage } from "@/lib/notifications/service";
 
 export async function listMessages(roomId: string, cursor?: string, takeParam?: number) {
   const take = Math.min(50, Math.max(1, Number.isFinite(takeParam as number) ? (takeParam as number) : 30));
@@ -31,6 +32,12 @@ export async function sendMessage(roomId: string, senderId: string, data: { cont
   });
   await prisma.chatRoom.update({ where: { id: roomId }, data: { lastMessageAt: new Date() } });
   chatBus.emit('message', { roomId, messageId: message.id });
+  await notifyChatMessage(
+    roomId,
+    senderId,
+    message.content,
+    Array.isArray(data.attachments) ? data.attachments.length : message.attachments.length
+  );
   return message;
 }
 

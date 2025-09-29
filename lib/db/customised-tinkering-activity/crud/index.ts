@@ -12,13 +12,27 @@ import {
 } from "../type";
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Prisma } from "@prisma/client";
+import { notifyStudentAssignment, notifyStudentStatusUpdate } from "@/lib/notifications/service";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
+
+function haveStatusesChanged(previous: string[] | null | undefined, next: string[] | null | undefined) {
+  if (!next) return false;
+  const prev = previous ?? [];
+  if (prev.length !== next.length) return true;
+  const prevSet = new Set(prev);
+  const nextSet = new Set(next);
+  if (prevSet.size !== nextSet.size) return true;
+  for (const status of nextSet) {
+    if (!prevSet.has(status)) return true;
+  }
+  return false;
+}
 
 export async function createCustomisedTinkeringActivity(
   data: CustomisedTinkeringActivityCreateInput
 ): Promise<CustomisedTinkeringActivityWithRelations> {
-  return prisma.customisedTinkeringActivity.create({
+  const created = await prisma.customisedTinkeringActivity.create({
     data: ({
       name: data.name,
       subtopic_id: data.subtopic_id,
@@ -58,6 +72,15 @@ export async function createCustomisedTinkeringActivity(
       snapshot_attachments: true,
     },
   });
+
+  await notifyStudentAssignment({
+    studentId: created.student_id,
+    entityType: "tinkering-activity",
+    entityName: created.name,
+    resourceId: created.id,
+  });
+
+  return created;
 }
 
 export async function getCustomisedTinkeringActivities(
@@ -145,6 +168,10 @@ export async function updateCustomisedTinkeringActivity(
   data: Partial<CustomisedTinkeringActivityCreateInput> & { keepSnapshotAttachmentUrls?: string[] }
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const existing = await prisma.customisedTinkeringActivity.findUnique({
+    where: { id },
+    select: { status: true },
+  });
   const updated = await prisma.customisedTinkeringActivity.update({
     where: { id },
     data: ({
@@ -189,6 +216,15 @@ export async function updateCustomisedTinkeringActivity(
   // Prune snapshot attachments (not stored in attachments[] array) if caller provided urls to keep
   if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
     await pruneTAAttachments(id, keepUrls);
+  }
+  if (haveStatusesChanged(existing?.status, Array.isArray(data.status) ? data.status : undefined)) {
+    await notifyStudentStatusUpdate({
+      studentId: updated.student_id,
+      entityType: "tinkering-activity",
+      entityName: updated.name,
+      statusList: Array.isArray(updated.status) ? updated.status : [],
+      resourceId: updated.id,
+    });
   }
   return updated;
 }

@@ -1,5 +1,19 @@
 import { prisma } from "@/lib/db/prisma";
 import { pruneCompetitionAttachments } from "@/lib/db/snapshot-attachments/crud";
+import { notifyStudentAssignment, notifyStudentStatusUpdate } from "@/lib/notifications/service";
+
+function haveStatusesChanged(previous: string[] | null | undefined, next: string[] | null | undefined) {
+  if (!next) return false;
+  const prev = previous ?? [];
+  if (prev.length !== next.length) return true;
+  const prevSet = new Set(prev);
+  const nextSet = new Set(next);
+  if (prevSet.size !== nextSet.size) return true;
+  for (const status of nextSet) {
+    if (!prevSet.has(status)) return true;
+  }
+  return false;
+}
 import {
   CustomisedCompetitionCreateInput,
   CustomisedCompetitionFilter,
@@ -9,7 +23,7 @@ import {
 export async function createCustomisedCompetition(
   data: CustomisedCompetitionCreateInput
 ): Promise<CustomisedCompetitionWithRelations> {
-  return prisma.customisedCompetition.create({
+  const created = await prisma.customisedCompetition.create({
     data: {
       competition_id: data.competition_id,
       student_id: data.student_id,
@@ -45,6 +59,15 @@ export async function createCustomisedCompetition(
       snapshot_attachments: true,
     },
   });
+
+  await notifyStudentAssignment({
+    studentId: created.student.id,
+    entityType: "competition",
+    entityName: created.competition.name,
+    resourceId: created.id,
+  });
+
+  return created;
 }
 
 export async function getCustomisedCompetitions(
@@ -126,6 +149,10 @@ export async function updateCustomisedCompetition(
   data: Partial<CustomisedCompetitionCreateInput> & { keepSnapshotAttachmentUrls?: string[] }
 ): Promise<CustomisedCompetitionWithRelations> {
   const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const existing = await prisma.customisedCompetition.findUnique({
+    where: { id },
+    select: { status: true },
+  });
   const updated = await prisma.customisedCompetition.update({
     where: { id },
     data: {
@@ -165,6 +192,15 @@ export async function updateCustomisedCompetition(
   });
   if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
     await pruneCompetitionAttachments(id, keepUrls);
+  }
+  if (haveStatusesChanged(existing?.status, Array.isArray(data.status) ? data.status : undefined)) {
+    await notifyStudentStatusUpdate({
+      studentId: updated.student.id,
+      entityType: "competition",
+      entityName: updated.competition.name,
+      statusList: Array.isArray(updated.status) ? updated.status : [],
+      resourceId: updated.id,
+    });
   }
   return updated;
 }
