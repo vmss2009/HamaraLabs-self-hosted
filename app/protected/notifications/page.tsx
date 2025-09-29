@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Notification = {
@@ -19,6 +20,7 @@ type ApiResponse = {
 };
 
 export default function NotificationsPage() {
+  const { data: session } = useSession();
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -68,6 +70,9 @@ export default function NotificationsPage() {
   const readItems = useMemo(() => items.filter((n) => n.readAt), [items]);
   const unreadCount = unreadItems.length;
   const readCount = readItems.length;
+  const userId = session?.user?.id ?? "";
+  const notifyBaseUrl = "https://hamaralabs-notify.hamaralabs.com";
+  const notifyEndpoint = userId ? `${notifyBaseUrl}/alerts-${userId}` : notifyBaseUrl;
 
   const mutateNotifications = useCallback(
     async (action: "read" | "unread" | "delete", target: string[] | "all") => {
@@ -138,10 +143,35 @@ export default function NotificationsPage() {
         className="sticky top-0 z-10 h-14 border-b"
         style={{ background: "var(--surface-2)", borderColor: "var(--border-subtle)" }}
       >
-        <div className="h-full w-full pl-14 pr-3 sm:pl-16 sm:pr-5 flex items-center justify-between">
-          <div className="flex flex-col">
-            <h1 className="text-sm font-semibold tracking-wide uppercase">Notifications</h1>
-            <span className="text-xs opacity-70">{unreadCount} unread</span>
+        <div className="h-full w-full pl-14 pr-3 sm:pl-16 sm:pr-5 flex flex-col justify-center gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-6">
+            <div className="flex flex-col">
+              <h1 className="text-sm font-semibold tracking-wide lowercase">Notifications</h1>
+              <span className="text-xs opacity-70 lowercase">{`${unreadCount} unread`}</span>
+            </div>
+            <div className="flex flex-col gap-1 text-[11px] lowercase tracking-wide opacity-80">
+              <div className="flex flex-wrap items-center gap-2 lowercase">
+                <span className="font-semibold lowercase">topic name</span>
+                <span className="rounded bg-black/10 px-2 py-0.5 font-medium lowercase">
+                  {userId ? `alerts-${userId.toLowerCase()}` : "loading"}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 lowercase">
+                <span className="font-semibold lowercase">notify url</span>
+                <a
+                  className="break-all rounded bg-black/10 px-2 py-1 text-xs font-semibold lowercase tracking-wide underline"
+                  style={{
+                    color: "var(--foreground)",
+                    textDecorationColor: "color-mix(in srgb, var(--foreground) 65%, transparent)",
+                  }}
+                  href={"https://hamaralabs-notify.hamaralabs.com"}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                    https://hamaralabs-notify.hamaralabs.com
+                </a>
+              </div>
+            </div>
           </div>
           <button
             onClick={() => mutateNotifications("read", "all")}
@@ -247,12 +277,12 @@ export default function NotificationsPage() {
                       >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="space-y-1">
-                              <h3 className="text-sm font-semibold">{item.title}</h3>
+                            <h3 className="text-sm font-semibold">{item.title}</h3>
                             {item.description ? (
-                                <div
-                                  className="text-sm opacity-80 [&_*]:max-w-full"
-                                  dangerouslySetInnerHTML={{ __html: item.description }}
-                                />
+                              <div
+                                className="text-sm opacity-80 [&_*]:max-w-full"
+                                dangerouslySetInnerHTML={{ __html: item.description }}
+                              />
                             ) : null}
                             <p className="text-xs opacity-60">{createdAt}</p>
                           </div>

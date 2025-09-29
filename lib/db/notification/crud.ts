@@ -1,5 +1,45 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
+type ExternalNotifyPayload = Pick<NotificationCreateInput, "userId" | "title" | "description">;
+
+async function sendExternalNotificationAlerts(notifications: ExternalNotifyPayload[]) {
+    const token = process.env.NOTIFY_TOKEN;
+    if (!token || !notifications.length) return;
+
+  if (typeof fetch !== "function") {
+    console.error("Global fetch API is not available in this runtime; skipping external notification alerts.");
+    return;
+  }
+
+    const buildMessageBody = (notification: ExternalNotifyPayload) => {
+        if (notification.description) {
+            return notification.description.replace(/<[^>]*>/g, "").trim() || notification.title;
+        }
+        return notification.title;
+    };
+    
+  await Promise.allSettled(
+    notifications.map(async (notification) => {
+        const message = buildMessageBody(notification) ?? "";
+        const url = `https://hamaralabs-notify.hamaralabs.com/alerts-${notification.userId}`;
+        try {
+        fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${token}`,
+            Title: notification.title,
+            Priority: "5",
+            Sound: "siren",
+            "Content-Type": "text/plain",
+          },
+          body: message,
+        });
+      } catch (error) {
+        console.error("Failed to send notify alert", { url, error });
+      }
+    }),
+  );
+}
 
 export type NotificationCreateInput = {
   userId: string;
@@ -35,6 +75,10 @@ export async function createNotifications(inputs: NotificationCreateInput[]): Pr
       return row;
     }),
   });
+
+  await sendExternalNotificationAlerts(
+    inputs.map(({ userId, title, description }) => ({ userId, title, description })),
+  );
 }
 
 export async function listNotifications(userId: string, options?: ListNotificationsOptions) {

@@ -107,13 +107,15 @@ export async function notifyStudentStatusUpdate(params: {
   studentId: string;
   entityType: "course" | "competition" | "tinkering-activity";
   entityName: string;
-  statusList: string[];
+  previousStatus?: string | null;
+  currentStatus?: string | null;
   resourceId: string;
 }) {
   const { student, stakeholders } = await fetchStudentStakeholders(params.studentId);
   if (!student || !stakeholders.length) return;
 
-  const statusText = params.statusList.length ? params.statusList.join(", ") : "updated";
+  const previousStatus = params.previousStatus?.trim() || "previous status";
+  const currentStatus = params.currentStatus?.trim() || "updated";
   const entityLabel =
     params.entityType === "course"
       ? "Course"
@@ -121,7 +123,9 @@ export async function notifyStudentStatusUpdate(params: {
         ? "Competition"
         : "Tinkering activity";
   const title = `${entityLabel} status changed`;
-  const description = makeTextHtml(`${params.entityName} for ${student.fullName} is now ${statusText}`);
+  const description = makeTextHtml(
+    `${params.entityName} for ${student.fullName} changed from ${previousStatus} to ${currentStatus}`,
+  );
 
   await createNotifications(
     stakeholders.map((s) => ({
@@ -135,7 +139,8 @@ export async function notifyStudentStatusUpdate(params: {
         studentId: student.id,
         studentName: student.fullName,
         schoolName: student.schoolName,
-        statuses: params.statusList,
+        statusPrevious: params.previousStatus ?? null,
+        statusCurrent: params.currentStatus ?? null,
         entityName: params.entityName,
       },
     })),

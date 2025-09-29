@@ -189,11 +189,16 @@ export async function updateCustomisedCourse(
     await pruneCourseAttachments(id, keepUrls);
   }
   if (haveStatusesChanged(existing?.status, Array.isArray(data.status) ? data.status : undefined)) {
+    const previousStatuses = Array.isArray(existing?.status) ? existing?.status ?? [] : [];
+    const nextStatuses = Array.isArray(updated.status) ? updated.status ?? [] : [];
+    const previousStatus = previousStatuses.length ? previousStatuses[previousStatuses.length - 1] : null;
+    const currentStatus = nextStatuses.length ? nextStatuses[nextStatuses.length - 1] : null;
     await notifyStudentStatusUpdate({
       studentId: updated.student.id,
       entityType: "course",
       entityName: updated.course.name,
-      statusList: Array.isArray(updated.status) ? updated.status : [],
+      previousStatus,
+      currentStatus,
       resourceId: updated.id,
     });
   }
