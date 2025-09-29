@@ -33,7 +33,7 @@ export function ManageMembersModal(props: ManageMembersModalProps) {
   const [schoolId, setSchoolId] = useState<string>('');
   const [role, setRole] = useState<RoleKey | ''>('');
   const [fetchingCandidates, setFetchingCandidates] = useState(false);
-  const [candidates, setCandidates] = useState<User[]>([]);
+  const [candidateMap, setCandidateMap] = useState<Record<string, User>>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -55,8 +55,11 @@ export function ManageMembersModal(props: ManageMembersModalProps) {
     })();
   }, [open]);
 
-  // Reset downstream state when school or role changes
-  useEffect(() => { setCandidates([]); setSelectedIds([]); }, [schoolId, role]);
+  // Reset downstream state when school changes
+  useEffect(() => {
+    setCandidateMap({});
+    setSelectedIds([]);
+  }, [schoolId]);
 
   const disabledAdd = !schoolId || !role || selectedIds.length === 0 || adding;
 
@@ -71,7 +74,13 @@ export function ManageMembersModal(props: ManageMembersModalProps) {
       const list: User[] = d.users || [];
       // filter out already members & self
       const filtered = list.filter(u => u.id !== currentUserId && !roomMembers.some(m => m.id === u.id));
-      setCandidates(filtered);
+      setCandidateMap(prev => {
+        const next = { ...prev };
+        for (const user of filtered) {
+          next[user.id] = user;
+        }
+        return next;
+      });
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -96,6 +105,11 @@ export function ManageMembersModal(props: ManageMembersModalProps) {
   }
 
   const roleOptions = (Object.keys(ROLE_LABELS) as RoleKey[]).map(r => ({ value: r, label: ROLE_LABELS[r] }));
+
+  const candidates = useMemo(() => {
+    const memberIds = new Set(roomMembers.map(m => m.id));
+    return Object.values(candidateMap).filter(c => !memberIds.has(c.id));
+  }, [candidateMap, roomMembers]);
 
   // Build options for SearchableSelect from fetched candidates
   const candidateOptions: Option[] = useMemo(() => candidates.map(c => {
