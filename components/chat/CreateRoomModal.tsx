@@ -26,7 +26,7 @@ export function CreateRoomModal({ open, onClose, roomName, setRoomName, currentU
   const [loadingSchools, setLoadingSchools] = useState(false);
   const [schoolId, setSchoolId] = useState('');
   const [role, setRole] = useState<RoleKey | ''>('');
-  const [candidates, setCandidates] = useState<User[]>([]);
+  const [candidateMap, setCandidateMap] = useState<Record<string, User>>({});
   const [fetchingCandidates, setFetchingCandidates] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +45,10 @@ export function CreateRoomModal({ open, onClose, roomName, setRoomName, currentU
     })();
   }, [open]);
 
-  useEffect(() => { setCandidates([]); setSelectedIds([]); }, [schoolId, role]);
+  useEffect(() => {
+    setCandidateMap({});
+    setSelectedIds([]);
+  }, [schoolId]);
 
   const disabledCreate = !roomName.trim();
 
@@ -58,9 +61,17 @@ export function CreateRoomModal({ open, onClose, roomName, setRoomName, currentU
       if (!r.ok) throw new Error(d.error || 'Failed to fetch users');
       const list: User[] = d.users || [];
       const filtered = list.filter(u => u.id !== currentUserId);
-      setCandidates(filtered);
+      setCandidateMap(prev => {
+        const next = { ...prev };
+        for (const user of filtered) {
+          next[user.id] = user;
+        }
+        return next;
+      });
     } catch (e: any) { setError(e.message); } finally { setFetchingCandidates(false); }
   }
+
+  const candidates = useMemo(() => Object.values(candidateMap), [candidateMap]);
 
   const candidateOptions: Option[] = useMemo(() => candidates.map(c => {
     const label = ([c.first_name, c.last_name].filter(Boolean).join(' ').trim() || c.email || c.id) + (c.email ? ` (${c.email})` : '');

@@ -1,5 +1,42 @@
 import { prisma } from "../db/prisma";
-import { chatBus } from './realtime';
+import { chatBus } from "./realtime";
+
+function containsAdmin(value: unknown): boolean {
+  if (!value) return false;
+  if (typeof value === "string") {
+    return value.toUpperCase() === "ADMIN";
+  }
+  if (Array.isArray(value)) {
+    return value.some((entry) => containsAdmin(entry));
+  }
+  if (typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).some((entry) => containsAdmin(entry));
+  }
+  return false;
+}
+
+let cachedAdminIds: string[] | null = null;
+let cachedAdminFetchedAt = 0;
+const ADMIN_CACHE_TTL_MS = 60 * 1000; // 1 minute cache to avoid repeated scans
+
+async function getGlobalAdminIds(): Promise<string[]> {
+  const now = Date.now();
+  if (cachedAdminIds && now - cachedAdminFetchedAt < ADMIN_CACHE_TTL_MS) {
+    return cachedAdminIds;
+  }
+
+  const users = await prisma.user.findMany({
+    select: { id: true, user_meta_data: true },
+  });
+
+  const adminIds = users
+    .filter((user) => containsAdmin(user.user_meta_data))
+    .map((user) => user.id);
+
+  cachedAdminIds = adminIds;
+  cachedAdminFetchedAt = now;
+  return adminIds;
+}
 
 export async function listRooms(userId: string) {
   return prisma.chatRoom.findMany({
@@ -10,23 +47,27 @@ export async function listRooms(userId: string) {
 }
 
 export async function createRoom(userId: string, name: string, memberIds: string[]) {
-  const unique = Array.from(new Set([userId, ...(memberIds || [])].filter(Boolean)));
+  const requestedMembers = Array.from(new Set([userId, ...(memberIds || [])].filter(Boolean)));
   const currentUser = await prisma.user.findUnique({ where: { id: userId } });
   if (!currentUser) {
     await prisma.user.create({ data: { id: userId, email: `${userId}@placeholder.invalid`, user_meta_data: { placeholder: true } } });
   }
-  const existing = await prisma.user.findMany({ where: { id: { in: unique } }, select: { id: true } });
-  const existingIds = existing.map(u => u.id);
-  const missing = unique.filter(id => !existingIds.includes(id));
+
+  const globalAdminIds = await getGlobalAdminIds();
+  const combinedMemberIds = Array.from(new Set([...requestedMembers, ...globalAdminIds]));
+
+  const existing = await prisma.user.findMany({ where: { id: { in: combinedMemberIds } }, select: { id: true } });
+  const existingIds = existing.map((u) => u.id);
+  const missingRequested = requestedMembers.filter((id) => !existingIds.includes(id));
   const room = await prisma.chatRoom.create({
     data: {
       name: (name || 'Untitled Room').trim(),
       adminId: userId,
-      members: { connect: existingIds.map(id => ({ id })) }
+      members: { connect: existingIds.map((id) => ({ id })) },
     },
     include: { members: true }
   });
-  return { room, missingMembers: missing };
+  return { room, missingMembers: missingRequested };
 }
 
 export async function getRoomWithMembers(roomId: string) {
@@ -47,7 +88,12 @@ export async function updateRoomMembers(roomId: string, addIds: string[], remove
   // Prevent removing the admin from the room
   const room = await prisma.chatRoom.findUnique({ where: { id: roomId }, select: { adminId: true } });
   if (!room) throw new Error('Room not found');
-  const filteredRems = rems.filter(id => id !== room.adminId);
+  const globalAdminIds = await getGlobalAdminIds();
+  const protectedIds = new Set([...globalAdminIds, room.adminId].filter(Boolean) as string[]);
+  const filteredRems = rems.filter((id) => !protectedIds.has(id));
+  if (filteredRems.length !== rems.length) {
+    throw new Error('Cannot remove system administrators from the room');
+  }
 
   const existingAdds = await prisma.user.findMany({ where: { id: { in: adds } }, select: { id: true } });
   const existingRems = await prisma.user.findMany({ where: { id: { in: filteredRems } }, select: { id: true } });
