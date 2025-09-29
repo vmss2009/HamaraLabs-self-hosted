@@ -140,8 +140,8 @@ export default function SchoolVisitReport() {
 
   return (
     <ReportShell>
-      <div className="w-full">
-        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
+      <div className="w-full px-6 md:px-10">
+  <div className="bg-white rounded-xl shadow-sm max-w-5xl w-full mt-8 mb-10 mr-auto">
           <DataGrid
             rows={visits}
             columns={columns}

@@ -146,20 +146,20 @@ export default function NotificationsPage() {
         <div className="h-full w-full pl-14 pr-3 sm:pl-16 sm:pr-5 flex flex-col justify-center gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-6">
             <div className="flex flex-col">
-              <h1 className="text-sm font-semibold tracking-wide lowercase">Notifications</h1>
-              <span className="text-xs opacity-70 lowercase">{`${unreadCount} unread`}</span>
+              <h1 className="text-sm font-semibold tracking-wide">Notifications</h1>
+              <span className="text-xs opacity-70">{`${unreadCount} unread`}</span>
             </div>
-            <div className="flex flex-col gap-1 text-[11px] lowercase tracking-wide opacity-80">
-              <div className="flex flex-wrap items-center gap-2 lowercase">
-                <span className="font-semibold lowercase">topic name</span>
+            <div className="flex flex-col gap-1 text-[11px] tracking-wide opacity-80">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold">Topic name</span>
                 <span className="rounded bg-black/10 px-2 py-0.5 font-medium lowercase">
                   {userId ? `alerts-${userId.toLowerCase()}` : "loading"}
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-2 lowercase">
-                <span className="font-semibold lowercase">notify url</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold">Notify URL</span>
                 <a
-                  className="break-all rounded bg-black/10 px-2 py-1 text-xs font-semibold lowercase tracking-wide underline"
+                  className="break-all rounded bg-black/10 px-2 py-1 text-xs font-semibold tracking-wide underline"
                   style={{
                     color: "var(--foreground)",
                     textDecorationColor: "color-mix(in srgb, var(--foreground) 65%, transparent)",
