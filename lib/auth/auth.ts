@@ -35,12 +35,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Deny sign-in and redirect back with an error message
         return "/sign-in?error=not_allowed";
       }
-      try {
-        const isAdmin = checkRole(dbUser, 'ADMIN');
-        if (!isAdmin) return '/sign-in?error=not_admin';
-      } catch {
-        return '/sign-in?error=not_admin';
-      }
+      // try {
+      //   const isAdmin = checkRole(dbUser, 'ADMIN');
+      //   if (!isAdmin) return '/sign-in?error=not_admin';
+      // } catch {
+      //   return '/sign-in?error=not_admin';
+      // }
 
       // Attach our internal user id for downstream callbacks
       (user as any).id = dbUser.id;
