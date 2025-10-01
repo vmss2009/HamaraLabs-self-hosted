@@ -92,6 +92,28 @@ export default function StudentReport() {
     { field: "email", headerName: "Email", width: 200 },
     { field: "gender", headerName: "Gender", width: 100 },
     {
+      field: "calendar_link",
+      headerName: "Calendar",
+      width: 150,
+      renderCell: (params) => {
+        const userId = params.row.user_id;
+        if (!userId) {
+          return <span className="text-gray-400 text-xs">No calendar</span>;
+        }
+        return (
+          <a
+            href={`/calendar/${userId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View Calendar
+          </a>
+        );
+      },
+    },
+    {
       field: "school",
       headerName: "School",
       width: 200,
@@ -151,6 +173,11 @@ export default function StudentReport() {
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
+              columns: {
+                columnVisibilityModel: {
+                  calendar_link: false,
+                },
+              },
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
@@ -183,6 +210,7 @@ export default function StudentReport() {
             ...selectedRow,
             index:
               students.findIndex((student) => student.id === selectedRow?.id) + 1,
+            calendar_link: selectedRow.user_id ? `/calendar/${selectedRow.user_id}` : null,
           } : null}
           formtype="Student"
           columns={[
@@ -196,6 +224,7 @@ export default function StudentReport() {
             { label: "Section", field: "section" },
             { label: "Aspiration", field: "aspiration" },
             { label: "Comments", field: "comments" },
+            { label: "Calendar", field: "calendar_link", type: "link" },
           ]}
         />
       </div>

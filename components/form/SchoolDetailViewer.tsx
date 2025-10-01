@@ -5,6 +5,7 @@ interface UserRole {
   name: string;
   email: string;
   phone: string;
+  id?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -64,9 +65,21 @@ function formatUserRoles(roles: UserRole[], roleColor: string): React.ReactNode 
           <div className="text-sm text-gray-600 mb-1">
             <span className="font-medium">Email:</span> {role.email}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 mb-1">
             <span className="font-medium">Phone:</span> {role.phone !== 'N/A' ? role.phone : 'Not provided'}
           </div>
+          {role.id && (
+            <div className="text-sm mt-2">
+              <a
+                href={`/calendar/${role.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                View Calendar
+              </a>
+            </div>
+          )}
         </div>
       ))}
     </div>

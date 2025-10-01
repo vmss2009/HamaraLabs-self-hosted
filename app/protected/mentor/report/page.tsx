@@ -24,6 +24,7 @@ interface Mentor {
   phone_number?: string;
   school_ids: string[];
   comments?: string;
+  user_id?: string | null;
   user?: {
     id: string;
     email: string;
@@ -153,6 +154,28 @@ export default function MentorReport() {
       width: 150,
     },
     {
+      field: "calendar_link",
+      headerName: "Calendar",
+      width: 150,
+      renderCell: (params) => {
+        const userId = params.row.user_id;
+        if (!userId) {
+          return <span className="text-gray-400 text-xs">No calendar</span>;
+        }
+        return (
+          <a
+            href={`/calendar/${userId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View Calendar
+          </a>
+        );
+      },
+    },
+    {
       field: "actions",
       type: "actions",
       headerName: "Actions",
@@ -201,6 +224,11 @@ export default function MentorReport() {
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
+              columns: {
+                columnVisibilityModel: {
+                  calendar_link: false,
+                },
+              },
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
@@ -233,7 +261,8 @@ export default function MentorReport() {
             ...selectedRow,
             index:
               mentors.findIndex((mentor) => mentor.id === selectedRow?.id) + 1,
-            school_ids: (selectedRow.school_ids || []).map((id) => schoolNameById[id] || id)
+            school_ids: (selectedRow.school_ids || []).map((id) => schoolNameById[id] || id),
+            calendar_link: selectedRow.user_id ? `/calendar/${selectedRow.user_id}` : null,
           } : null}
           formtype="Mentor"
           columns={[
@@ -244,6 +273,7 @@ export default function MentorReport() {
             { label: "Phone Number", field: "phone_number" },
             { label: "Schools", field: "school_ids" },
             { label: "Comments", field: "comments" },
+            { label: "Calendar", field: "calendar_link", type: "link" },
           ]}
         />
       </div>

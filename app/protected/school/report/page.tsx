@@ -225,7 +225,7 @@ export default function Page() {
               const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
               const email = user.email;
               const phone = user.user_meta_data?.phone_number || 'N/A';
-              const entry = { name, email, phone };
+              const entry = { name, email, phone, id: user.id };
               usersList.push(entry);
 
               const rolesBySchool = user.user_meta_data?.rolesBySchool || {};

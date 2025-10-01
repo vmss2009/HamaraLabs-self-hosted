@@ -74,7 +74,8 @@ type ColumnType =
   | { label: string; type: "address"; field?: undefined }
   | { label: string; type: "Details"; fields: [FieldLabelPair, FieldLabelPair, FieldLabelPair, FieldLabelPair] }
   | { label: string; type: "compare"; fields: [FieldLabelPair, FieldLabelPair] }
-  | { label: string; type: "links"; field: string };
+  | { label: string; type: "links"; field: string }
+  | { label: string; type: "link"; field: string };
 
 interface DetailsDrawerProps<T extends Record<string, unknown>> {
   drawerOpen: boolean;
@@ -174,6 +175,24 @@ function DetailsDrawer<T extends Record<string, unknown>>({
                       );
                     })}
                   </ul>
+                );
+              })()
+            ) : col.type === "link" && "field" in col ? (
+              (() => {
+                const val = getNestedValue(selectedRow, col.field);
+                const href = typeof val === 'string' ? val : '';
+                if (!href) return <div className="">{NA_ELEMENT}</div>;
+                return (
+                  <div className="text-gray-900">
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Open Calendar
+                    </a>
+                  </div>
                 );
               })()
             ) : "field" in col && typeof col.field === "string" ? (
