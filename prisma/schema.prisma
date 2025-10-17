@@ -8,27 +8,29 @@ datasource db {
 }
 
 model User {
-  id             String        @id
-  email          String        @unique
-  schools        String[]      @default([])
-  user_meta_data Json?         @default("{}")
-  created_at     DateTime      @default(now())
-  updated_at     DateTime      @updatedAt
-  first_name     String?
-  last_name      String?
-  school_visits  SchoolVisit[] @relation("VisitPOC")
-  students       Student[]
-  mentors        Mentor[]
-  chatRooms      ChatRoom[]    @relation("ChatRoomMembers")
-  messages       Message[]
-  adminOf        ChatRoom[]    @relation("ChatRoomAdmin")
-  Schedule       Schedule[]
-  Booking        Booking[]
-  notifications  Notification[]
+  id              String         @id
+  email           String         @unique
+  schools         String[]       @default([])
+  user_meta_data  Json?          @default("{}")
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  first_name      String?
+  last_name       String?
+  school_visits   SchoolVisit[]  @relation("VisitPOC")
+  students        Student[]
+  mentors         Mentor[]
+  chatRooms       ChatRoom[]     @relation("ChatRoomMembers")
+  messages        Message[]
+  adminOf         ChatRoom[]     @relation("ChatRoomAdmin")
+  Schedule        Schedule[]
+  Booking         Booking[]
+  notifications   Notification[]
+  createdTasks    Task[]         @relation("CreatedTasks")
+  assignedTasks   Task[]         @relation("AssignedTasks")
   // Role-based school relations
-  inchargeOf     School[]      @relation("SchoolIncharges")
-  principalOf    School[]      @relation("SchoolPrincipals")
-  correspondentOf School[]     @relation("SchoolCorrespondents")
+  inchargeOf      School[]       @relation("SchoolIncharges")
+  principalOf     School[]       @relation("SchoolPrincipals")
+  correspondentOf School[]       @relation("SchoolCorrespondents")
 }
 
 model Country {
@@ -107,6 +109,7 @@ model Student {
   CustomisedCompetition CustomisedCompetition[]
   CustomisedCourse      CustomisedCourse[]
   customised_activities CustomisedTinkeringActivity[]
+  tasks                 Task[]
 }
 
 model Mentor {
@@ -204,52 +207,52 @@ model Course {
 }
 
 model CustomisedCourse {
-  id         String   @id @default(uuid())
-  created_at DateTime @default(now())
-  course_id  String
-  student_id String
-  status     String[]
-comments   String?
-  attachments String[] @default([])
-  course     Course   @relation(fields: [course_id], references: [id])
-  student    Student  @relation(fields: [student_id], references: [id])
+  id                   String                @id @default(uuid())
+  created_at           DateTime              @default(now())
+  course_id            String
+  student_id           String
+  status               String[]
+  comments             String?
+  attachments          String[]              @default([])
+  course               Course                @relation(fields: [course_id], references: [id])
+  student              Student               @relation(fields: [student_id], references: [id])
   snapshot_attachments SnapshotAttachments[]
 }
 
 model CustomisedTinkeringActivity {
-  id           String            @id @default(uuid())
-  created_at   DateTime          @default(now())
-  name         String
-  subtopic_id  Int
-  introduction String
-  goals        String[]
-  materials    String[]
-  instructions String[]
-  tips         String[]
-  observations String[]
-  extensions   String[]
-  resources    String[]
-  comments     String?
-  attachments  String[]
-  base_ta_id   String
-  student_id   String
-  status       String[]
-  base_ta      TinkeringActivity @relation(fields: [base_ta_id], references: [id])
-  student      Student           @relation(fields: [student_id], references: [id])
-  subtopic     Subtopic          @relation(fields: [subtopic_id], references: [id])
+  id                   String                @id @default(uuid())
+  created_at           DateTime              @default(now())
+  name                 String
+  subtopic_id          Int
+  introduction         String
+  goals                String[]
+  materials            String[]
+  instructions         String[]
+  tips                 String[]
+  observations         String[]
+  extensions           String[]
+  resources            String[]
+  comments             String?
+  attachments          String[]
+  base_ta_id           String
+  student_id           String
+  status               String[]
+  base_ta              TinkeringActivity     @relation(fields: [base_ta_id], references: [id])
+  student              Student               @relation(fields: [student_id], references: [id])
+  subtopic             Subtopic              @relation(fields: [subtopic_id], references: [id])
   snapshot_attachments SnapshotAttachments[]
 }
 
 model CustomisedCompetition {
-  id             String      @id @default(uuid())
-  created_at     DateTime    @default(now())
-  competition_id String
-  student_id     String
-  status         String[]
-comments       String?
-  attachments    String[] @default([])
-  competition    Competition @relation(fields: [competition_id], references: [id])
-  student        Student     @relation(fields: [student_id], references: [id])
+  id                   String                @id @default(uuid())
+  created_at           DateTime              @default(now())
+  competition_id       String
+  student_id           String
+  status               String[]
+  comments             String?
+  attachments          String[]              @default([])
+  competition          Competition           @relation(fields: [competition_id], references: [id])
+  student              Student               @relation(fields: [student_id], references: [id])
   snapshot_attachments SnapshotAttachments[]
 }
 
@@ -341,9 +344,9 @@ model SnapshotAttachments {
   size      Int?
   createdAt DateTime @default(now())
 
-  customised_ta_id           String?
-  customised_competition_id  String?
-  customised_course_id       String?
+  customised_ta_id          String?
+  customised_competition_id String?
+  customised_course_id      String?
 
   customised_ta          CustomisedTinkeringActivity? @relation(fields: [customised_ta_id], references: [id])
   customised_competition CustomisedCompetition?       @relation(fields: [customised_competition_id], references: [id])
@@ -355,12 +358,12 @@ model SnapshotAttachments {
 }
 
 model Notification {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
   readAt       DateTime?
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
-  category     String   @default("general")
+  category     String    @default("general")
   title        String
   description  String?
   resourceType String?
@@ -441,4 +444,31 @@ model Slot {
   updatedAt             DateTime @updatedAt
 
   bookings Booking[]
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Task {
+  id           String     @id @default(uuid())
+  title        String
+  description  String?
+  status       TaskStatus @default(PENDING)
+  dueDate      DateTime?
+  studentId    String?
+  assignedToId String?
+  createdById  String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  student    Student? @relation(fields: [studentId], references: [id])
+  assignedTo User?    @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdBy  User     @relation("CreatedTasks", fields: [createdById], references: [id])
+
+  @@index([studentId])
+  @@index([assignedToId])
+  @@index([createdById])
 }

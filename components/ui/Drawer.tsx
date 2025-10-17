@@ -61,6 +61,15 @@ const Drawer: React.FC = () => {
                                         Snapshot
                                     </Link>
                                 </li>
+                                <li>
+                                    <Link
+                                        href="/protected/tasks"
+                                        className="block bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+                                        {...linkProps}
+                                    >
+                                        Tasks
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
 

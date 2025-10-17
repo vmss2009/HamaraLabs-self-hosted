@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback, useRef } from "react";
+import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   DataGrid,
@@ -20,6 +20,7 @@ import { EditActivityDialog } from "./tinkering-activity/tinkering-activity-edit
 import { getCourseColumns } from "./course/columns";
 import { getCompetitionColumns } from "./competition/columns";
 import { getTinkeringActivityColumns } from "./tinkering-activity/columns";
+import { getTaskColumns, TaskSnapshotRow } from "./tasks/columns";
 import { EditCompetitionDialog } from "./competition/competition-edit-form/edit";
 import { EditCourseDialog } from "./course/course-edit-form/edit";
 
@@ -124,16 +125,20 @@ function StudentSnapshot() {
     searchParams.get("student") || ""
   );
   const [activeTab, setActiveTab] = useState<
-    "tinkering" | "competition" | "courses"
+    "tinkering" | "competition" | "courses" | "tasks"
   >(
-    (searchParams.get("tab") as "tinkering" | "competition" | "courses") ||
-    "tinkering"
+    (searchParams.get("tab") as
+      | "tinkering"
+      | "competition"
+      | "courses"
+      | "tasks") || "tinkering"
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tinkeringActivities, setTinkeringActivities] = useState<SnapshotItem[]>([]);
   const [competitions, setCompetitions] = useState<SnapshotItem[]>([]);
   const [courses, setCourses] = useState<SnapshotItem[]>([]);
+  const [tasks, setTasks] = useState<TaskSnapshotRow[]>([]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
@@ -304,20 +309,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     } else {
       setStudents([]);
       setSelectedStudent("");
+      setTasks([]);
     }
   }, [selectedSchool]);
-
-  useEffect(() => {
-    if (selectedStudent) {
-      const fetchActions: Record<string, () => void> = {
-        tinkering: fetchTinkeringActivities,
-        competition: fetchCompetitions,
-        courses: fetchCourses,
-      };
-
-      fetchActions[activeTab]?.();
-    }
-  }, [selectedStudent, activeTab]);
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -518,6 +512,52 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       if (isMounted.current) setLoading(false);
     }
   }, [selectedStudent]);
+
+  const fetchTasks = useCallback(async () => {
+    if (!selectedStudent) {
+      setTasks([]);
+      return;
+    }
+    try {
+      if (isMounted.current) setLoading(true);
+      const params = new URLSearchParams({
+        view: "assigned",
+        studentId: selectedStudent,
+        excludeSelfCreated: "true",
+      });
+      const response = await fetch(`/api/tasks?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch tasks");
+      }
+      const studentTasks = await response.json();
+      if (isMounted.current) setTasks(studentTasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      if (isMounted.current) setError("Failed to load tasks");
+    } finally {
+      if (isMounted.current) setLoading(false);
+    }
+  }, [selectedStudent]);
+
+  useEffect(() => {
+    if (selectedStudent) {
+      const fetchActions: Record<string, () => void> = {
+        tinkering: fetchTinkeringActivities,
+        competition: fetchCompetitions,
+        courses: fetchCourses,
+        tasks: fetchTasks,
+      };
+
+      fetchActions[activeTab]?.();
+    }
+  }, [
+    selectedStudent,
+    activeTab,
+    fetchTinkeringActivities,
+    fetchCompetitions,
+    fetchCourses,
+    fetchTasks,
+  ]);
 
   const fetchStudentDetails = async (studentId: string) => {
     try {
@@ -763,6 +803,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         tinkering: fetchTinkeringActivities,
         competition: fetchCompetitions,
         courses: fetchCourses,
+        tasks: fetchTasks,
       };
 
       fetchActions[statusType]?.();
@@ -1028,6 +1069,33 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     }
   };
 
+  const formatTaskDueDate = useCallback((value: string | null) => {
+    if (!value) return "";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "";
+    return parsed.toLocaleDateString();
+  }, []);
+
+  const handleTaskStatusChange = useCallback(
+    async (task: TaskSnapshotRow, status: "IN_PROGRESS" | "COMPLETED") => {
+      try {
+        const response = await fetch(`/api/tasks/${task.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to update task status");
+        }
+        fetchTasks();
+      } catch (error) {
+        console.error("Error updating task status:", error);
+        alert("Failed to update task status. Please try again.");
+      }
+    },
+    [fetchTasks]
+  );
+
   const tinkeringActivityColumns = (getTinkeringActivityColumns as any)(
     handleModifyactivity as any,
     handleEditTinkeringActivity as any,
@@ -1043,8 +1111,15 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     handleEditCourse as any,
     handleDeleteCourse as any
   ) as any;
+  const taskColumns = useMemo(
+    () => getTaskColumns(handleTaskStatusChange, formatTaskDueDate),
+    [handleTaskStatusChange, formatTaskDueDate]
+  );
 
   const handleRowClick = (params: { row: Record<string, unknown> }) => {
+    if (activeTab === "tasks") {
+      return;
+    }
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -1054,12 +1129,14 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     setSelectedRow(null);
   };
 
-  const getRowClassName = (params: { row: { status?: string[] } }) => {
-    const statusArray = params.row.status;
-    const latestStatus =
-      Array.isArray(statusArray) && statusArray.length > 0
-        ? statusArray[statusArray.length - 1]
-        : "";
+  const getRowClassName = (params: { row: { status?: string[] | string } }) => {
+    const statusValue = params.row.status;
+    let latestStatus = "";
+    if (Array.isArray(statusValue) && statusValue.length > 0) {
+      latestStatus = statusValue[statusValue.length - 1];
+    } else if (typeof statusValue === "string") {
+      latestStatus = statusValue;
+    }
 
     if (activeTab === "tinkering" && latestStatus.includes("TA completed")) {
       return "bg-green-100";
@@ -1071,6 +1148,9 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       return "bg-green-100";
     }
     if (activeTab === "courses" && latestStatus.includes("Course completed")) {
+      return "bg-green-100";
+    }
+    if (activeTab === "tasks" && latestStatus === "COMPLETED") {
       return "bg-green-100";
     }
 
@@ -1102,6 +1182,15 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     const dateB = getLatestStatusDate(b.status);
     return dateB.getTime() - dateA.getTime();
   });
+
+  const sortedTasks = useMemo(() => {
+    const toTime = (value: string | null) => {
+      if (!value) return Number.POSITIVE_INFINITY;
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? Number.POSITIVE_INFINITY : parsed.getTime();
+    };
+    return [...tasks].sort((a, b) => toTime(a.dueDate) - toTime(b.dueDate));
+  }, [tasks]);
 
   const filteredSchools =
     currentView === "cluster" && selectedHub
@@ -1340,6 +1429,23 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               >
                 Courses
               </Button>
+              <Button
+                variant={activeTab === "tasks" ? "default" : "outline"}
+                onClick={() => {
+                  setActiveTab("tasks");
+                  updateURLParams({
+                    view: currentView,
+                    cluster: selectedCluster,
+                    hub: selectedHub,
+                    school: selectedSchool,
+                    student: selectedStudent,
+                    tab: "tasks",
+                  });
+                }}
+                className="px-4 py-2 rounded-t-lg"
+              >
+                Tasks
+              </Button>
             </div>
           </div>
         </div>
@@ -1451,7 +1557,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                 ),
               }}
             />
-          ) : (
+          ) : activeTab === "courses" ? (
             <DataGrid
               rows={sortedCourses}
               columns={courseColumns}
@@ -1465,6 +1571,48 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
               autoHeight
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
+              sx={{
+                borderRadius: "20px",
+                backgroundColor: "#f3f4f6",
+                "& .MuiDataGrid-cell": {
+                  color: "#1f2937",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
+                },
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#1f2937",
+                },
+                "& .bg-green-100": {
+                  backgroundColor: "#abebc6 !important",
+                  "&:hover": {
+                    backgroundColor: "#abebc6 !important",
+                  },
+                },
+              }}
+              slots={{
+                toolbar: () => (
+                  <GridToolbarContainer className="bg-gray-50 p-2">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                    <GridToolbarColumnsButton />
+                  </GridToolbarContainer>
+                ),
+              }}
+            />
+          ) : (
+            <DataGrid
+              rows={sortedTasks}
+              columns={taskColumns as any}
+              loading={loading}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 10 } },
+              }}
+              pageSizeOptions={[5, 10, 25, 50]}
+              disableRowSelectionOnClick
+              getRowId={(row: any) => row.id}
+              autoHeight
+              onRowClick={() => {}}
+              getRowClassName={getRowClassName as any}
               sx={{
                 borderRadius: "20px",
                 backgroundColor: "#f3f4f6",
