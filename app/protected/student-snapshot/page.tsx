@@ -521,9 +521,8 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     try {
       if (isMounted.current) setLoading(true);
       const params = new URLSearchParams({
-        view: "assigned",
+        view: "student",
         studentId: selectedStudent,
-        excludeSelfCreated: "true",
       });
       const response = await fetch(`/api/tasks?${params.toString()}`);
       if (!response.ok) {

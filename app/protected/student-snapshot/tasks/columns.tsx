@@ -43,13 +43,13 @@ export function getTaskColumns(
       headerName: "Description",
       flex: 1,
       minWidth: 200,
-  valueGetter: (params: any) => (params.row.description ?? ""),
+      valueGetter: (value, row) => row.description ?? "",
     },
     {
       field: "createdBy",
       headerName: "Created By",
       minWidth: 200,
-  valueGetter: (params: any) => params.row.createdBy?.email ?? "",
+      valueGetter: (value, row) => row.createdBy?.email ?? "",
     },
     {
       field: "status",
@@ -60,7 +60,7 @@ export function getTaskColumns(
       field: "dueDate",
       headerName: "Due Date",
       minWidth: 140,
-  valueGetter: (params: any) => formatDate(params.row.dueDate),
+      valueGetter: (value, row) => formatDate(row.dueDate),
     },
     {
       field: "actions",
@@ -68,7 +68,7 @@ export function getTaskColumns(
       type: "actions",
       width: 160,
       getActions: (params) => {
-        const row = (params as any).row as TaskSnapshotRow;
+        const row = params.row as TaskSnapshotRow;
         const status = row.status;
         if (status === "COMPLETED") {
           return [

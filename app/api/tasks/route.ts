@@ -33,16 +33,30 @@ export async function GET(request: Request) {
     .filter((status): status is TaskStatus => Boolean(status));
 
   const filter: TaskFilter = {
-    studentId,
     status: statuses.length ? statuses : undefined,
   };
 
   if (view === "created") {
     filter.createdById = userId;
+    if (studentId) {
+      filter.studentId = studentId;
+    }
+  } else if (view === "student") {
+    // New view: fetch all tasks for a specific student
+    if (!studentId) {
+      return failure("studentId is required for student view", 400);
+    }
+    filter.studentId = studentId;
+    if (excludeSelfCreated) {
+      filter.excludeCreatorId = userId;
+    }
   } else if (view === "assigned") {
     filter.assignedToId = userId;
     if (excludeSelfCreated) {
       filter.excludeCreatorId = userId;
+    }
+    if (studentId) {
+      filter.studentId = studentId;
     }
   } else {
     filter.assignedToId = userId;
