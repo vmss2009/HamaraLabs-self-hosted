@@ -811,7 +811,7 @@ const removeFileAt = (idx: number) => {
 
                             <div className="relative">
                               <button
-                                className="px-1 py-0.5 rounded text-[10px] border transition bg-slate-800/60 border-slate-700/70 hover:bg-slate-700/70 text-slate-300"
+                                className="px-1 py-0.5 rounded text-[10px] border transition action-badge"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setOpenMenuId(menuOpen ? null : m.id);
@@ -825,14 +825,29 @@ const removeFileAt = (idx: number) => {
                               {menuOpen && (
                                 <div
                                   className={clsx(
-                                    "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
+                                    "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md border shadow-lg z-50",
                                     mine ? "right-0" : "left-0"
                                   )}
+                                  style={{
+                                    background: 'color-mix(in srgb, var(--background) 88%, var(--foreground) 12%)',
+                                    borderColor: 'color-mix(in srgb, var(--background) 75%, var(--foreground) 25%)',
+                                    boxShadow: '0 4px 6px -1px color-mix(in srgb, var(--background) 70%, var(--foreground) 30%)',
+                                    color: '#000'
+                                  }}
                                 >
                                   <ul className="py-1 text-[12px]">
                                     <li>
                                       <button
-                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                        className="w-full text-left px-3 py-1.5 transition"
+                                        style={{
+                                          color: '#000'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.background = 'color-mix(in srgb, var(--background) 80%, var(--foreground) 20%)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background = 'transparent';
+                                        }}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setOpenMenuId(null);
@@ -845,7 +860,16 @@ const removeFileAt = (idx: number) => {
                                     {showEdit && (
                                       <li>
                                         <button
-                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                          className="w-full text-left px-3 py-1.5 transition"
+                                          style={{
+                                            color: '#000'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'color-mix(in srgb, var(--background) 80%, var(--foreground) 20%)';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                          }}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setOpenMenuId(null);
@@ -859,7 +883,13 @@ const removeFileAt = (idx: number) => {
                                     {showDelete && (
                                       <li>
                                         <button
-                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
+                                          className="w-full text-left px-3 py-1.5 transition text-rose-700 hover:text-rose-800"
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'color-mix(in srgb, var(--background) 80%, var(--foreground) 20%)';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                          }}
                                           onClick={async (e) => {
                                             e.stopPropagation();
                                             setOpenMenuId(null);
@@ -883,7 +913,7 @@ const removeFileAt = (idx: number) => {
                           >
                             <div className="relative">
                               <button
-                                className="px-1 py-0.5 rounded text-[10px] border transition bg-slate-800/60 border-slate-700/70 hover:bg-slate-700/70 text-slate-300"
+                                className="px-1 py-0.5 rounded text-[10px] border transition action-badge"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setOpenMenuId(menuOpen ? null : m.id);
@@ -897,14 +927,29 @@ const removeFileAt = (idx: number) => {
                               {menuOpen && (
                                 <div
                                   className={clsx(
-                                    "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
+                                    "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md border shadow-lg z-50",
                                     mine ? "right-0" : "left-0"
                                   )}
+                                  style={{
+                                    background: 'color-mix(in srgb, var(--background) 88%, var(--foreground) 12%)',
+                                    borderColor: 'color-mix(in srgb, var(--background) 75%, var(--foreground) 25%)',
+                                    boxShadow: '0 4px 6px -1px color-mix(in srgb, var(--background) 70%, var(--foreground) 30%)',
+                                    color: '#000'
+                                  }}
                                 >
                                   <ul className="py-1 text-[12px]">
                                     <li>
                                       <button
-                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                        className="w-full text-left px-3 py-1.5 transition"
+                                        style={{
+                                          color: '#000'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.background = 'color-mix(in srgb, var(--background) 80%, var(--foreground) 20%)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background = 'transparent';
+                                        }}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setOpenMenuId(null);
@@ -917,7 +962,16 @@ const removeFileAt = (idx: number) => {
                                     {showEdit && (
                                       <li>
                                         <button
-                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                          className="w-full text-left px-3 py-1.5 transition"
+                                          style={{
+                                            color: '#000'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'color-mix(in srgb, var(--background) 80%, var(--foreground) 20%)';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                          }}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setOpenMenuId(null);
@@ -931,7 +985,13 @@ const removeFileAt = (idx: number) => {
                                     {showDelete && (
                                       <li>
                                         <button
-                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
+                                          className="w-full text-left px-3 py-1.5 transition text-rose-700 hover:text-rose-800"
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'color-mix(in srgb, var(--background) 80%, var(--foreground) 20%)';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                          }}
                                           onClick={async (e) => {
                                             e.stopPropagation();
                                             setOpenMenuId(null);
