@@ -5,7 +5,7 @@ export interface TaskCreateInput {
   description?: string | null;
   status?: TaskStatus;
   dueDate?: Date | string | null;
-  studentId?: string | null;
+  studentIds?: string[];
   assignedToId?: string | null;
 }
 
@@ -14,7 +14,7 @@ export interface TaskUpdateInput {
   description?: string | null;
   status?: TaskStatus;
   dueDate?: Date | string | null;
-  studentId?: string | null;
+  studentIds?: string[];
   assignedToId?: string | null;
 }
 
@@ -32,7 +32,6 @@ export interface TaskRecord {
   description: string | null;
   status: TaskStatus;
   dueDate: Date | null;
-  studentId: string | null;
   assignedToId: string | null;
   createdById: string;
   createdAt: Date;
@@ -40,12 +39,16 @@ export interface TaskRecord {
 }
 
 export interface TaskWithRelations extends TaskRecord {
-  student?: {
+  students?: {
     id: string;
-    first_name: string;
-    last_name: string;
-    school_id: string;
-  } | null;
+    studentId: string;
+    student: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      school_id: string;
+    };
+  }[];
   createdBy: {
     id: string;
     email: string;

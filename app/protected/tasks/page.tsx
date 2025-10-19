@@ -15,6 +15,7 @@ import Alert from "@/components/ui/Alert";
 import { Input } from "@/components/form/Input";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import TaskDetailViewer from "@/components/form/TaskDetailViewer";
+import SearchableSelect from "@/components/form/SearchableSelect";
 import type { TaskStatus } from "@/lib/db/task/type";
 
 type TaskRow = {
@@ -23,7 +24,6 @@ type TaskRow = {
   description: string | null;
   status: TaskStatus;
   dueDate: string | null;
-  studentId: string | null;
   createdBy: {
     id: string;
     email: string;
@@ -36,12 +36,16 @@ type TaskRow = {
     first_name: string | null;
     last_name: string | null;
   } | null;
-  student?: {
+  students?: {
     id: string;
-    first_name: string;
-    last_name: string;
-    school_id?: string | null;
-  } | null;
+    studentId: string;
+    student: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      school_id?: string | null;
+    };
+  }[];
 };
 
 type StudentOption = {
@@ -86,8 +90,7 @@ export default function TasksPage() {
     title: "",
     description: "",
     schoolId: "",
-    studentId: "",
-    assignedToEmail: "",
+    studentIds: [] as string[],
     dueDate: "",
   });
 
@@ -239,27 +242,23 @@ export default function TasksPage() {
     async (task: TaskRow) => {
       setEditingTask(task);
       
-      // Fetch student's school if student exists
-      if (task.student?.school_id) {
-        setFormState({
-          title: task.title,
-          description: task.description || "",
-          schoolId: task.student.school_id,
-          studentId: task.studentId || "",
-          assignedToEmail: task.assignedTo?.email || "",
-          dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
-        });
-        // Fetch students for the school
-        await fetchStudentsForSchool(task.student.school_id);
+      // Get all student IDs and find the school (assuming all students are from same school)
+      const studentIds = task.students?.map((s) => s.studentId) || [];
+      const firstStudent = task.students?.[0]?.student;
+      const schoolId = firstStudent?.school_id || "";
+      
+      setFormState({
+        title: task.title,
+        description: task.description || "",
+        schoolId: schoolId,
+        studentIds: studentIds,
+        dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+      });
+      
+      // Fetch students for the school if we have one
+      if (schoolId) {
+        await fetchStudentsForSchool(schoolId);
       } else {
-        setFormState({
-          title: task.title,
-          description: task.description || "",
-          schoolId: "",
-          studentId: task.studentId || "",
-          assignedToEmail: task.assignedTo?.email || "",
-          dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
-        });
         setStudents([]);
       }
       
@@ -269,10 +268,11 @@ export default function TasksPage() {
   );
 
   const handleRowClick = (params: GridRowParams) => {
+    const firstStudent = params.row.students?.[0]?.student;
     const rowWithSchool = {
       ...params.row,
-      school: params.row.student?.school_id 
-        ? schoolNameLookup[params.row.student.school_id] || params.row.student.school_id
+      school: firstStudent?.school_id 
+        ? schoolNameLookup[firstStudent.school_id] || firstStudent.school_id
         : "N/A",
       index: (activeTab === "assigned" ? assignedTasks : createdTasks).findIndex(
         (t) => t.id === params.row.id
@@ -302,22 +302,24 @@ export default function TasksPage() {
       },
       {
         field: "student",
-        headerName: "Student",
+        headerName: "Students",
         flex: 1,
-        minWidth: 160,
-        valueGetter: (value, row) =>
-          row.student
-            ? `${row.student.first_name} ${row.student.last_name}`
-            : "",
+        minWidth: 200,
+        valueGetter: (value, row) => {
+          if (!row.students || row.students.length === 0) return "";
+          return row.students
+            .map((s: any) => `${s.student.first_name} ${s.student.last_name}`)
+            .join(", ");
+        },
       },
       {
         field: "school",
         headerName: "School",
         minWidth: 200,
         valueGetter: (value, row) => {
-          const student = row.student;
-          if (!student?.school_id) return "";
-          return schoolNameLookup[student.school_id] ?? student.school_id;
+          const firstStudent = row.students?.[0]?.student;
+          if (!firstStudent?.school_id) return "";
+          return schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id;
         },
       },
       {
@@ -396,13 +398,15 @@ export default function TasksPage() {
       },
       {
         field: "student",
-        headerName: "Student",
+        headerName: "Students",
         flex: 1,
-        minWidth: 160,
-        valueGetter: (value, row) =>
-          row.student
-            ? `${row.student.first_name} ${row.student.last_name}`
-            : "",
+        minWidth: 200,
+        valueGetter: (value, row) => {
+          if (!row.students || row.students.length === 0) return "";
+          return row.students
+            .map((s: any) => `${s.student.first_name} ${s.student.last_name}`)
+            .join(", ");
+        },
       },
       {
         field: "assignedTo",
@@ -415,9 +419,9 @@ export default function TasksPage() {
         headerName: "School",
         minWidth: 200,
         valueGetter: (value, row) => {
-          const student = row.student;
-          if (!student?.school_id) return "";
-          return schoolNameLookup[student.school_id] ?? student.school_id;
+          const firstStudent = row.students?.[0]?.student;
+          if (!firstStudent?.school_id) return "";
+          return schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id;
         },
       },
       {
@@ -468,8 +472,7 @@ export default function TasksPage() {
       title: "",
       description: "",
       schoolId: "",
-      studentId: "",
-      assignedToEmail: "",
+      studentIds: [],
       dueDate: "",
     });
     setStudents([]);
@@ -489,8 +492,7 @@ export default function TasksPage() {
       const payload = {
         title: formState.title.trim(),
         description: formState.description.trim() || undefined,
-        studentId: formState.studentId || null,
-        assignedToEmail: formState.assignedToEmail.trim() || undefined,
+        studentIds: formState.studentIds.length > 0 ? formState.studentIds : undefined,
         dueDate: formState.dueDate || null,
       };
 
@@ -532,8 +534,7 @@ export default function TasksPage() {
       const payload = {
         title: formState.title.trim(),
         description: formState.description.trim() || undefined,
-        studentId: formState.studentId || null,
-        assignedToEmail: formState.assignedToEmail.trim() || undefined,
+        studentIds: formState.studentIds,
         dueDate: formState.dueDate || null,
       };
 
@@ -682,7 +683,7 @@ export default function TasksPage() {
                 value={formState.schoolId}
                 onChange={(e) => {
                   const nextSchoolId = e.target.value;
-                  setFormState((s) => ({ ...s, schoolId: nextSchoolId, studentId: "" }));
+                  setFormState((s) => ({ ...s, schoolId: nextSchoolId, studentIds: [] }));
                   if (nextSchoolId) {
                     fetchStudentsForSchool(nextSchoolId);
                   } else {
@@ -700,29 +701,26 @@ export default function TasksPage() {
             </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Student</label>
-            <select
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={formState.studentId}
-                onChange={(e) => setFormState((s) => ({ ...s, studentId: e.target.value }))}
-                disabled={!formState.schoolId}
-            >
-              <option value="">-- None --</option>
-              {students.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.first_name} {student.last_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Assign to (email)</label>
-            <Input
-              value={formState.assignedToEmail}
-              onChange={(e) => setFormState((s) => ({ ...s, assignedToEmail: e.target.value }))}
-              placeholder="user@example.com"
+            <SearchableSelect<string>
+              label="Students *"
+              options={students.map((student) => ({
+                value: student.id,
+                label: `${student.first_name} ${student.last_name}`,
+              }))}
+              value={formState.studentIds}
+              onChange={(vals) => {
+                const list = (Array.isArray(vals) ? vals : vals ? [vals] : []) as string[];
+                setFormState((s) => ({ ...s, studentIds: list }));
+              }}
+              multiple
+              placeholder="Search and select students..."
+              disabled={!formState.schoolId}
             />
+            {formState.studentIds.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {formState.studentIds.length} student(s) selected
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -788,7 +786,7 @@ export default function TasksPage() {
               value={formState.schoolId}
               onChange={(e) => {
                 const nextSchoolId = e.target.value;
-                setFormState((s) => ({ ...s, schoolId: nextSchoolId, studentId: "" }));
+                setFormState((s) => ({ ...s, schoolId: nextSchoolId, studentIds: [] }));
                 if (nextSchoolId) {
                   fetchStudentsForSchool(nextSchoolId);
                 } else {
@@ -806,29 +804,26 @@ export default function TasksPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Student</label>
-            <select
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={formState.studentId}
-              onChange={(e) => setFormState((s) => ({ ...s, studentId: e.target.value }))}
+            <SearchableSelect<string>
+              label="Students *"
+              options={students.map((student) => ({
+                value: student.id,
+                label: `${student.first_name} ${student.last_name}`,
+              }))}
+              value={formState.studentIds}
+              onChange={(vals) => {
+                const list = (Array.isArray(vals) ? vals : vals ? [vals] : []) as string[];
+                setFormState((s) => ({ ...s, studentIds: list }));
+              }}
+              multiple
+              placeholder="Search and select students..."
               disabled={!formState.schoolId}
-            >
-              <option value="">-- None --</option>
-              {students.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.first_name} {student.last_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Assign to (email)</label>
-            <Input
-              value={formState.assignedToEmail}
-              onChange={(e) => setFormState((s) => ({ ...s, assignedToEmail: e.target.value }))}
-              placeholder="user@example.com"
             />
+            {formState.studentIds.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {formState.studentIds.length} student(s) selected
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

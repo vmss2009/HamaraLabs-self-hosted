@@ -109,7 +109,7 @@ model Student {
   CustomisedCompetition CustomisedCompetition[]
   CustomisedCourse      CustomisedCourse[]
   customised_activities CustomisedTinkeringActivity[]
-  tasks                 Task[]
+  tasks                 TaskStudent[]
 }
 
 model Mentor {
@@ -458,17 +458,30 @@ model Task {
   description  String?
   status       TaskStatus @default(PENDING)
   dueDate      DateTime?
-  studentId    String?
   assignedToId String?
   createdById  String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  student    Student? @relation(fields: [studentId], references: [id])
-  assignedTo User?    @relation("AssignedTasks", fields: [assignedToId], references: [id])
-  createdBy  User     @relation("CreatedTasks", fields: [createdById], references: [id])
+  students   TaskStudent[]
+  assignedTo User?         @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdBy  User          @relation("CreatedTasks", fields: [createdById], references: [id])
 
-  @@index([studentId])
   @@index([assignedToId])
   @@index([createdById])
 }
+
+model TaskStudent {
+  id        String   @id @default(uuid())
+  taskId    String
+  studentId String
+  createdAt DateTime @default(now())
+
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, studentId])
+  @@index([taskId])
+  @@index([studentId])
+}
+

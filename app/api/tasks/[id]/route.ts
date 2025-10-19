@@ -2,7 +2,6 @@ import { auth } from "@/lib/auth/auth";
 import { failure, success } from "@/lib/api/http";
 import { deleteTask, getTaskById, updateTask } from "@/lib/db/task/crud";
 import { TaskStatus, TaskUpdateInput } from "@/lib/db/task/type";
-import { getUserByEmail } from "@/lib/db/auth/user";
 
 const ALLOWED_STATUS: TaskStatus[] = ["PENDING", "IN_PROGRESS", "COMPLETED"];
 
@@ -16,7 +15,7 @@ function coerceStatus(value: unknown): TaskStatus | undefined {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -43,15 +42,16 @@ export async function PATCH(
     const payload = await request.json();
     const status = coerceStatus(payload.status);
 
-    let assignedToId: string | null | undefined = payload.assignedToId;
-    if (!assignedToId && typeof payload.assignedToEmail === "string") {
-      const assignee = await getUserByEmail(payload.assignedToEmail.trim());
-      if (!assignee) {
-        return failure("Assigned user not found", 400, {
-          code: "INVALID_ASSIGNEE",
-        });
-      }
-      assignedToId = assignee.id;
+    const assignedToId: string | null | undefined = payload.assignedToId;
+
+    // Handle studentIds - can be single studentId or array of studentIds
+    let studentIds: string[] | undefined = undefined;
+    if (Array.isArray(payload.studentIds)) {
+      studentIds = payload.studentIds.filter((id: any): id is string => typeof id === "string");
+    } else if (typeof payload.studentId === "string") {
+      studentIds = [payload.studentId];
+    } else if (payload.studentId === null || payload.studentIds === null) {
+      studentIds = [];
     }
 
     const patch: TaskUpdateInput = {
@@ -61,10 +61,7 @@ export async function PATCH(
           ? payload.description
           : undefined,
       status,
-      studentId:
-        payload.studentId === null || typeof payload.studentId === "string"
-          ? payload.studentId
-          : undefined,
+      studentIds,
       assignedToId:
         assignedToId === null || typeof assignedToId === "string"
           ? assignedToId
@@ -84,7 +81,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   const session = await auth();
   const userId = session?.user?.id;

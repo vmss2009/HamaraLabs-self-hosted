@@ -26,12 +26,18 @@ function parseDueDate(value: TaskCreateInput["dueDate"]): Date | null {
 
 function buildInclude() {
   return {
-    student: {
+    students: {
       select: {
         id: true,
-        first_name: true,
-        last_name: true,
-        school_id: true,
+        studentId: true,
+        student: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            school_id: true,
+          },
+        },
       },
     },
     createdBy: {
@@ -57,6 +63,7 @@ export async function createTask(
   data: TaskCreateInput & { createdById: string }
 ): Promise<TaskWithRelations> {
   const dueDate = parseDueDate(data.dueDate);
+  const studentIds = data.studentIds || [];
 
   return taskDelegate().create({
     data: {
@@ -64,9 +71,13 @@ export async function createTask(
       description: data.description ?? null,
       status: data.status ?? ("PENDING" as TaskStatus),
       dueDate,
-      studentId: data.studentId ?? null,
       assignedToId: data.assignedToId ?? null,
       createdById: data.createdById,
+      students: {
+        create: studentIds.map((studentId) => ({
+          studentId,
+        })),
+      },
     },
     include: buildInclude(),
   });
@@ -75,7 +86,13 @@ export async function createTask(
 export async function getTasks(filter: TaskFilter = {}): Promise<TaskWithRelations[]> {
   const where: Record<string, unknown> = {};
 
-  if (filter.studentId) where.studentId = filter.studentId;
+  if (filter.studentId) {
+    where.students = {
+      some: {
+        studentId: filter.studentId,
+      },
+    };
+  }
   if (filter.assignedToId) where.assignedToId = filter.assignedToId;
   if (filter.createdById) where.createdById = filter.createdById;
   if (filter.status && filter.status.length > 0) {
@@ -107,9 +124,31 @@ export async function updateTask(
   if (data.title !== undefined) patch.title = data.title;
   if (data.description !== undefined) patch.description = data.description;
   if (data.status !== undefined) patch.status = data.status;
-  if (data.studentId !== undefined) patch.studentId = data.studentId;
   if (data.assignedToId !== undefined) patch.assignedToId = data.assignedToId;
   if (data.dueDate !== undefined) patch.dueDate = parseDueDate(data.dueDate);
+
+  // Handle student updates
+  if (data.studentIds !== undefined) {
+    const currentTask = await getTaskById(id);
+    const currentStudentIds = currentTask?.students?.map((s) => s.studentId) || [];
+    const newStudentIds = data.studentIds || [];
+
+    // Find students to add and remove
+    const toAdd = newStudentIds.filter((sid) => !currentStudentIds.includes(sid));
+    const toRemove = currentStudentIds.filter((sid) => !newStudentIds.includes(sid));
+
+    return taskDelegate().update({
+      where: { id },
+      data: {
+        ...patch,
+        students: {
+          deleteMany: toRemove.length > 0 ? { studentId: { in: toRemove } } : undefined,
+          create: toAdd.map((studentId) => ({ studentId })),
+        },
+      },
+      include: buildInclude(),
+    });
+  }
 
   return taskDelegate().update({
     where: { id },

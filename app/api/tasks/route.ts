@@ -2,7 +2,6 @@ import { auth } from "@/lib/auth/auth";
 import { failure, success } from "@/lib/api/http";
 import { createTask, getTasks } from "@/lib/db/task/crud";
 import { TaskCreateInput, TaskFilter, TaskStatus } from "@/lib/db/task/type";
-import { getUserByEmail } from "@/lib/db/auth/user";
 
 const ALLOWED_STATUS: TaskStatus[] = ["PENDING", "IN_PROGRESS", "COMPLETED"];
 
@@ -89,31 +88,29 @@ export async function POST(request: Request) {
       return failure("Title is required", 400, { code: "VALIDATION_ERROR" });
     }
 
-    let assignedToId: string | null | undefined = payload.assignedToId ?? null;
-
-    if (!assignedToId && typeof payload.assignedToEmail === "string") {
-      const assignee = await getUserByEmail(payload.assignedToEmail.trim());
-      if (!assignee) {
-        return failure("Assigned user not found", 400, {
-          code: "INVALID_ASSIGNEE",
-        });
-      }
-      assignedToId = assignee.id;
-    }
+    const assignedToId: string | null | undefined = payload.assignedToId ?? null;
 
     const status = coerceStatus(payload.status);
+
+    // Handle studentIds - can be single studentId or array of studentIds
+    let studentIds: string[] = [];
+    if (Array.isArray(payload.studentIds)) {
+      studentIds = payload.studentIds.filter((id: any): id is string => typeof id === "string");
+    } else if (typeof payload.studentId === "string") {
+      studentIds = [payload.studentId];
+    }
 
     const data: TaskCreateInput = {
       title,
       description: typeof payload.description === "string" ? payload.description : null,
       status,
       dueDate: payload.dueDate ?? null,
-      studentId: typeof payload.studentId === "string" ? payload.studentId : null,
+      studentIds,
       assignedToId: assignedToId ?? null,
     };
 
     const task = await createTask({ ...data, createdById: userId });
-    return success(task, 201);
+    return success(task);
   } catch (error) {
     console.error("Error creating task:", error);
     return failure("Failed to create task", 500, {
