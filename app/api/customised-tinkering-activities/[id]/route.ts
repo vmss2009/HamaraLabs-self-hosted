@@ -6,6 +6,7 @@ import {
   getCustomisedTinkeringActivities,
 } from "@/lib/db/customised-tinkering-activity/crud";
 import { customisedTinkeringActivitySchema, statusSchema } from "@/lib/db/customised-tinkering-activity/type";
+import { auth } from "@/lib/auth/auth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -60,6 +61,9 @@ export async function PUT(
 
     const validatedData = result.data;
 
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
+
     const updatedActivity = await updateCustomisedTinkeringActivity(
       id,
       {
@@ -67,7 +71,8 @@ export async function PUT(
         keepSnapshotAttachmentUrls: Array.isArray((body as any)?.keepSnapshotAttachmentUrls)
           ? (body as any).keepSnapshotAttachmentUrls as string[]
           : [],
-      }
+      },
+      userId
     );
 
     return success(updatedActivity);
@@ -110,9 +115,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       });
     }
 
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
+
     const updatedActivity = await updateCustomisedTinkeringActivity(id, {
       status: result.data.status,
-    });
+    }, userId);
 
     return success(updatedActivity);
   } catch (error) {

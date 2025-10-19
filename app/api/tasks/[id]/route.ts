@@ -69,7 +69,7 @@ export async function PATCH(
       dueDate: payload.dueDate ?? undefined,
     };
 
-    const updated = await updateTask(taskId, patch);
+    const updated = await updateTask(taskId, patch, userId);
     return success(updated);
   } catch (error) {
     console.error("Error updating task:", error);

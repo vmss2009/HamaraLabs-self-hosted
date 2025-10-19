@@ -22,13 +22,14 @@ function normalizeHtmlContent(html?: string | null) {
   return value;
 }
 
-async function fetchStudentStakeholders(studentId: string) {
+async function fetchStudentStakeholders(studentId: string, excludeUserId?: string | null) {
   const student = await prisma.student.findUnique({
     where: { id: studentId },
     select: {
       id: true,
       first_name: true,
       last_name: true,
+      user_id: true,
       school: {
         select: {
           id: true,
@@ -40,7 +41,7 @@ async function fetchStudentStakeholders(studentId: string) {
   });
 
   if (!student) {
-    return { student: null, stakeholders: [] as { userId: string }[] };
+    return { student: null, studentUserId: null, stakeholders: [] as { userId: string }[] };
   }
 
   const mentors = student.school?.id
@@ -54,11 +55,24 @@ async function fetchStudentStakeholders(studentId: string) {
     : [];
 
   const stakeholderMap = new Map<string, { userId: string }>();
-  for (const u of student.school?.incharges ?? []) {
-    if (u.id) stakeholderMap.set(u.id, { userId: u.id });
+  
+  // Add student's user if they have one and they're not the one being excluded
+  if (student.user_id && student.user_id !== excludeUserId) {
+    stakeholderMap.set(student.user_id, { userId: student.user_id });
   }
+  
+  // Add incharges (excluding the one who triggered the action)
+  for (const u of student.school?.incharges ?? []) {
+    if (u.id && u.id !== excludeUserId) {
+      stakeholderMap.set(u.id, { userId: u.id });
+    }
+  }
+  
+  // Add mentors (excluding the one who triggered the action)
   for (const m of mentors) {
-    if (m.user_id) stakeholderMap.set(m.user_id, { userId: m.user_id });
+    if (m.user_id && m.user_id !== excludeUserId) {
+      stakeholderMap.set(m.user_id, { userId: m.user_id });
+    }
   }
 
   const fullName = [student.first_name, student.last_name].filter(Boolean).join(" ") || "Student";
@@ -69,6 +83,7 @@ async function fetchStudentStakeholders(studentId: string) {
       fullName,
       schoolName: student.school?.name ?? "",
     },
+    studentUserId: student.user_id,
     stakeholders: Array.from(stakeholderMap.values()),
   };
 }
@@ -110,8 +125,9 @@ export async function notifyStudentStatusUpdate(params: {
   previousStatus?: string | null;
   currentStatus?: string | null;
   resourceId: string;
+  excludeUserId?: string | null;
 }) {
-  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId);
+  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId, params.excludeUserId);
   if (!student || !stakeholders.length) return;
 
   const previousStatus = params.previousStatus?.trim() || "previous status";
@@ -152,8 +168,9 @@ export async function notifyStudentAssignment(params: {
   entityType: "course" | "competition" | "tinkering-activity";
   entityName: string;
   resourceId: string;
+  createdByUserId?: string | null;
 }) {
-  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId);
+  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId, params.createdByUserId);
   if (!student || !stakeholders.length) return;
 
   const entityLabel =
@@ -163,7 +180,7 @@ export async function notifyStudentAssignment(params: {
         ? "Competition"
         : "Tinkering activity";
   const title = `${entityLabel} assigned`;
-  const description = makeTextHtml(`${params.entityName} has been assigned to ${student.fullName}`);
+  const description = makeTextHtml(`${params.entityName} has been assigned to you`);
 
   await createNotifications(
     stakeholders.map((s) => ({
@@ -188,14 +205,18 @@ export async function notifyTaskAssignment(params: {
   taskTitle: string;
   taskId: string;
   assignedToId?: string | null;
+  createdByUserId?: string | null;
 }) {
-  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId);
+  const { student, studentUserId, stakeholders } = await fetchStudentStakeholders(
+    params.studentId,
+    params.createdByUserId
+  );
   if (!student) return;
 
   const title = "Task assigned";
-  const description = makeTextHtml(`${params.taskTitle} has been assigned to ${student.fullName}`);
+  const description = makeTextHtml(`${params.taskTitle} has been assigned to you`);
 
-  // Notify stakeholders (school incharges and mentors)
+  // Notify all stakeholders (student, incharges, mentors) excluding the creator
   if (stakeholders.length > 0) {
     await createNotifications(
       stakeholders.map((s) => ({
@@ -215,8 +236,8 @@ export async function notifyTaskAssignment(params: {
     );
   }
 
-  // Also notify the assigned user if they're not already in stakeholders
-  if (params.assignedToId) {
+  // Also notify the assigned user if they exist, not already in stakeholders, and not the creator
+  if (params.assignedToId && params.assignedToId !== params.createdByUserId) {
     const isAlreadyNotified = stakeholders.some((s) => s.userId === params.assignedToId);
     if (!isAlreadyNotified) {
       await createNotifications([

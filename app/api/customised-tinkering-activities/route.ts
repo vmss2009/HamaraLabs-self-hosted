@@ -1,9 +1,13 @@
 import { failure, success } from "@/lib/api/http";
+import { auth } from "@/lib/auth/auth";
 import { createCustomisedTinkeringActivity } from "@/lib/db/customised-tinkering-activity/crud";
 import { CustomisedTinkeringActivityCreateInput } from "@/lib/db/customised-tinkering-activity/type";
 import { getTinkeringActivityById } from "@/lib/db/tinkering-activity/crud";
 
 export async function POST(request: Request) {
+  const session = await auth();
+  const userId = session?.user?.id;
+
   try {
     const body = await request.json();
 
@@ -36,7 +40,8 @@ export async function POST(request: Request) {
     };
 
     const customisedTinkeringActivity = await createCustomisedTinkeringActivity(
-      tinkeringActivityData
+      tinkeringActivityData,
+      userId
     );
     return success(customisedTinkeringActivity);
   } catch (error) {

@@ -17,6 +17,7 @@ function haveStatusesChanged(previous: string[] | null | undefined, next: string
 
 export async function createCustomisedCourse(
   data: CustomisedCourseCreateInput,
+  createdByUserId?: string | null
 ): Promise<CustomisedCourseWithRelations> {
   const created = await prisma.customisedCourse.create({
     data: {
@@ -60,6 +61,7 @@ export async function createCustomisedCourse(
     entityType: "course",
     entityName: created.course.name,
     resourceId: created.id,
+    createdByUserId,
   });
 
   return created;
@@ -142,6 +144,7 @@ export async function getCustomisedCourseById(
 export async function updateCustomisedCourse(
   id: string,
   data: Partial<CustomisedCourseCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
+  updatedByUserId?: string | null
 ): Promise<CustomisedCourseWithRelations> {
   const keepUrls = data.keepSnapshotAttachmentUrls || [];
   const existing = await prisma.customisedCourse.findUnique({
@@ -200,6 +203,7 @@ export async function updateCustomisedCourse(
       previousStatus,
       currentStatus,
       resourceId: updated.id,
+      excludeUserId: updatedByUserId,
     });
   }
   return updated;

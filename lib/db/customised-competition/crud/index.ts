@@ -21,7 +21,8 @@ import {
 } from "../type";
 
 export async function createCustomisedCompetition(
-  data: CustomisedCompetitionCreateInput
+  data: CustomisedCompetitionCreateInput,
+  createdByUserId?: string | null
 ): Promise<CustomisedCompetitionWithRelations> {
   const created = await prisma.customisedCompetition.create({
     data: {
@@ -65,6 +66,7 @@ export async function createCustomisedCompetition(
     entityType: "competition",
     entityName: created.competition.name,
     resourceId: created.id,
+    createdByUserId,
   });
 
   return created;
@@ -146,7 +148,8 @@ export async function getCustomisedCompetitionById(
 
 export async function updateCustomisedCompetition(
   id: string,
-  data: Partial<CustomisedCompetitionCreateInput> & { keepSnapshotAttachmentUrls?: string[] }
+  data: Partial<CustomisedCompetitionCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
+  updatedByUserId?: string | null
 ): Promise<CustomisedCompetitionWithRelations> {
   const keepUrls = data.keepSnapshotAttachmentUrls || [];
   const existing = await prisma.customisedCompetition.findUnique({
@@ -205,6 +208,7 @@ export async function updateCustomisedCompetition(
       previousStatus,
       currentStatus,
       resourceId: updated.id,
+      excludeUserId: updatedByUserId,
     });
   }
   return updated;

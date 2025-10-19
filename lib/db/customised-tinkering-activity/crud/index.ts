@@ -30,7 +30,8 @@ function haveStatusesChanged(previous: string[] | null | undefined, next: string
 }
 
 export async function createCustomisedTinkeringActivity(
-  data: CustomisedTinkeringActivityCreateInput
+  data: CustomisedTinkeringActivityCreateInput,
+  createdByUserId?: string | null
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   const created = await prisma.customisedTinkeringActivity.create({
     data: ({
@@ -78,6 +79,7 @@ export async function createCustomisedTinkeringActivity(
     entityType: "tinkering-activity",
     entityName: created.name,
     resourceId: created.id,
+    createdByUserId,
   });
 
   return created;
@@ -165,7 +167,8 @@ export async function getCustomisedTinkeringActivityById(
 
 export async function updateCustomisedTinkeringActivity(
   id: string,
-  data: Partial<CustomisedTinkeringActivityCreateInput> & { keepSnapshotAttachmentUrls?: string[] }
+  data: Partial<CustomisedTinkeringActivityCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
+  updatedByUserId?: string | null
 ): Promise<CustomisedTinkeringActivityWithRelations> {
   const keepUrls = data.keepSnapshotAttachmentUrls || [];
   const existing = await prisma.customisedTinkeringActivity.findUnique({
@@ -229,6 +232,7 @@ export async function updateCustomisedTinkeringActivity(
         previousStatus,
         currentStatus,
       resourceId: updated.id,
+      excludeUserId: updatedByUserId,
     });
   }
   return updated;

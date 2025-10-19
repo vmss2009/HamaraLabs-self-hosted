@@ -90,6 +90,7 @@ export async function createTask(
       taskTitle: task.title,
       taskId: task.id,
       assignedToId: task.assignedToId,
+      createdByUserId: data.createdById,
     }).catch((error) => {
       console.error(`Failed to send notification for student ${studentId}:`, error);
     });
@@ -133,7 +134,8 @@ export async function getTaskById(id: string): Promise<TaskWithRelations | null>
 
 export async function updateTask(
   id: string,
-  data: TaskUpdateInput
+  data: TaskUpdateInput,
+  updatedByUserId?: string
 ): Promise<TaskWithRelations> {
   const patch: Record<string, unknown> = {};
   if (data.title !== undefined) patch.title = data.title;
@@ -171,6 +173,7 @@ export async function updateTask(
         taskTitle: updatedTask.title,
         taskId: updatedTask.id,
         assignedToId: updatedTask.assignedToId,
+        createdByUserId: updatedByUserId,
       }).catch((error) => {
         console.error(`Failed to send notification for student ${studentId}:`, error);
       });

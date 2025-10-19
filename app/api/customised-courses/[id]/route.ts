@@ -6,6 +6,7 @@ import {
   getCustomisedCourses,
 } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
+import { auth } from "@/lib/auth/auth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -48,6 +49,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return failure("Missing required fields", 400, { code: "VALIDATION_ERROR" });
     }
 
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
+
     const customisedCourse = await updateCustomisedCourse(
       id,
       {
@@ -55,7 +59,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         keepSnapshotAttachmentUrls: Array.isArray((data as any)?.keepSnapshotAttachmentUrls)
           ? (data as any).keepSnapshotAttachmentUrls as string[]
           : [],
-      }
+      },
+      userId
     );
 
     return success(customisedCourse);
@@ -104,12 +109,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return failure("No valid fields to update", 400, { code: "VALIDATION_ERROR" });
     }
 
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
+
     const updatedCourse = await updateCustomisedCourse(id, {
       ...patchData,
       keepSnapshotAttachmentUrls: Array.isArray((body as any)?.keepSnapshotAttachmentUrls)
         ? (body as any).keepSnapshotAttachmentUrls as string[]
         : [],
-    });
+    }, userId);
 
     return success(updatedCourse);
   } catch (error) {
