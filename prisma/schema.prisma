@@ -317,9 +317,13 @@ model Message {
   content     String?
   type        MessageType  @default(TEXT)
   attachments Attachment[]
+  replyToId   String?
+  replyTo     Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[]    @relation("MessageReplies")
   createdAt   DateTime     @default(now())
 
   @@index([chatRoomId, createdAt])
+  @@index([replyToId])
 }
 
 model Attachment {

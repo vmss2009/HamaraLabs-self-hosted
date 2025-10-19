@@ -173,3 +173,13 @@ body { zoom: 1.0; }
 .prose blockquote p { margin: 0.5rem 0; }
 .prose blockquote > :first-child { margin-top: 0; }
 .prose blockquote > :last-child { margin-bottom: 0; }
+
+/* Highlight flash animation for scrolled-to messages */
+@keyframes highlight-pulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(250, 204, 21, 0.25); }
+}
+
+.highlight-flash {
+  animation: highlight-pulse 1.5s ease-in-out;
+}

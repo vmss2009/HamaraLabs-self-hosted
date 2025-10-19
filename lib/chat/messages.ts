@@ -10,25 +10,35 @@ export async function listMessages(roomId: string, cursor?: string, takeParam?: 
     take,
     skip: cursor ? 1 : 0,
     cursor: cursor ? { id: cursor } : undefined,
-    include: { attachments: true, sender: true }
+    include: { 
+      attachments: true, 
+      sender: true,
+      replyTo: {
+        include: {
+          sender: true,
+          attachments: true
+        }
+      }
+    }
   });
   const nextCursor = rows.length === take ? rows[rows.length - 1].id : null;
   const messages = rows.reverse();
   return { messages, nextCursor };
 }
 
-export async function sendMessage(roomId: string, senderId: string, data: { content?: string; attachments?: { url: string; type: string; filename?: string; size?: number }[]; type?: any }) {
+export async function sendMessage(roomId: string, senderId: string, data: { content?: string; attachments?: { url: string; type: string; filename?: string; size?: number }[]; type?: any; replyToId?: string }) {
   const message = await prisma.message.create({
     data: {
       chatRoomId: roomId,
       senderId,
       content: data.content,
       type: data.type || 'TEXT',
+      replyToId: data.replyToId || null,
       attachments: data.attachments && data.attachments.length ? {
         create: data.attachments.map(a => ({ url: a.url, type: a.type, filename: a.filename, size: a.size }))
       } : undefined
     },
-    include: { attachments: true, sender: true }
+    include: { attachments: true, sender: true, replyTo: { include: { sender: true, attachments: true } } } as any
   });
   await prisma.chatRoom.update({ where: { id: roomId }, data: { lastMessageAt: new Date() } });
   chatBus.emit('message', { roomId, messageId: message.id });

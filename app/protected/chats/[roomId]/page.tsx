@@ -22,7 +22,7 @@ import { AttachmentPreview, SelectedAttachmentPreview } from '../../../../compon
 import { MenuBar } from '../../../../components/chat/MenuBar';
 
 interface Room { id: string; name: string; _count?: { messages: number }; }
-interface Message { id: string; content?: string; createdAt: string; sender: any; attachments?: any[]; type: string; pending?: boolean; }
+interface Message { id: string; content?: string; createdAt: string; sender: any; attachments?: any[]; type: string; pending?: boolean; replyTo?: Message | null; }
 interface User { id: string; email?: string; first_name?: string | null; last_name?: string | null; }
 
 export default function ChatRoomPage() {
@@ -518,6 +518,7 @@ useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).th
     if(!canSend) return;
 
     const html = editorHasContent() ? editor.getHTML() : '';
+    const replyToId = replyingTo?.id || undefined;
 
     try {
       const attachments = await uploadSelectedFiles();
@@ -529,17 +530,19 @@ useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).th
         type: attachments.length && !html ? 'FILE' : 'TEXT',
         pending: true,
         attachments,
+        replyTo: replyingTo || undefined,
       } as any;
       setMessages(m => [...m, optimistic]);
 
       if (html) editor.commands.clearContent();
       setSelectedFiles([]);
+      setReplyingTo(null);
       setShouldAutoScroll(true);
 
       const r = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomId: activeRoom, content: html || undefined, attachments: attachments.length ? attachments : undefined }),
+        body: JSON.stringify({ roomId: activeRoom, content: html || undefined, attachments: attachments.length ? attachments : undefined, replyToId }),
       });
       const resp = await r.json().catch(() => ({}));
       if(!r.ok) throw new Error(resp?.error || 'Send failed');
@@ -559,6 +562,7 @@ useEffect(() => { if (showModal) { fetch('/api/chat/users').then(r=>r.json()).th
   const withinWindow = (createdAt: string) => (Date.now() - new Date(createdAt).getTime()) <= 10 * 60 * 1000;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const getDateKey = (iso: string) => {
     const d = new Date(iso);
@@ -590,13 +594,30 @@ const removeFileAt = (idx: number) => {
   const startEdit = (m: Message) => {
     setEditingId(m.id);
     setEditValue(m.content || '');
+    setReplyingTo(null);
     try {
       editor?.commands.setContent(m.content || '');
       setTimeout(() => editor?.commands.focus('end'), 0);
       composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     } catch {}
   };
-  const cancelEdit = () => { setEditingId(null); setEditValue(''); try { editor?.commands.clearContent(); } catch {} };
+  const cancelEdit = () => { 
+    setEditingId(null); 
+    setEditValue(''); 
+    setReplyingTo(null);
+    try { editor?.commands.clearContent(); } catch {} 
+  };
+  const startReply = (m: Message) => {
+    setReplyingTo(m);
+    setEditingId(null);
+    try {
+      editor?.commands.focus('end');
+      composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } catch {}
+  };
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
   const saveEdit = async () => {
     if (!editingId || !editor) return;
     try {
@@ -695,7 +716,7 @@ const removeFileAt = (idx: number) => {
                   const showDivider = thisKey !== lastDateKey;
                   if (showDivider) lastDateKey = thisKey;
                   return (
-                    <div key={m.id + '-' + idx} className="w-full">
+                    <div key={m.id + '-' + idx} className="w-full" id={`msg-${m.id}`}>
                       {showDivider && (
                         <div className="w-full py-2 flex items-center justify-center">
                           <div className="px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/80 border border-slate-700/70 text-slate-300 shadow/20 shadow-black/30">
@@ -717,6 +738,34 @@ const removeFileAt = (idx: number) => {
                       <div className={clsx('text-[11px] font-semibold leading-none opacity-70')}>  
                         {(m as any)?.sender?.first_name?.trim?.() || (m as any)?.sender?.email || 'Unknown'}
                       </div>
+                      {m.replyTo && (
+                        <div 
+                          className="px-2 py-1.5 rounded-md bg-black/20 border-l-2 border-slate-400/50 text-[11px] cursor-pointer hover:bg-black/30 transition"
+                          onClick={() => {
+                            const el = document.getElementById(`msg-${m.replyTo?.id}`);
+                            if (el) {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              el.classList.add('highlight-flash');
+                              setTimeout(() => el.classList.remove('highlight-flash'), 1500);
+                            }
+                          }}
+                        >
+                          <div className="font-semibold opacity-80 mb-0.5">
+                            {m.replyTo.sender?.first_name || m.replyTo.sender?.email || 'Unknown'}
+                          </div>
+                          {m.replyTo.content ? (
+                            <div 
+                              className="opacity-70 line-clamp-2"
+                              dangerouslySetInnerHTML={{ __html: m.replyTo.content }}
+                            />
+                          ) : null}
+                          {(m.replyTo.attachments?.length ?? 0) > 0 && !m.replyTo.content ? (
+                            <div className="opacity-70 italic">
+                              {m.replyTo.attachments!.length} attachment{m.replyTo.attachments!.length > 1 ? 's' : ''}
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
                       {m.attachments?.length ? (
                         <div className="relative">
                           <div className="grid grid-cols-2 gap-2">
@@ -760,66 +809,71 @@ const removeFileAt = (idx: number) => {
                               })}
                             </span>
 
-                            {(showEdit || showDelete) && (
-                              <div className="relative">
-                                <button
+                            <div className="relative">
+                              <button
+                                className="px-1 py-0.5 rounded text-[10px] border transition bg-slate-800/60 border-slate-700/70 hover:bg-slate-700/70 text-slate-300"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(menuOpen ? null : m.id);
+                                }}
+                                aria-haspopup="menu"
+                                aria-expanded={menuOpen}
+                                title="Message actions"
+                              >
+                                •••
+                              </button>
+                              {menuOpen && (
+                                <div
                                   className={clsx(
-                                    'px-1 py-0.5 rounded text-[10px] border transition',
-                                    mine
-                                      ? 'action-badge'
-                                      : 'action-badge'
+                                    "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
+                                    mine ? "right-0" : "left-0"
                                   )}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(menuOpen ? null : m.id);
-                                  }}
-                                  aria-haspopup="menu"
-                                  aria-expanded={menuOpen}
-                                  title="Message actions"
                                 >
-                                  •••
-                                </button>
-                                {menuOpen && (
-                                  <div
-                                    className={clsx(
-                                      "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
-                                      mine ? "right-0" : "left-0"
+                                  <ul className="py-1 text-[12px]">
+                                    <li>
+                                      <button
+                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setOpenMenuId(null);
+                                          startReply(m);
+                                        }}
+                                      >
+                                        Reply
+                                      </button>
+                                    </li>
+                                    {showEdit && (
+                                      <li>
+                                        <button
+                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenMenuId(null);
+                                            startEdit(m);
+                                          }}
+                                        >
+                                          Edit
+                                        </button>
+                                      </li>
                                     )}
-                                  >
-                                    <ul className="py-1 text-[12px]">
-                                      {showEdit && (
-                                        <li>
-                                          <button
-                                            className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setOpenMenuId(null);
-                                              startEdit(m);
-                                            }}
-                                          >
-                                            Edit
-                                          </button>
-                                        </li>
-                                      )}
-                                      {showDelete && (
-                                        <li>
-                                          <button
-                                            className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
-                                            onClick={async (e) => {
-                                              e.stopPropagation();
-                                              setOpenMenuId(null);
-                                              await removeMessage(m.id);
-                                            }}
-                                          >
-                                            Delete
-                                          </button>
-                                        </li>
-                                      )}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                                    {showDelete && (
+                                      <li>
+                                        <button
+                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            setOpenMenuId(null);
+                                            await removeMessage(m.id);
+                                          }}
+                                        >
+                                          Delete
+                                        </button>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <div
@@ -827,63 +881,71 @@ const removeFileAt = (idx: number) => {
                               'flex items-center gap-1 text-[10px] tracking-wide uppercase opacity-0 group-hover:opacity-100 transition opacity-70'
                             )}
                           >
-                            {(showEdit || showDelete) && (
-                              <div className="relative">
-                                <button
+                            <div className="relative">
+                              <button
+                                className="px-1 py-0.5 rounded text-[10px] border transition bg-slate-800/60 border-slate-700/70 hover:bg-slate-700/70 text-slate-300"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(menuOpen ? null : m.id);
+                                }}
+                                aria-haspopup="menu"
+                                aria-expanded={menuOpen}
+                                title="Message actions"
+                              >
+                                •••
+                              </button>
+                              {menuOpen && (
+                                <div
                                   className={clsx(
-                                    'px-1 py-0.5 rounded text-[10px] border transition action-badge'
+                                    "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
+                                    mine ? "right-0" : "left-0"
                                   )}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(menuOpen ? null : m.id);
-                                  }}
-                                  aria-haspopup="menu"
-                                  aria-expanded={menuOpen}
-                                  title="Message actions"
                                 >
-                                  •••
-                                </button>
-                                {menuOpen && (
-                                  <div
-                                    className={clsx(
-                                      "absolute mt-1 min-w-[120px] max-w-[90vw] rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg shadow-black/40 z-50",
-                                      mine ? "right-0" : "left-0"
+                                  <ul className="py-1 text-[12px]">
+                                    <li>
+                                      <button
+                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setOpenMenuId(null);
+                                          startReply(m);
+                                        }}
+                                      >
+                                        Reply
+                                      </button>
+                                    </li>
+                                    {showEdit && (
+                                      <li>
+                                        <button
+                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenMenuId(null);
+                                            startEdit(m);
+                                          }}
+                                        >
+                                          Edit
+                                        </button>
+                                      </li>
                                     )}
-                                  >
-                                    <ul className="py-1 text-[12px]">
-                                      {showEdit && (
-                                        <li>
-                                          <button
-                                            className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setOpenMenuId(null);
-                                              startEdit(m);
-                                            }}
-                                          >
-                                            Edit
-                                          </button>
-                                        </li>
-                                      )}
-                                      {showDelete && (
-                                        <li>
-                                          <button
-                                            className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
-                                            onClick={async (e) => {
-                                              e.stopPropagation();
-                                              setOpenMenuId(null);
-                                              await removeMessage(m.id);
-                                            }}
-                                          >
-                                            Delete
-                                          </button>
-                                        </li>
-                                      )}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                                    {showDelete && (
+                                      <li>
+                                        <button
+                                          className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-300 hover:text-rose-200"
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            setOpenMenuId(null);
+                                            await removeMessage(m.id);
+                                          }}
+                                        >
+                                          Delete
+                                        </button>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
                             <span>
                               {new Date(m.createdAt).toLocaleTimeString([], {
                                 hour: "2-digit",
@@ -907,6 +969,33 @@ const removeFileAt = (idx: number) => {
               style={{ background: 'var(--surface-2)', borderColor: 'var(--border-subtle)' }}
             >
               {(error || recordError) && <div className="text-[11px] text-rose-300 bg-rose-950/40 border border-rose-800/50 px-3 py-1 rounded">{error || recordError}</div>}
+              {replyingTo && (
+                <div className="px-3 py-2 rounded-md bg-slate-800/60 border border-slate-700/70 flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-semibold text-slate-300 mb-1">
+                      Replying to {replyingTo.sender?.first_name || replyingTo.sender?.email || 'Unknown'}
+                    </div>
+                    {replyingTo.content ? (
+                      <div 
+                        className="text-[11px] text-slate-400 line-clamp-2"
+                        dangerouslySetInnerHTML={{ __html: replyingTo.content }}
+                      />
+                    ) : null}
+                    {(replyingTo.attachments?.length ?? 0) > 0 && !replyingTo.content ? (
+                      <div className="text-[11px] text-slate-400 italic">
+                        {replyingTo.attachments!.length} attachment{replyingTo.attachments!.length > 1 ? 's' : ''}
+                      </div>
+                    ) : null}
+                  </div>
+                  <button
+                    onClick={cancelReply}
+                    className="text-slate-400 hover:text-slate-200 transition p-1"
+                    aria-label="Cancel reply"
+                  >
+                    <IconX className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 <input
                   ref={fileInputRef}

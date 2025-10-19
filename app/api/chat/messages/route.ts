@@ -19,6 +19,11 @@ export async function POST(req: Request) {
   const session = await auth();
   if(!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
-  const message = await sendMessage(body.roomId as string, session.user!.id, { content: body.content as (string | undefined), attachments: body.attachments as any, type: body.type });
+  const message = await sendMessage(body.roomId as string, session.user!.id, { 
+    content: body.content as (string | undefined), 
+    attachments: body.attachments as any, 
+    type: body.type,
+    replyToId: body.replyToId as (string | undefined)
+  });
   return NextResponse.json({ message });
 }

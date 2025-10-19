@@ -40,7 +40,16 @@ export async function GET(req: Request) {
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   const message = await prisma.message.findUnique({
     where: { id },
-    include: { attachments: true, sender: true },
+    include: { 
+      attachments: true, 
+      sender: true,
+      replyTo: {
+        include: {
+          sender: true,
+          attachments: true
+        }
+      }
+    } as any,
   });
   if (!message) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ message });
