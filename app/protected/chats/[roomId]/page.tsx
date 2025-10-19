@@ -633,6 +633,10 @@ const removeFileAt = (idx: number) => {
     } catch (e:any) { setError(e.message); }
   };
   const removeMessage = async (id: string) => {
+    // Ask for confirmation before deleting
+    const confirmed = window.confirm('Are you sure you want to delete this message? This action cannot be undone.');
+    if (!confirmed) return;
+    
     try {
       const r = await fetch(`/api/chat/message?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const d = await r.json();
