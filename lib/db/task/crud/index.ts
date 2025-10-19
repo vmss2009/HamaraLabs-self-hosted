@@ -6,7 +6,7 @@ import {
   TaskWithRelations,
   TaskStatus,
 } from "../type";
-import { notifyTaskAssignment } from "@/lib/notifications/service";
+import { notifyTaskAssignment, notifyTaskStatusUpdate } from "@/lib/notifications/service";
 
 function taskDelegate() {
   return (prisma as any).task as {
@@ -137,6 +137,10 @@ export async function updateTask(
   data: TaskUpdateInput,
   updatedByUserId?: string
 ): Promise<TaskWithRelations> {
+  const existing = await getTaskById(id);
+  const hasStatusChanged = data.status !== undefined && existing?.status !== data.status;
+  const previousStatus = existing?.status;
+
   const patch: Record<string, unknown> = {};
   if (data.title !== undefined) patch.title = data.title;
   if (data.description !== undefined) patch.description = data.description;
@@ -179,14 +183,49 @@ export async function updateTask(
       });
     }
 
+    // Send status change notifications for all current students if status changed
+    if (hasStatusChanged) {
+      for (const studentId of newStudentIds) {
+        await notifyTaskStatusUpdate({
+          studentId,
+          taskTitle: updatedTask.title,
+          taskId: updatedTask.id,
+          previousStatus,
+          currentStatus: data.status,
+          excludeUserId: updatedByUserId,
+        }).catch((error) => {
+          console.error(`Failed to send status notification for student ${studentId}:`, error);
+        });
+      }
+    }
+
     return updatedTask;
   }
 
-  return taskDelegate().update({
+  const updatedTask = await taskDelegate().update({
     where: { id },
     data: patch,
     include: buildInclude(),
   });
+
+  // Send status change notifications if status changed and no student updates
+  if (hasStatusChanged && existing) {
+    const studentIds = existing.students?.map((s) => s.studentId) || [];
+    for (const studentId of studentIds) {
+      await notifyTaskStatusUpdate({
+        studentId,
+        taskTitle: updatedTask.title,
+        taskId: updatedTask.id,
+        previousStatus,
+        currentStatus: data.status,
+        excludeUserId: updatedByUserId,
+      }).catch((error) => {
+        console.error(`Failed to send status notification for student ${studentId}:`, error);
+      });
+    }
+  }
+
+  return updatedTask;
 }
 
 export async function deleteTask(id: string): Promise<void> {

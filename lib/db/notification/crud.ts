@@ -59,8 +59,42 @@ export type ListNotificationsOptions = {
 
 export async function createNotifications(inputs: NotificationCreateInput[]): Promise<void> {
   if (!inputs.length) return;
+
+  // Deduplicate within the same batch by userId + resourceType + resourceId + category + title
+  const keyFor = (n: NotificationCreateInput) =>
+    `${n.userId}::${n.resourceType ?? ""}::${n.resourceId ?? ""}::${n.category ?? ""}::${n.title}`;
+
+  const uniqueMap = new Map<string, NotificationCreateInput>();
+  for (const n of inputs) {
+    const key = keyFor(n);
+    if (!uniqueMap.has(key)) uniqueMap.set(key, n);
+  }
+  const uniqueInputs = Array.from(uniqueMap.values());
+
+  // Avoid creating notifications that were created very recently with the same key
+  // (helps prevent duplicates when two helpers trigger notifications almost simultaneously).
+  const cutoff = new Date(Date.now() - 10_000); // 10 seconds
+  const userIds = Array.from(new Set(uniqueInputs.map((i) => i.userId)));
+
+  const recentNotifications = userIds.length
+    ? await prisma.notification.findMany({
+        where: {
+          userId: { in: userIds },
+          createdAt: { gte: cutoff },
+        },
+        select: { userId: true, resourceType: true, resourceId: true, category: true, title: true },
+      })
+    : [];
+
+  const recentKeySet = new Set<string>(
+    recentNotifications.map((r) => `${r.userId}::${r.resourceType ?? ""}::${r.resourceId ?? ""}::${r.category ?? ""}::${r.title}`),
+  );
+
+  const toCreate = uniqueInputs.filter((i) => !recentKeySet.has(keyFor(i)));
+  if (!toCreate.length) return;
+
   await prisma.notification.createMany({
-    data: inputs.map((n) => {
+    data: toCreate.map((n) => {
       const row: Prisma.NotificationCreateManyInput = {
         userId: n.userId,
         title: n.title,
@@ -77,7 +111,7 @@ export async function createNotifications(inputs: NotificationCreateInput[]): Pr
   });
 
   await sendExternalNotificationAlerts(
-    inputs.map(({ userId, title, description }) => ({ userId, title, description })),
+    toCreate.map(({ userId, title, description }) => ({ userId, title, description })),
   );
 }
 

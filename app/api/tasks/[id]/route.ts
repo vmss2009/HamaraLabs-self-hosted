@@ -32,13 +32,6 @@ export async function PATCH(
       return failure("Task not found", 404);
     }
 
-    const canModify =
-      existing.createdBy.id === userId || existing.assignedTo?.id === userId;
-
-    if (!canModify) {
-      return failure("Forbidden", 403);
-    }
-
     const payload = await request.json();
     const status = coerceStatus(payload.status);
 

@@ -217,10 +217,42 @@ export async function notifyTaskAssignment(params: {
   const description = makeTextHtml(`${params.taskTitle} has been assigned to you`);
 
   // Notify all stakeholders (student, incharges, mentors) excluding the creator
-  if (stakeholders.length > 0) {
-    await createNotifications(
-      stakeholders.map((s) => ({
-        userId: s.userId,
+  // Build a deduplicated list of recipients keyed by userId so that
+  // the same user won't receive multiple notifications for the same event.
+  const recipientMap = new Map<string, {
+    userId: string;
+    title: string;
+    description?: string | null;
+    category?: string;
+    resourceType?: string | null;
+    resourceId?: string | null;
+    data?: any;
+  }>();
+
+  for (const s of stakeholders) {
+    recipientMap.set(s.userId, {
+      userId: s.userId,
+      title,
+      description,
+      category: "assignment",
+      resourceType: "task",
+      resourceId: params.taskId,
+      data: {
+        studentId: student.id,
+        studentName: student.fullName,
+        schoolName: student.schoolName,
+        taskTitle: params.taskTitle,
+      },
+    });
+  }
+
+  // Also notify the assigned user if they exist, not the creator. Using the map
+  // ensures we won't create a second notification if they were already included
+  // in stakeholders.
+  if (params.assignedToId && params.assignedToId !== params.createdByUserId) {
+    if (!recipientMap.has(params.assignedToId)) {
+      recipientMap.set(params.assignedToId, {
+        userId: params.assignedToId,
         title,
         description,
         category: "assignment",
@@ -232,30 +264,63 @@ export async function notifyTaskAssignment(params: {
           schoolName: student.schoolName,
           taskTitle: params.taskTitle,
         },
-      })),
-    );
+      });
+    }
   }
 
-  // Also notify the assigned user if they exist, not already in stakeholders, and not the creator
-  if (params.assignedToId && params.assignedToId !== params.createdByUserId) {
-    const isAlreadyNotified = stakeholders.some((s) => s.userId === params.assignedToId);
-    if (!isAlreadyNotified) {
-      await createNotifications([
-        {
-          userId: params.assignedToId,
-          title,
-          description,
-          category: "assignment",
-          resourceType: "task",
-          resourceId: params.taskId,
-          data: {
-            studentId: student.id,
-            studentName: student.fullName,
-            schoolName: student.schoolName,
-            taskTitle: params.taskTitle,
-          },
-        },
-      ]);
-    }
+  if (recipientMap.size > 0) {
+    await createNotifications(Array.from(recipientMap.values()));
+  }
+}
+
+export async function notifyTaskStatusUpdate(params: {
+  studentId: string;
+  taskTitle: string;
+  taskId: string;
+  previousStatus?: string | null;
+  currentStatus?: string | null;
+  excludeUserId?: string | null;
+}) {
+  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId, params.excludeUserId);
+  if (!student || !stakeholders.length) return;
+
+  const previousStatus = params.previousStatus?.trim() || "previous status";
+  const currentStatus = params.currentStatus?.trim() || "updated";
+  const title = "Task status changed";
+  const description = makeTextHtml(
+    `${params.taskTitle} for ${student.fullName} changed from ${previousStatus} to ${currentStatus}`,
+  );
+  // Deduplicate recipients by userId to avoid duplicate notifications
+  const statusRecipientMap = new Map<string, {
+    userId: string;
+    title: string;
+    description?: string | null;
+    category?: string;
+    resourceType?: string | null;
+    resourceId?: string | null;
+    data?: any;
+  }>();
+
+  for (const s of stakeholders) {
+    statusRecipientMap.set(s.userId, {
+      userId: s.userId,
+      title,
+      description,
+      category: "status",
+      resourceType: "task",
+      resourceId: params.taskId,
+      data: {
+        studentId: student.id,
+        studentName: student.fullName,
+        schoolName: student.schoolName,
+        statusPrevious: params.previousStatus ?? null,
+        statusCurrent: params.currentStatus ?? null,
+        taskTitle: params.taskTitle,
+      },
+    });
+  }
+
+  if (statusRecipientMap.size > 0) {
+    await createNotifications(Array.from(statusRecipientMap.values()));
   }
 }
