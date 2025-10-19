@@ -6,6 +6,7 @@ import {
   TaskWithRelations,
   TaskStatus,
 } from "../type";
+import { notifyTaskAssignment } from "@/lib/notifications/service";
 
 function taskDelegate() {
   return (prisma as any).task as {
@@ -65,7 +66,7 @@ export async function createTask(
   const dueDate = parseDueDate(data.dueDate);
   const studentIds = data.studentIds || [];
 
-  return taskDelegate().create({
+  const task = await taskDelegate().create({
     data: {
       title: data.title,
       description: data.description ?? null,
@@ -81,6 +82,20 @@ export async function createTask(
     },
     include: buildInclude(),
   });
+
+  // Send notifications for each student assigned to the task
+  for (const studentId of studentIds) {
+    await notifyTaskAssignment({
+      studentId,
+      taskTitle: task.title,
+      taskId: task.id,
+      assignedToId: task.assignedToId,
+    }).catch((error) => {
+      console.error(`Failed to send notification for student ${studentId}:`, error);
+    });
+  }
+
+  return task;
 }
 
 export async function getTasks(filter: TaskFilter = {}): Promise<TaskWithRelations[]> {
@@ -137,7 +152,7 @@ export async function updateTask(
     const toAdd = newStudentIds.filter((sid) => !currentStudentIds.includes(sid));
     const toRemove = currentStudentIds.filter((sid) => !newStudentIds.includes(sid));
 
-    return taskDelegate().update({
+    const updatedTask = await taskDelegate().update({
       where: { id },
       data: {
         ...patch,
@@ -148,6 +163,20 @@ export async function updateTask(
       },
       include: buildInclude(),
     });
+
+    // Send notifications for newly added students
+    for (const studentId of toAdd) {
+      await notifyTaskAssignment({
+        studentId,
+        taskTitle: updatedTask.title,
+        taskId: updatedTask.id,
+        assignedToId: updatedTask.assignedToId,
+      }).catch((error) => {
+        console.error(`Failed to send notification for student ${studentId}:`, error);
+      });
+    }
+
+    return updatedTask;
   }
 
   return taskDelegate().update({

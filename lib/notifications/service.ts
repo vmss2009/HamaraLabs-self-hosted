@@ -182,3 +182,59 @@ export async function notifyStudentAssignment(params: {
     })),
   );
 }
+
+export async function notifyTaskAssignment(params: {
+  studentId: string;
+  taskTitle: string;
+  taskId: string;
+  assignedToId?: string | null;
+}) {
+  const { student, stakeholders } = await fetchStudentStakeholders(params.studentId);
+  if (!student) return;
+
+  const title = "Task assigned";
+  const description = makeTextHtml(`${params.taskTitle} has been assigned to ${student.fullName}`);
+
+  // Notify stakeholders (school incharges and mentors)
+  if (stakeholders.length > 0) {
+    await createNotifications(
+      stakeholders.map((s) => ({
+        userId: s.userId,
+        title,
+        description,
+        category: "assignment",
+        resourceType: "task",
+        resourceId: params.taskId,
+        data: {
+          studentId: student.id,
+          studentName: student.fullName,
+          schoolName: student.schoolName,
+          taskTitle: params.taskTitle,
+        },
+      })),
+    );
+  }
+
+  // Also notify the assigned user if they're not already in stakeholders
+  if (params.assignedToId) {
+    const isAlreadyNotified = stakeholders.some((s) => s.userId === params.assignedToId);
+    if (!isAlreadyNotified) {
+      await createNotifications([
+        {
+          userId: params.assignedToId,
+          title,
+          description,
+          category: "assignment",
+          resourceType: "task",
+          resourceId: params.taskId,
+          data: {
+            studentId: student.id,
+            studentName: student.fullName,
+            schoolName: student.schoolName,
+            taskTitle: params.taskTitle,
+          },
+        },
+      ]);
+    }
+  }
+}
