@@ -56,21 +56,37 @@ async function fetchStudentStakeholders(studentId: string, excludeUserId?: strin
 
   const stakeholderMap = new Map<string, { userId: string }>();
   
+  // Check if excludeUserId is a mentor or incharge
+  let excludeUserIsMentorOrIncharge = false;
+  if (excludeUserId) {
+    const inchargeIds = (student.school?.incharges ?? []).map(u => u.id);
+    const mentorIds = mentors.map(m => m.user_id).filter(Boolean) as string[];
+    excludeUserIsMentorOrIncharge = inchargeIds.includes(excludeUserId) || mentorIds.includes(excludeUserId);
+  }
+  
   // Add student's user if they have one and they're not the one being excluded
   if (student.user_id && student.user_id !== excludeUserId) {
     stakeholderMap.set(student.user_id, { userId: student.user_id });
   }
   
-  // Add incharges (excluding the one who triggered the action)
+  // Add incharges
   for (const u of student.school?.incharges ?? []) {
-    if (u.id && u.id !== excludeUserId) {
+    if (u.id) {
+      // Only exclude if they're the one who triggered AND they're a stakeholder
+      if (u.id === excludeUserId && excludeUserIsMentorOrIncharge) {
+        continue;
+      }
       stakeholderMap.set(u.id, { userId: u.id });
     }
   }
   
-  // Add mentors (excluding the one who triggered the action)
+  // Add mentors
   for (const m of mentors) {
-    if (m.user_id && m.user_id !== excludeUserId) {
+    if (m.user_id) {
+      // Only exclude if they're the one who triggered AND they're a stakeholder
+      if (m.user_id === excludeUserId && excludeUserIsMentorOrIncharge) {
+        continue;
+      }
       stakeholderMap.set(m.user_id, { userId: m.user_id });
     }
   }
