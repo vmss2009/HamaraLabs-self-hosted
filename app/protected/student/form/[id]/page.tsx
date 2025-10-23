@@ -7,6 +7,7 @@ import FormSection from "@/components/form/FormSection";
 import TextFieldGroup from "@/components/form/TextFieldGroup";
 import SelectField from "@/components/form/SelectField";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
+import GuardianMultiform, { Guardian } from "@/components/form/GuardianMultiform";
 import { useRouter } from "next/navigation";
 
 export default function EditStudentForm({
@@ -23,6 +24,9 @@ export default function EditStudentForm({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedSchool, setSelectedSchool] = useState<string>("");
   const [gender, setGender] = useState<string>("");
+  const [guardians, setGuardians] = useState<Guardian[]>([
+    { name: '', relationship: '', email: '' }
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +48,11 @@ export default function EditStudentForm({
 
         setSelectedSchool(studentData.school_id.toString());
         setGender(studentData.gender);
+
+        // Load guardians if they exist
+        if (studentData.guardians && Array.isArray(studentData.guardians)) {
+          setGuardians(studentData.guardians as Guardian[]);
+        }
 
         const form = document.querySelector("form") as HTMLFormElement;
         if (form) {
@@ -72,6 +81,11 @@ export default function EditStudentForm({
     try {
       const formData = new FormData(event.target as HTMLFormElement);
 
+      // Filter out empty guardians
+      const validGuardians = guardians.filter(
+        (g) => g.name.trim() || g.relationship.trim() || g.email.trim()
+      );
+
       const studentData = {
         schoolId: selectedSchool.toString(),
         first_name: formData.get("firstName"),
@@ -82,6 +96,7 @@ export default function EditStudentForm({
         class: formData.get("class"),
         section: formData.get("section"),
         comments: formData.get("comments"),
+        guardians: validGuardians.length > 0 ? validGuardians : undefined,
       };
 
       const response = await fetch(`/api/students/${resolvedParams.id}`, {
@@ -192,6 +207,13 @@ export default function EditStudentForm({
               value={gender}
               onChange={(value) => setGender(value)}
               required
+            />
+          </FormSection>
+
+          <FormSection title="Guardian Information">
+            <GuardianMultiform
+              guardians={guardians}
+              onChange={setGuardians}
             />
           </FormSection>
 

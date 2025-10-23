@@ -135,9 +135,10 @@ export async function createStudent(data: StudentCreateInput) {
         class: validatedData.class,
         section: validatedData.section,
         comments: validatedData.comments,
+        guardians: validatedData.guardians ? JSON.parse(JSON.stringify(validatedData.guardians)) : null,
         school_id: validatedData.schoolId,
         user_id: userId,
-      },
+      } as any,
       include: {
         user: true,
         school: true,
@@ -312,9 +313,10 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
         class: validatedData.class,
         section: validatedData.section,
         comments: validatedData.comments,
+        guardians: validatedData.guardians ? JSON.parse(JSON.stringify(validatedData.guardians)) : null,
         school_id: validatedData.schoolId,
         user_id: userId,
-      },
+      } as any,
       include: {
         user: true,
         school: true,

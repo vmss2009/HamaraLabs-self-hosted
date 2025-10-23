@@ -211,6 +211,11 @@ export default function StudentReport() {
             index:
               students.findIndex((student) => student.id === selectedRow?.id) + 1,
             calendar_link: selectedRow.user_id ? `/calendar/${selectedRow.user_id}` : null,
+            guardians_display: (selectedRow as any).guardians && Array.isArray((selectedRow as any).guardians) && (selectedRow as any).guardians.length > 0
+              ? ((selectedRow as any).guardians as any[]).map((g: any, i: number) => 
+                  `${i + 1}. ${g.name || 'N/A'} (${g.relationship || 'N/A'}) - ${g.email || 'N/A'}`
+                ).join('\n')
+              : 'No guardians',
           } : null}
           formtype="Student"
           columns={[
@@ -224,6 +229,7 @@ export default function StudentReport() {
             { label: "Section", field: "section" },
             { label: "Aspiration", field: "aspiration" },
             { label: "Comments", field: "comments" },
+            { label: "Guardians", field: "guardians_display", type: "text" },
             { label: "Calendar", field: "calendar_link", type: "link" },
           ]}
         />

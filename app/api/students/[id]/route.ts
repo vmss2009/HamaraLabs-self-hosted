@@ -54,6 +54,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       class: validatedData.class,
       section: validatedData.section,
       comments: validatedData.comments ?? "",
+      guardians: validatedData.guardians ?? undefined,
       schoolId: schoolId,
     };
 

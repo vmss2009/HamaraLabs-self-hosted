@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import SelectField from "@/components/form/SelectField";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
+import GuardianMultiform, { Guardian } from "@/components/form/GuardianMultiform";
 import { useRouter } from "next/navigation";
 
 export default function StudentForm() {
@@ -17,6 +18,9 @@ export default function StudentForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedSchool, setSelectedSchool] = useState<string>("");
   const [gender, setGender] = useState<string>("");
+  const [guardians, setGuardians] = useState<Guardian[]>([
+    { name: '', relationship: '', email: '' }
+  ]);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -43,6 +47,11 @@ export default function StudentForm() {
     try {
       const formData = new FormData(event.target as HTMLFormElement);
 
+      // Filter out empty guardians
+      const validGuardians = guardians.filter(
+        (g) => g.name.trim() || g.relationship.trim() || g.email.trim()
+      );
+
       const studentData = {
         schoolId: selectedSchool.toString(),
         first_name: formData.get("firstName"),
@@ -53,6 +62,7 @@ export default function StudentForm() {
         class: formData.get("class"),
         section: formData.get("section"),
         comments: formData.get("comments"),
+        guardians: validGuardians.length > 0 ? validGuardians : undefined,
       };
 
       const response = await fetch("/api/students", {
@@ -143,7 +153,6 @@ export default function StudentForm() {
                   type: "email",
                   required: true,
                   placeholder: "student@example.com",
-                  helperText: "A user account will be created with this email address",
                 },
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
@@ -170,17 +179,25 @@ export default function StudentForm() {
               required
               className="mt-5"
             />
-            <div className="flex justify-end mt-6">
-              <Button
-                type="submit"
-                isLoading={isLoading}
-                size="lg"
-                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-              >
-                Submit
-              </Button>
-            </div>
           </FormSection>
+
+          <FormSection title="Guardian Information">
+            <GuardianMultiform
+              guardians={guardians}
+              onChange={setGuardians}
+            />
+          </FormSection>
+
+          <div className="flex justify-end mt-6">
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              size="lg"
+              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+            >
+              Submit
+            </Button>
+          </div>
         </form>
       </div>
     </div>

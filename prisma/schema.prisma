@@ -102,6 +102,7 @@ model Student {
   class                 String
   section               String
   comments              String?
+  guardians             Json?
   school_id             String
   user_id               String?
   school                School                        @relation(fields: [school_id], references: [id])

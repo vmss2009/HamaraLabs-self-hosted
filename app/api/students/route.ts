@@ -63,6 +63,7 @@ export async function POST(request: Request) {
       class: validatedData.class,
       section: validatedData.section,
       comments: validatedData.comments ?? "",
+      guardians: validatedData.guardians ?? undefined,
       schoolId: validatedData.schoolId,
     };
 
