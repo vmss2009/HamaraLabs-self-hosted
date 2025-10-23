@@ -27,6 +27,8 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [mutating, setMutating] = useState(false);
   const [activeColumn, setActiveColumn] = useState<"unread" | "read">("unread");
+  const [priority, setPriority] = useState<number>(3);
+  const [updatingPriority, setUpdatingPriority] = useState(false);
 
   const fetchNotifications = useCallback(async (cursor?: string) => {
     setLoading(true);
@@ -64,7 +66,18 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     fetchNotifications();
-  }, [fetchNotifications]);
+    // Fetch user's priority setting
+    if (session?.user?.id) {
+      fetch(`/api/users/${session.user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.priority) {
+            setPriority(data.priority);
+          }
+        })
+        .catch(err => console.error("Failed to fetch user priority:", err));
+    }
+  }, [fetchNotifications, session?.user?.id]);
 
   const unreadItems = useMemo(() => items.filter((n) => !n.readAt), [items]);
   const readItems = useMemo(() => items.filter((n) => n.readAt), [items]);
@@ -134,6 +147,29 @@ export default function NotificationsPage() {
     [mutating],
   );
 
+  const handlePriorityChange = useCallback(async (newPriority: number) => {
+    if (!session?.user?.id || updatingPriority) return;
+    
+    setUpdatingPriority(true);
+    try {
+      const res = await fetch(`/api/users/${session.user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priority: newPriority }),
+      });
+      
+      if (!res.ok) {
+        throw new Error("Failed to update priority");
+      }
+      
+      setPriority(newPriority);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update priority");
+    } finally {
+      setUpdatingPriority(false);
+    }
+  }, [session?.user?.id, updatingPriority]);
+
   return (
     <div
       className="relative min-h-screen w-full overflow-y-auto"
@@ -148,6 +184,29 @@ export default function NotificationsPage() {
             <div className="flex flex-col">
               <h1 className="text-sm font-semibold tracking-wide">Notifications</h1>
               <span className="text-xs opacity-70">{`${unreadCount} unread`}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <label htmlFor="priority-select" className="text-xs font-semibold tracking-wide">
+                Priority:
+              </label>
+              <select
+                id="priority-select"
+                value={priority}
+                onChange={(e) => handlePriorityChange(Number(e.target.value))}
+                disabled={updatingPriority}
+                className="rounded border px-2 py-1 text-xs font-medium disabled:opacity-50"
+                style={{
+                  background: "color-mix(in srgb, var(--foreground) 6%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
+                  color: "var(--foreground)",
+                }}
+              >
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+                <option value={4}>4</option>
+                <option value={5}>5</option>
+              </select>
             </div>
             <div className="flex flex-col gap-1 text-[11px] tracking-wide opacity-80">
               <div className="flex flex-wrap items-center gap-2">

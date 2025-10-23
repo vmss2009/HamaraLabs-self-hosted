@@ -16,6 +16,7 @@ model User {
   updated_at      DateTime       @updatedAt
   first_name      String?
   last_name       String?
+  priority        Int?           @default(3)
   school_visits   SchoolVisit[]  @relation("VisitPOC")
   students        Student[]
   mentors         Mentor[]

@@ -18,17 +18,27 @@ async function sendExternalNotificationAlerts(notifications: ExternalNotifyPaylo
         return notification.title;
     };
     
+  // Fetch user priorities for all users in this batch
+  const userIds = Array.from(new Set(notifications.map(n => n.userId)));
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, priority: true }
+  });
+  
+  const userPriorityMap = new Map(users.map(u => [u.id, u.priority ?? 3]));
+    
   await Promise.allSettled(
     notifications.map(async (notification) => {
         const message = buildMessageBody(notification) ?? "";
         const url = `https://hamaralabs-notify.hamaralabs.com/alerts-${notification.userId}`;
+        const priority = userPriorityMap.get(notification.userId) ?? 3;
         try {
         fetch(url, {
           method: "POST",
           headers: {
             Authorization: `Basic ${token}`,
             Title: notification.title,
-            Priority: "5",
+            Priority: String(priority),
             Sound: "siren",
             "Content-Type": "text/plain",
           },
