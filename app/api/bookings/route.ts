@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { isBefore } from "date-fns";
+import { createNotifications } from "@/lib/db/notification/crud";
 
 function utcMidnightFromYMD(ymd: string) {
   const [y, m, d] = ymd.split("-").map((n) => parseInt(n, 10));
@@ -87,6 +88,36 @@ export async function POST(req: Request) {
         }),
         prisma.timeSlot.update({ where: { id: timeSlot.id }, data: { bookedSlots: { increment: 1 } } }),
       ]);
+
+      // Send notification to calendar owner
+      try {
+        const formattedDate = new Date(schedule.date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        await createNotifications([{
+          userId: user.id,
+          title: "New Booking Scheduled",
+          description: `${guestName} (${guestEmail}) has booked a session on ${formattedDate} from ${startTime} to ${endTime}.${notes ? ` Notes: ${notes}` : ''}`,
+          category: "booking",
+          resourceType: "booking",
+          resourceId: booking.id,
+          data: {
+            bookingId: booking.id,
+            guestName,
+            guestEmail,
+            date: schedule.date.toISOString(),
+            startTime,
+            endTime,
+            notes,
+          }
+        }]);
+      } catch (notifErr) {
+        console.error("Failed to send booking notification:", notifErr);
+        // Don't fail the booking if notification fails
+      }
 
       try {
         const callOnBook = (user.user_meta_data as Record<string, unknown>)?.callOnBook === true;
