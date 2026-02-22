@@ -1,31 +1,35 @@
-version: "3.8"
+volumes:
+  db-data:
 
 services:
   db:
     container_name: hamaralabs-db
-    image: postgres:15
+    image: postgres:16
     restart: always
+    ports:
+    - "5433:5432"
     environment:
       POSTGRES_USER: hamaralabs
       POSTGRES_PASSWORD: hamaralabs
       POSTGRES_DB: hamaralabs
     volumes:
-      - /DATA/AppData/big-bear-hamaralabs/data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     networks:
-      - big-bear-hamaralabs
+      - hamaralabs-network
 
   app:
     container_name: hamaralabs-app
-    image: ghcr.io/vmss2009/hamaralabs:v7
+    image: ghcr.io/vmss2009/hamaralabs:v8
+    restart: always
     depends_on:
       - db
     ports:
-      - "3000:3000"
+      - "3002:3000"
     env_file:
       - .env
     networks:
-      - big-bear-hamaralabs
+      - hamaralabs-network
 
 networks:
-  big-bear-hamaralabs:
-    driver: bridge
+  hamaralabs-network:
+    external: true
