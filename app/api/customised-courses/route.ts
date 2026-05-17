@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { createCustomisedCourse } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
 
@@ -9,10 +9,7 @@ export async function POST(request: Request) {
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
+        return failure(`Missing required field: ${field}`, 400, { code: "VALIDATION_ERROR" });
       }
     }
 
@@ -23,12 +20,11 @@ export async function POST(request: Request) {
     };
 
     const customisedCourse = await createCustomisedCourse(courseData);
-    return NextResponse.json(customisedCourse);
+    return success(customisedCourse);
   } catch (error) {
     console.error("Error creating customised course:", error);
-    return NextResponse.json(
-      { error: "Failed to create customised course" },
-      { status: 500 }
-    );
+    return failure("Failed to create customised course", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

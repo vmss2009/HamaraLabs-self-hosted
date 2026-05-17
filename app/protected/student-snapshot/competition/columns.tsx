@@ -1,16 +1,21 @@
 import React from "react";
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { Button } from "@/components/Button";
+import { DeleteIcon, EditIcon } from "@/components/form/Icons";
+import { Button } from "@/components/ui/Button";
+
+type SnapshotItem = Record<string, unknown>;
 
 type ModifyStatusHandler = (
-  item: any,
+  item: SnapshotItem,
   type: "tinkering" | "competition" | "courses"
 ) => void;
-type DeleteCompetitionHandler = (competition: any) => void;
+
+type DeleteCompetitionHandler = (competition: SnapshotItem) => void;
+type EditCompetitionHandler = (competition: SnapshotItem) => void;
 
 export function getCompetitionColumns(
   handleModifyStatus: ModifyStatusHandler,
+  handleEditCompetition: EditCompetitionHandler,
   handleDeleteCompetition: DeleteCompetitionHandler
 ): GridColDef[] {
   return [
@@ -37,6 +42,12 @@ export function getCompetitionColumns(
       headerName: "Organised By",
       width: 180,
       renderCell: (params) => params.row?.competition?.organised_by ?? "N/A",
+    },
+    {
+      field: "comments",
+      headerName: "Comments",
+      width: 220,
+      renderCell: (params) => params.row?.comments ?? "",
     },
     {
       field: "status",
@@ -123,18 +134,18 @@ export function getCompetitionColumns(
           </Button>
 
           <GridActionsCellItem
-            key="delete"
-            icon={
-              <DeleteOutlineIcon
-                sx={{
-                  color: "#ef4444",
-                  transition: "color 0.2s ease-in-out",
-                  "&:hover": {
-                    color: "#dc2626",
-                  },
-                }}
-              />
-            }
+            key="edit"
+icon={<EditIcon />}
+            label="Edit"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditCompetition(params.row);
+            }}
+            showInMenu={false}
+          />
+
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();

@@ -33,7 +33,7 @@ export interface CourseCreateInput {
   course_tags: string[];
 }
 
-export interface CourseUpdateInput extends Partial<CourseCreateInput> {}
+export type CourseUpdateInput = Partial<CourseCreateInput>;
 
 export interface CourseFilter {
   name?: string;

@@ -8,21 +8,22 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/DetailViewer";
-import Alert from "@mui/material/Alert";
-import { Student } from "@/lib/db/student/type";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import ReportShell from "@/components/form/ReportShell";
+import DetailViewer from "@/components/form/DetailViewer";
+import Alert from "@/components/ui/Alert";
+import { StudentWithSchool } from "@/lib/db/student/type";
 
 export default function StudentReport() {
   const router = useRouter();
-  const [students, setStudents] =useState<Student[]>([]);
+  const [students, setStudents] =useState<StudentWithSchool[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<StudentWithSchool | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -69,7 +70,7 @@ export default function StudentReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<StudentWithSchool>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -78,17 +79,6 @@ export default function StudentReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) return value.join(" | ");
-    if (typeof value === "object") {
-      if (value.name) return value.name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const columns: GridColDef[] = [
     {
@@ -102,10 +92,35 @@ export default function StudentReport() {
     { field: "email", headerName: "Email", width: 200 },
     { field: "gender", headerName: "Gender", width: 100 },
     {
+      field: "calendar_link",
+      headerName: "Calendar",
+      width: 150,
+      renderCell: (params) => {
+        const userId = params.row.user_id;
+        if (!userId) {
+          return <span className="text-gray-400 text-xs">No calendar</span>;
+        }
+        return (
+          <a
+            href={`/calendar/${userId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View Calendar
+          </a>
+        );
+      },
+    },
+    {
       field: "school",
       headerName: "School",
       width: 200,
-      valueGetter: (params: any) => params.name || "N/A",
+      valueGetter: (params) => {
+        const p = params as any;
+        return p?.row?.school?.name ?? "N/A";
+      },
     },
     { field: "class", headerName: "Class", width: 100 },
     { field: "section", headerName: "Section", width: 100 },
@@ -127,7 +142,7 @@ export default function StudentReport() {
         />,
         <GridActionsCellItem
           key="delete"
-          icon={<DeleteOutlineIcon />}
+          icon={<DeleteIcon />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
           color="error"
@@ -137,48 +152,44 @@ export default function StudentReport() {
   ];
 
   return (
-    <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20">
+    <ReportShell>
+      <div className="w-full">
         {error && (
-          <Alert
-            severity="error"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFEBEE",
-              border: "1px solid #FFCDD2",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="error" className="mx-10 mb-4">
             {error}
           </Alert>
         )}
+
         {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-7 mr-7"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="success" className="mx-10 mb-4">
             {success}
           </Alert>
         )}
-        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
+        
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={students}
             columns={columns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
+              columns: {
+                columnVisibilityModel: {
+                  calendar_link: false,
+                },
+              },
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
-            autoHeight
             onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
@@ -189,26 +200,23 @@ export default function StudentReport() {
                 color: "#1f2937",
               },
             }}
-            slots={{
-              toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
-                </GridToolbarContainer>
-              ),
-            }}
           />
         </div>
 
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
-              students.findIndex((student) => student.id === selectedRow?.id) +
-              1,
-          }}
+              students.findIndex((student) => student.id === selectedRow?.id) + 1,
+            calendar_link: selectedRow.user_id ? `/calendar/${selectedRow.user_id}` : null,
+            guardians_display: (selectedRow as any).guardians && Array.isArray((selectedRow as any).guardians) && (selectedRow as any).guardians.length > 0
+              ? ((selectedRow as any).guardians as any[]).map((g: any, i: number) => 
+                  `${i + 1}. ${g.name || 'N/A'} (${g.relationship || 'N/A'}) - ${g.email || 'N/A'}`
+                ).join('\n')
+              : 'No guardians',
+          } : null}
           formtype="Student"
           columns={[
             { label: "S.No", field: "index" },
@@ -221,9 +229,11 @@ export default function StudentReport() {
             { label: "Section", field: "section" },
             { label: "Aspiration", field: "aspiration" },
             { label: "Comments", field: "comments" },
+            { label: "Guardians", field: "guardians_display", type: "text" },
+            { label: "Calendar", field: "calendar_link", type: "link" },
           ]}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import {
   getCustomisedCourseById,
   updateCustomisedCourse,
@@ -6,111 +6,124 @@ import {
   getCustomisedCourses,
 } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
+import { auth } from "@/lib/auth/auth";
 
-export async function GET(request: Request, { params }: any) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    if (params.id === "list") {
+    const { id } = await params;
+    if (id === "list") {
       const { searchParams } = new URL(request.url);
       const student_id = searchParams.get("student_id");
 
       if (!student_id) {
-        return NextResponse.json(
-          { error: "Student ID is required" },
-          { status: 400 }
-        );
+        return failure("Student ID is required", 400, { code: "MISSING_PARAM" });
       }
 
       const customisedCourses = await getCustomisedCourses({
         student_id: student_id,
       });
-      return NextResponse.json(customisedCourses);
+      return success(customisedCourses);
     }
 
-    const customisedCourse = await getCustomisedCourseById(params.id);
+    const customisedCourse = await getCustomisedCourseById(id);
 
     if (!customisedCourse) {
-      return NextResponse.json(
-        { error: "Customised course not found" },
-        { status: 404 }
-      );
+      return failure("Customised course not found", 404);
     }
 
-    return NextResponse.json(customisedCourse);
+    return success(customisedCourse);
   } catch (error) {
     console.error("Error fetching customised course:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch customised course" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch customised course", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PUT(request: Request, { params }: any) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
 
     if (!data.course_id || !data.student_id) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return failure("Missing required fields", 400, { code: "VALIDATION_ERROR" });
     }
+
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
 
     const customisedCourse = await updateCustomisedCourse(
       id,
-      data as Partial<CustomisedCourseCreateInput>
+      {
+        ...(data as Partial<CustomisedCourseCreateInput>),
+        keepSnapshotAttachmentUrls: Array.isArray((data as any)?.keepSnapshotAttachmentUrls)
+          ? (data as any).keepSnapshotAttachmentUrls as string[]
+          : [],
+      },
+      userId
     );
 
-    return NextResponse.json(customisedCourse);
+    return success(customisedCourse);
   } catch (error) {
     console.error("Error updating customised course:", error);
-    return NextResponse.json(
-      { error: "Failed to update customised course" },
-      { status: 500 }
-    );
+    return failure("Failed to update customised course", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await deleteCustomisedCourse(id);
 
-    return NextResponse.json({
+    return success({
       message: "Customised course deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting customised course:", error);
-    return NextResponse.json(
-      { error: "Failed to delete customised course" },
-      { status: 500 }
-    );
+    return failure("Failed to delete customised course", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-export async function PATCH(request: Request, { params }: any) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await request.json();
 
-    if (!body.status || !Array.isArray(body.status)) {
-      return NextResponse.json(
-        { error: "Status must be an array" },
-        { status: 400 }
-      );
+    // Allow partial updates: status, comments, attachments
+    const patchData: any = {};
+    if (Array.isArray(body.status)) {
+      patchData.status = body.status;
+    }
+    if (typeof body.comments === 'string') {
+      patchData.comments = body.comments;
+    }
+    if (Array.isArray(body.attachments)) {
+      patchData.attachments = body.attachments;
     }
 
-    const updatedCourse = await updateCustomisedCourse(id, {
-      status: body.status,
-    });
+    if (Object.keys(patchData).length === 0) {
+      return failure("No valid fields to update", 400, { code: "VALIDATION_ERROR" });
+    }
 
-    return NextResponse.json(updatedCourse);
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
+
+    const updatedCourse = await updateCustomisedCourse(id, {
+      ...patchData,
+      keepSnapshotAttachmentUrls: Array.isArray((body as any)?.keepSnapshotAttachmentUrls)
+        ? (body as any).keepSnapshotAttachmentUrls as string[]
+        : [],
+    }, userId);
+
+    return success(updatedCourse);
   } catch (error) {
     console.error("Error updating customised course:", error);
-    return NextResponse.json(
-      { error: "Failed to update customised course" },
-      { status: 500 }
-    );
+    return failure("Failed to update customised course", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

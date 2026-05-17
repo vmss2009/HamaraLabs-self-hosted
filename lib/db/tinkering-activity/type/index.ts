@@ -47,24 +47,40 @@ export type Subtopic = {
   subtopic_name: string;
 };
 
+export type EditActivityFormData = {
+  name: string;
+  introduction: string;
+  goals: string[];
+  materials: string[];
+  instructions: string[];
+  tips: string[];
+  observations: string[];
+  extensions: string[];
+  resources: string[];
+  comments?: string;
+  attachments?: string[];
+};
+
 export interface EditActivityDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
-  editFormData: any;
-  handleEditFormChange: (field: string, value: string) => void;
-  handleArrayFieldChange: (field: string, index: number, value: string) => void;
-  handleAddArrayItem: (field: string) => void;
-  handleRemoveArrayItem: (field: string, index: number) => void;
+  onSubmit: (uploadedMeta?: Array<{ url: string; filename?: string; type?: string; size?: number }>) => void;
+  editFormData: EditActivityFormData;
+  handleEditFormChange: (field: keyof EditActivityFormData, value: string) => void;
+  handleArrayFieldChange: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources" | "attachments">, index: number, value: string) => void;
+  handleAddArrayItem: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources" | "attachments">) => void;
+  handleRemoveArrayItem: (field: keyof Pick<EditActivityFormData, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources" | "attachments">, index: number) => void;
   selectedSubject: string;
   setSelectedSubject: (value: string) => void;
   selectedTopic: string;
   setSelectedTopic: (value: string) => void;
   selectedSubtopic: string;
   setSelectedSubtopic: (value: string) => void;
-  subjects: any[];
-  topics: any[];
-  subtopics: any[];
+  subjects: Array<{ id: number; subject_name: string }>;
+  topics: Array<{ id: number; topic_name: string }>;
+  subtopics: Array<{ id: number; subtopic_name: string }>;
+  activityId?: string; // customised TA id for uploads
+  initialAttachmentMetas?: Array<{ url: string; filename?: string | null }>;
 }
 
 export interface TinkeringActivityCreateInput {
@@ -96,7 +112,7 @@ export interface TinkeringActivity {
   subject_name?: string | null;
   topic_name?: string | null;
   subtopic_name?: string | null;
-  subtopic?: any;
+  subtopic?: SubtopicWithTopic;
   created_at?: string;
 }
 

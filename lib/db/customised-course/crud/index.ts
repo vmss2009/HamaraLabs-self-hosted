@@ -1,14 +1,31 @@
 import { CustomisedCourseCreateInput, CustomisedCourseFilter, CustomisedCourseWithRelations } from "../type";
 import { prisma } from "@/lib/db/prisma";
+import { pruneCourseAttachments } from "@/lib/db/snapshot-attachments/crud";
+import { notifyStudentAssignment, notifyStudentStatusUpdate } from "@/lib/notifications/service";
+
+function haveStatusesChanged(previous: string[] | null | undefined, next: string[] | null | undefined) {
+  if (!next) return false;
+  const prev = previous ?? [];
+  if (prev.length !== next.length) return true;
+  const prevSet = new Set(prev);
+  if (prevSet.size !== new Set(next).size) return true;
+  for (const status of next) {
+    if (!prevSet.has(status)) return true;
+  }
+  return false;
+}
 
 export async function createCustomisedCourse(
   data: CustomisedCourseCreateInput,
+  createdByUserId?: string | null
 ): Promise<CustomisedCourseWithRelations> {
-  return prisma.customisedCourse.create({
+  const created = await prisma.customisedCourse.create({
     data: {
       course_id: data.course_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       course: {
@@ -35,8 +52,19 @@ export async function createCustomisedCourse(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
+
+  await notifyStudentAssignment({
+    studentId: created.student.id,
+    entityType: "course",
+    entityName: created.course.name,
+    resourceId: created.id,
+    createdByUserId,
+  });
+
+  return created;
 }
 
 export async function getCustomisedCourses(
@@ -73,6 +101,7 @@ export async function getCustomisedCourses(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -107,20 +136,29 @@ export async function getCustomisedCourseById(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
 
 export async function updateCustomisedCourse(
   id: string,
-  data: Partial<CustomisedCourseCreateInput>,
+  data: Partial<CustomisedCourseCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
+  updatedByUserId?: string | null
 ): Promise<CustomisedCourseWithRelations> {
-  return prisma.customisedCourse.update({
+  const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const existing = await prisma.customisedCourse.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+  const updated = await prisma.customisedCourse.update({
     where: { id },
     data: {
       course_id: data.course_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       course: {
@@ -147,8 +185,28 @@ export async function updateCustomisedCourse(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
+  if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
+    await pruneCourseAttachments(id, keepUrls);
+  }
+  if (haveStatusesChanged(existing?.status, Array.isArray(data.status) ? data.status : undefined)) {
+    const previousStatuses = Array.isArray(existing?.status) ? existing?.status ?? [] : [];
+    const nextStatuses = Array.isArray(updated.status) ? updated.status ?? [] : [];
+    const previousStatus = previousStatuses.length ? previousStatuses[previousStatuses.length - 1] : null;
+    const currentStatus = nextStatuses.length ? nextStatuses[nextStatuses.length - 1] : null;
+    await notifyStudentStatusUpdate({
+      studentId: updated.student.id,
+      entityType: "course",
+      entityName: updated.course.name,
+      previousStatus,
+      currentStatus,
+      resourceId: updated.id,
+      excludeUserId: updatedByUserId,
+    });
+  }
+  return updated;
 }
 
 export async function deleteCustomisedCourse(

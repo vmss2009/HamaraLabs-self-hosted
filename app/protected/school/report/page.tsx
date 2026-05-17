@@ -9,15 +9,31 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
   GridActionsCellItem,
+  GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DetailViewer from "@/components/DetailViewer";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import SchoolDetailViewer from "@/components/form/SchoolDetailViewer";
+import Alert from "@/components/ui/Alert";
+import ReportShell from "@/components/form/ReportShell";
+
+interface UserRole {
+  id: string;
+  role: 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
+  user: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    user_meta_data?: {
+      phone_number?: string;
+    };
+  };
+}
 
 interface School {
-  id: number;
+  id: string;
   name: string;
+  udise_code?: string | null;
   is_ATL: boolean;
   ATL_establishment_year: number | null;
   paid_subscription: boolean;
@@ -30,30 +46,10 @@ interface School {
   stateId?: number;
   countryId?: number;
   pincode?: string;
-  principal?: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    user_meta_data?: {
-      phone_number?: string;
-    };
-  } | null;
-  correspondent?: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    user_meta_data?: {
-      phone_number?: string;
-    };
-  } | null;
-  in_charge?: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    user_meta_data?: {
-      phone_number?: string;
-    };
-  } | null;
+  user_roles?: UserRole[];
+  principals: string;
+  correspondents: string;
+  inCharges: string;
   city?: string;
   state?: string;
   country?: string;
@@ -66,6 +62,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
+      udise_code: false,
       syllabus: false,
       social_links: false,
       addressLine1: false,
@@ -73,22 +70,13 @@ export default function Page() {
       state: false,
       country: false,
       pincode: false,
-      principalEmail: false,
-      principalFirstName: false,
-      principalLastName: false,
-      principalNumber: false,
-      correspondentEmail: false,
-      correspondentFirstName: false,
-      correspondentLastName: false,
-      correspondentNumber: false,
-      inChargeEmail: false,
-      inChargeFirstName: false,
-      inChargeLastName: false,
-      inChargeNumber: false,
+      principals: false,
+      correspondents: false,
+      inCharges: false,
       ATL_establishment_year: false,
     });
 
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<School | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const columns: GridColDef[] = [
@@ -99,6 +87,7 @@ export default function Page() {
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
     { field: "name", headerName: "Name", width: 200 },
+    { field: "udise_code", headerName: "UDISE Code", width: 150 },
     { field: "is_ATL", headerName: "Is ATL ?", width: 200 },
     {
       field: "ATL_establishment_year",
@@ -115,50 +104,72 @@ export default function Page() {
     { field: "state", headerName: "State", width: 300 },
     { field: "country", headerName: "Country", width: 300 },
     { field: "pincode", headerName: "Pincode", width: 300 },
-    { field: "principalEmail", headerName: "Principal Email", width: 300 },
-    {
-      field: "principalFirstName",
-      headerName: "Principal First Name",
+    { 
+      field: "principals", 
+      headerName: "Principals", 
       width: 300,
+      renderCell: (params) => {
+        const principals = params.row.principalsList || [];
+        if (principals.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
+        const firstNames = principals.map((principal: any) => principal.name.split(' ')[0]);
+        const fullNamesList = principals.map((principal: any) => principal.name).join(', ');
+        const displayText = firstNames.join(', ');
+        
+        return (
+          <div className="py-2">
+            <div className="font-medium text-sm text-blue-600 truncate" title={fullNamesList}>
+              {displayText}
+            </div>
+          </div>
+        );
+      }
     },
-    {
-      field: "principalLastName",
-      headerName: "Principal Last Name",
+    { 
+      field: "correspondents", 
+      headerName: "Correspondents", 
       width: 300,
+      renderCell: (params) => {
+        const correspondents = params.row.correspondentsList || [];
+        if (correspondents.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
+        const firstNames = correspondents.map((correspondent: any) => correspondent.name.split(' ')[0]);
+        const fullNamesList = correspondents.map((correspondent: any) => correspondent.name).join(', ');
+        const displayText = firstNames.join(', ');
+        
+        return (
+          <div className="py-2">
+            <div className="font-medium text-sm text-green-600 truncate" title={fullNamesList}>
+              {displayText}
+            </div>
+          </div>
+        );
+      }
     },
-    { field: "principalNumber", headerName: "Principal Number", width: 300 },
-    {
-      field: "correspondentEmail",
-      headerName: "Correspondent Email",
+    { 
+      field: "inCharges", 
+      headerName: "In-Charges", 
       width: 300,
+      renderCell: (params) => {
+        const inCharges = params.row.inChargesList || [];
+        if (inCharges.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
+        const firstNames = inCharges.map((inCharge: any) => inCharge.name.split(' ')[0]);
+        const fullNamesList = inCharges.map((inCharge: any) => inCharge.name).join(', ');
+        const displayText = firstNames.join(', ');
+        
+        return (
+          <div className="py-2">
+            <div className="font-medium text-sm text-purple-600 truncate" title={fullNamesList}>
+              {displayText}
+            </div>
+          </div>
+        );
+      }
     },
-    {
-      field: "correspondentFirstName",
-      headerName: "Correspondent First Name",
-      width: 300,
-    },
-    {
-      field: "correspondentLastName",
-      headerName: "Correspondent Last Name",
-      width: 300,
-    },
-    {
-      field: "correspondentNumber",
-      headerName: "Correspondent Number",
-      width: 300,
-    },
-    { field: "inChargeEmail", headerName: "In Charge Email", width: 300 },
-    {
-      field: "inChargeFirstName",
-      headerName: "In Charge First Name",
-      width: 300,
-    },
-    {
-      field: "inChargeLastName",
-      headerName: "In Charge Last Name",
-      width: 300,
-    },
-    { field: "inChargeNumber", headerName: "In Charge Number", width: 300 },
     {
       field: "actions",
       type: "actions",
@@ -173,7 +184,7 @@ export default function Page() {
         />,
         <GridActionsCellItem
           key="delete"
-          icon={<DeleteOutlineIcon />}
+          icon={<DeleteIcon />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
           color="error"
@@ -190,47 +201,94 @@ export default function Page() {
       }
       const data = await response.json();
 
-      const transformedData = data.map((school: any) => {
-        const address = school.address || {};
-        const city = address.city || {};
-        const state = city.state || {};
-        const country = state.country || {};
+      // Fetch users for all schools
+      const schoolsWithUsers = await Promise.all(
+        data.map(async (school: Record<string, unknown>) => {
+          try {
+            const usersResponse = await fetch(`/api/schools/${school.id}/users`);
+            const users = usersResponse.ok ? await usersResponse.json() : [];
+            
+            const sc: any = school as any;
+            const address: any = sc.address || {};
+            const city: any = address.city || {};
+            const state: any = city.state || {};
+            const country: any = state.country || {};
+            const schoolId = String(sc.id);
 
-        const principal = school.users?.find(
-          (user: any) => user.id === school.principal_id
-        );
-        const correspondent = school.users?.find(
-          (user: any) => user.id === school.correspondent_id
-        );
-        const in_charge = school.users?.find(
-          (user: any) => user.id === school.in_charge_id
-        );
+            // Split users by role for this school using user_meta_data.rolesBySchool
+            const principalsList: any[] = [];
+            const correspondentsList: any[] = [];
+            const inChargesList: any[] = [];
+            const usersList: any[] = [];
 
-        return {
-          ...school,
-          addressLine1: address.address_line1 || "N/A",
-          addressLine2: address.address_line2 || "",
-          city: city.city_name || "N/A",
-          state: state.state_name || "N/A",
-          country: country.country_name || "N/A",
-          pincode: address.pincode || "N/A",
-          principalEmail: principal?.email || "N/A",
-          principalFirstName: principal?.first_name || "N/A",
-          principalLastName: principal?.last_name || "N/A",
-          principalNumber: principal?.user_meta_data?.phone_number || "N/A",
-          correspondentEmail: correspondent?.email || "N/A",
-          correspondentFirstName: correspondent?.first_name || "N/A",
-          correspondentLastName: correspondent?.last_name || "N/A",
-          correspondentNumber:
-            correspondent?.user_meta_data?.phone_number || "N/A",
-          inChargeEmail: in_charge?.email || "N/A",
-          inChargeFirstName: in_charge?.first_name || "N/A",
-          inChargeLastName: in_charge?.last_name || "N/A",
-          inChargeNumber: in_charge?.user_meta_data?.phone_number || "N/A",
-        };
-      });
+            users.forEach((user: any) => {
+              const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+              const email = user.email;
+              const phone = user.user_meta_data?.phone_number || 'N/A';
+              const entry = { name, email, phone, id: user.id };
+              usersList.push(entry);
 
-      setSchools(transformedData);
+              const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
+              const roles = rolesBySchool[schoolId] || [];
+              const arr = Array.isArray(roles) ? roles : [roles];
+              arr.forEach((r: string) => {
+                const role = r?.toUpperCase?.();
+                if (role === 'PRINCIPAL') principalsList.push(entry);
+                else if (role === 'CORRESPONDENT') correspondentsList.push(entry);
+                else if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargesList.push(entry);
+              });
+            });
+
+            const principalsDisplay = principalsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
+            const correspondentsDisplay = correspondentsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
+            const inChargesDisplay = inChargesList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
+
+            return {
+              ...school,
+              addressLine1: address.address_line1 || "N/A",
+              addressLine2: address.address_line2 || "",
+              city: city.city_name || "N/A",
+              state: state.state_name || "N/A",
+              country: country.country_name || "N/A",
+              pincode: address.pincode || "N/A",
+              principals: principalsDisplay,
+              correspondents: correspondentsDisplay,
+              inCharges: inChargesDisplay,
+              principalsList,
+              correspondentsList,
+              inChargesList,
+              usersList,
+            };
+          } catch (error) {
+            console.error(`Error fetching users for school ${school.id}:`, error);
+            // Return school without users if fetch fails
+            const sc: any = school as any;
+            const address: any = sc.address || {};
+            const city: any = address.city || {};
+            const state: any = city.state || {};
+            const country: any = state.country || {};
+            
+            return {
+              ...school,
+              addressLine1: address.address_line1 || "N/A",
+              addressLine2: address.address_line2 || "",
+              city: city.city_name || "N/A",
+              state: state.state_name || "N/A",
+              country: country.country_name || "N/A",
+              pincode: address.pincode || "N/A",
+              principals: 'None',
+              correspondents: 'None',
+              inCharges: 'None',
+              principalsList: [],
+              correspondentsList: [],
+              inChargesList: [],
+              usersList: [],
+            };
+          }
+        })
+      );
+
+      setSchools(schoolsWithUsers);
     } catch (error) {
       setError("Error loading schools");
       console.error(error);
@@ -243,7 +301,7 @@ export default function Page() {
     fetchSchools();
   }, []);
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<School>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -272,31 +330,16 @@ export default function Page() {
     }
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.country_name) return value.country_name;
-      if (value.state_name) return value.state_name;
-      if (value.city_name) return value.city_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   return (
-    <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20">
+    <ReportShell>
+      <div className="w-full">
+        {error && (
+          <Alert severity="error" className="mx-10 mb-4">
+            {error}
+          </Alert>
+        )}
+        
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={schools}
@@ -333,72 +376,16 @@ export default function Page() {
           />
         </div>
 
-        <DetailViewer
+        <SchoolDetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               schools.findIndex((school) => school.id === selectedRow?.id) + 1,
-          }}
-          formtype="School"
-          columns={[
-            { label: "S.No", field: "index" },
-            { label: "Name", field: "name" },
-            { label: "Is ATL", field: "is_ATL" },
-            {
-              label: "ATL Establishment Year",
-              field: "ATL_establishment_year",
-            },
-            { label: "Paid Subscription", field: "paid_subscription" },
-            { label: "Website URL", field: "website_url" },
-            { label: "Syllabus", field: "syllabus" },
-            {
-              label: "Address",
-              type: "address",
-              fields: [
-                { label: "Address Line 1", field: "address.address_line1" },
-                { label: "Address Line 2", field: "address.address_line2" },
-                { label: "Pincode", field: "address.pincode" },
-                { label: "City", field: "city" },
-                { label: "State", field: "state" },
-                { label: "Country", field: "country" },
-              ],
-            },
-            {
-              label: "Principal Details",
-              type: "Details",
-              fields: [
-                { label: "First Name", field: "principalFirstName" },
-                { label: "Last Name", field: "principalLastName" },
-                { label: "Email", field: "principalEmail" },
-                { label: "Phone", field: "principalNumber" },
-              ],
-            },
-            {
-              label: "Correspondent Details",
-              type: "Details",
-              fields: [
-                { label: "First Name", field: "correspondentFirstName" },
-                { label: "Last Name", field: "correspondentLastName" },
-                { label: "Email", field: "correspondentEmail" },
-                { label: "Phone", field: "correspondentNumber" },
-              ],
-            },
-            {
-              label: "In-Charge Details",
-              type: "Details",
-              fields: [
-                { label: "First Name", field: "inChargeFirstName" },
-                { label: "Last Name", field: "inChargeLastName" },
-                { label: "Email", field: "inChargeEmail" },
-                { label: "Phone", field: "inChargeNumber" },
-              ],
-            },
-            { label: "Social Links", field: "social_links" },
-          ]}
+          } : null}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

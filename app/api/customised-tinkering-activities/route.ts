@@ -1,28 +1,26 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
+import { auth } from "@/lib/auth/auth";
 import { createCustomisedTinkeringActivity } from "@/lib/db/customised-tinkering-activity/crud";
 import { CustomisedTinkeringActivityCreateInput } from "@/lib/db/customised-tinkering-activity/type";
 import { getTinkeringActivityById } from "@/lib/db/tinkering-activity/crud";
 
 export async function POST(request: Request) {
+  const session = await auth();
+  const userId = session?.user?.id;
+
   try {
     const body = await request.json();
 
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
+        return failure(`Missing required field: ${field}`, 400, { code: "VALIDATION_ERROR" });
       }
     }
 
     const baseTA = await getTinkeringActivityById(body.id);
     if (!baseTA) {
-      return NextResponse.json(
-        { error: "Base tinkering activity not found" },
-        { status: 404 }
-      );
+      return failure("Base tinkering activity not found", 404);
     }
 
     const tinkeringActivityData: CustomisedTinkeringActivityCreateInput = {
@@ -42,14 +40,14 @@ export async function POST(request: Request) {
     };
 
     const customisedTinkeringActivity = await createCustomisedTinkeringActivity(
-      tinkeringActivityData
+      tinkeringActivityData,
+      userId
     );
-    return NextResponse.json(customisedTinkeringActivity);
+    return success(customisedTinkeringActivity);
   } catch (error) {
     console.error("Error creating customised tinkering activity:", error);
-    return NextResponse.json(
-      { error: "Failed to create customised tinkering activity" },
-      { status: 500 }
-    );
+    return failure("Failed to create customised tinkering activity", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
-import { CompetitionFilter } from "../type";
+import { CompetitionFilter, CompetitionCreateInput, CompetitionUpdateInput } from "../type";
 
-export async function createCompetition(data: any) {
+export async function createCompetition(data: CompetitionCreateInput) {
   try {
     const competition = await prisma.competition.create({
       data: data,
@@ -15,7 +15,7 @@ export async function createCompetition(data: any) {
 
 export async function getCompetitions(filter?: CompetitionFilter) {
   try {
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (filter?.name) {
       where.name = { contains: filter.name, mode: "insensitive" };
@@ -63,7 +63,7 @@ export async function getCompetitionById(id: string) {
   }
 }
 
-export async function updateCompetition(id: string, data: any) {
+export async function updateCompetition(id: string, data: CompetitionUpdateInput) {
   try {
     const updatedCompetition = await prisma.competition.update({
       where: { id },

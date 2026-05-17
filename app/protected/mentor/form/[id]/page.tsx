@@ -2,19 +2,14 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import { Input } from "@/components/Input";
-import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { Button } from "@/components/ui/Button";
+import FormSection from "@/components/form/FormSection";
+import { Input } from "@/components/form/Input";
+import { Autocomplete, TextField, Chip } from "@mui/material";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
 
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
-
 type School = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -56,13 +51,8 @@ export default function EditMentorPage({
         setFirstName(mentor.first_name || "");
         setLastName(mentor.last_name || "");
         setEmail(mentor.email || "");
-        setPhoneNumber(
-          (mentor.user_meta_data as { phone_number?: string })?.phone_number ||
-            ""
-        );
-        setSelectedSchools(
-          mentor.schools.map((school: { id: number }) => school.id)
-        );
+        setPhoneNumber(mentor.phone_number || "");
+        setSelectedSchools(mentor.school_ids || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load data. Please try again later.");
@@ -83,9 +73,7 @@ export default function EditMentorPage({
         first_name: firstName,
         last_name: lastName,
         email,
-        user_meta_data: {
-          phone_number: phoneNumber,
-        },
+        phone_number: phoneNumber,
         school_ids: selectedSchools,
       };
 
@@ -98,7 +86,16 @@ export default function EditMentorPage({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update mentor");
+        let message = "Failed to update mentor";
+        try {
+          const errorData = await response.json();
+          if (errorData?.message) {
+            message = errorData.message;
+          }
+        } catch (parseError) {
+          console.error("Failed to parse mentor update error response", parseError);
+        }
+        throw new Error(message);
       }
 
       router.push("/protected/mentor/report");
@@ -119,7 +116,7 @@ export default function EditMentorPage({
         <div className="mb-3 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">Edit Mentor</h1>
           <p className="text-gray-600 mt-2">
-            Update the mentor's information below.
+            Update the mentor&apos;s information below.
           </p>
         </div>
 
@@ -183,9 +180,8 @@ export default function EditMentorPage({
               <div className="w-full">
                 <Input
                   name="phoneNumber"
-                  label="Phone Number"
+                  label="WhatsApp Number"
                   type="tel"
-                  required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="focus:border-blue-500 focus:ring-blue-500"
@@ -198,50 +194,64 @@ export default function EditMentorPage({
             <div className="w-full">
               <Autocomplete
                 multiple
-                id="schools-select"
+                id="schools-autocomplete-edit"
                 options={schools}
-                disableCloseOnSelect
                 getOptionLabel={(option) => option.name}
-                value={schools.filter((school) =>
-                  selectedSchools.includes(school.id.toString())
-                )}
-                onChange={(_, newValue) => {
-                  setSelectedSchools(
-                    newValue.map((school) => school.id.toString())
-                  );
-                }}
-                renderOption={(props, option, { selected }) => {
-                  const { key, ...otherProps } = props;
-                  return (
-                    <Box
-                      component="li"
-                      sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                      key={key}
-                      {...otherProps}
-                    >
-                      <Checkbox
-                        icon={icon}
-                        checkedIcon={checkedIcon}
-                        style={{ marginRight: 8 }}
-                        checked={selected}
-                      />
-                      {option.name}
-                    </Box>
-                  );
+                value={schools.filter((school) => selectedSchools.includes(school.id))}
+                onChange={(event, newValue) => {
+                  setSelectedSchools(newValue.map((school) => school.id));
                 }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Search schools..."
+                    label="Schools *"
+                    placeholder="Select schools"
                     variant="outlined"
+                    fullWidth
                     error={formSubmitted && selectedSchools.length === 0}
                     helperText={
-                      selectedSchools.length === 0
+                      formSubmitted && selectedSchools.length === 0
                         ? "Please select at least one school"
-                        : ""
+                        : undefined
                     }
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#1f2937',
+                        fontWeight: 600,
+                      },
+                      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                    }}
                   />
                 )}
+                renderTags={(tagValue, getTagProps) =>
+                  tagValue.map((option, index) => (
+                    <Chip
+                      label={option.name}
+                      {...getTagProps({ index })}
+                      key={option.id}
+                      sx={{
+                        backgroundColor: '#e0e7ff',
+                        color: '#3730a3',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#3730a3',
+                        },
+                      }}
+                    />
+                  ))
+                }
+                sx={{
+                  '& .MuiAutocomplete-popupIndicator': {
+                    color: '#6b7280',
+                  },
+                }}
               />
             </div>
           </FormSection>

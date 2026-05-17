@@ -2,18 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/Button";
-import FormSection from "@/components/FormSection";
-import { Input } from "@/components/Input";
-import { Autocomplete, Box, Checkbox, TextField } from "@mui/material";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-
-const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-const checkedIcon = <CheckBoxIcon fontSize="small" />;
+import { Button } from "@/components/ui/Button";
+import FormSection from "@/components/form/FormSection";
+import { Input } from "@/components/form/Input";
+import { Autocomplete, TextField, Chip } from "@mui/material";
 
 type School = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -21,7 +16,6 @@ export default function MentorForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const [firstName, setFirstName] = useState("");
@@ -29,7 +23,7 @@ export default function MentorForm() {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [schools, setSchools] = useState<School[]>([]);
-  const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
+  const [selectedSchools, setSelectedSchools] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -55,14 +49,19 @@ export default function MentorForm() {
     setError(null);
     setFormSubmitted(true);
 
+    // Validate schools selection
+    if (selectedSchools.length === 0) {
+      setError("Please select at least one school");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const mentorData = {
         first_name: firstName,
         last_name: lastName,
         email,
-        user_meta_data: {
-          phone_number: phoneNumber,
-        },
+        phone_number: phoneNumber,
         school_ids: selectedSchools,
       };
 
@@ -163,9 +162,8 @@ export default function MentorForm() {
               <div className="w-full">
                 <Input
                   name="phoneNumber"
-                  label="Phone Number"
+                  label="WhatsApp Number"
                   type="tel"
-                  required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="focus:border-blue-500 focus:ring-blue-500"
@@ -178,48 +176,64 @@ export default function MentorForm() {
             <div className="w-full">
               <Autocomplete
                 multiple
-                id="schools-select"
+                id="schools-autocomplete"
                 options={schools}
-                disableCloseOnSelect
                 getOptionLabel={(option) => option.name}
-                value={schools.filter((school) =>
-                  selectedSchools.includes(school.id)
-                )}
-                onChange={(_, newValue) => {
+                value={schools.filter((school) => selectedSchools.includes(school.id))}
+                onChange={(event, newValue) => {
                   setSelectedSchools(newValue.map((school) => school.id));
-                }}
-                renderOption={(props, option, { selected }) => {
-                  const { key, ...otherProps } = props;
-                  return (
-                    <Box
-                      component="li"
-                      sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                      key={key}
-                      {...otherProps}
-                    >
-                      <Checkbox
-                        icon={icon}
-                        checkedIcon={checkedIcon}
-                        style={{ marginRight: 8 }}
-                        checked={selected}
-                      />
-                      {option.name}
-                    </Box>
-                  );
                 }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Search schools..."
+                    label="Schools *"
+                    placeholder="Select schools"
                     variant="outlined"
+                    fullWidth
                     error={formSubmitted && selectedSchools.length === 0}
                     helperText={
                       formSubmitted && selectedSchools.length === 0
                         ? "Please select at least one school"
-                        : ""
+                        : undefined
                     }
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#1f2937',
+                        fontWeight: 600,
+                      },
+                      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#3b82f6',
+                      },
+                    }}
                   />
                 )}
+                renderTags={(tagValue, getTagProps) =>
+                  tagValue.map((option, index) => (
+                    <Chip
+                      label={option.name}
+                      {...getTagProps({ index })}
+                      key={option.id}
+                      sx={{
+                        backgroundColor: '#e0e7ff',
+                        color: '#3730a3',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#3730a3',
+                        },
+                      }}
+                    />
+                  ))
+                }
+                sx={{
+                  '& .MuiAutocomplete-popupIndicator': {
+                    color: '#6b7280',
+                  },
+                }}
               />
             </div>
           </FormSection>

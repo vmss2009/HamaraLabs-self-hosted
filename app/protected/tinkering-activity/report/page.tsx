@@ -9,15 +9,16 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Alert from "@mui/material/Alert";
-import AssignDialog from "@/components/DialogBox";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import Alert from "@/components/ui/Alert";
+import AssignDialog from "@/components/form/DialogBox";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
-import DetailViewer from "@/components/DetailViewer";
+import DetailViewer from "@/components/form/DetailViewer";
+import ReportShell from "@/components/form/ReportShell";
 import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
 
 export default function TinkeringActivityReport() {
@@ -25,7 +26,7 @@ export default function TinkeringActivityReport() {
   const [activities, setActivities] = useState<TinkeringActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<TinkeringActivity | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [missingRelationships, setMissingRelationships] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -114,12 +115,10 @@ export default function TinkeringActivityReport() {
       setActivities(updatedData);
 
       if (data.length > 0) {
-        const allMissingData = data.every(
-          (activity: any) =>
-            !activity.subtopic_name &&
-            !activity.topic_name &&
-            !activity.subject_name
-        );
+        const allMissingData = data.every((activity: Record<string, unknown>) => {
+          const a = activity as { subtopic_name?: string; topic_name?: string; subject_name?: string };
+          return !a.subtopic_name && !a.topic_name && !a.subject_name;
+        });
         if (allMissingData) {
           setMissingRelationships(true);
         }
@@ -132,7 +131,7 @@ export default function TinkeringActivityReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<TinkeringActivity>) => {
     if (!params || !params.row) return;
 
     const fullRow = fullActivities.find((item) => item.id === params.row.id);
@@ -171,27 +170,6 @@ export default function TinkeringActivityReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.subtopic_name) return value.subtopic_name;
-      if (value.topic_name) return value.topic_name;
-      if (value.subject_name) return value.subject_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const handleAssign = (activity: TinkeringActivityWithSubtopic) => {
     setSelectedActivity(activity);
@@ -273,7 +251,7 @@ export default function TinkeringActivityReport() {
           />
           <GridActionsCellItem
             key="delete"
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"
@@ -284,56 +262,32 @@ export default function TinkeringActivityReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start h-screen bg-gray-500">
-      <div className="pt-20 ">
+    <ReportShell>
+      <div className="w-full">
         {missingRelationships && (
-          <Alert
-            severity="warning"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFF8E1",
-              border: "1px solid #FFE082",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="warning" className="mx-10 mb-4">
             <div className="font-medium">Incomplete Data</div>
             <div className="text-sm mt-1">
-              Some tinkering activities don't have proper subject, topic, or
+              Some tinkering activities don&apos;t have proper subject, topic, or
               subtopic associations. Please ensure you select the proper
               Subject, Topic, and Subtopic when creating activities.
             </div>
           </Alert>
         )}
+
         {error && (
-          <Alert
-            severity="error"
-            className="mb-4"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#FFEBEE",
-              border: "1px solid #FFCDD2",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="error" className="mx-10 mb-4">
             {error}
           </Alert>
         )}
+
         {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-7 mr-7"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="success" className="mx-10 mb-4">
             {success}
           </Alert>
         )}
-        <div className="flex justify-center items-center h-auto w-[calc(100vw-6rem)]  m-10 bg-white rounded-xl shadow-sm">
+        
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={activities}
             columns={columns}
@@ -341,14 +295,21 @@ export default function TinkeringActivityReport() {
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
-            pageSizeOptions={[5, 10, 25, 50]}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
             columnVisibilityModel={columnVisibilityModel}
             onColumnVisibilityModelChange={(newModel) =>
               setColumnVisibilityModel(newModel)
             }
-            autoHeight
             onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
@@ -362,26 +323,24 @@ export default function TinkeringActivityReport() {
                 color: "#1f2937",
               },
             }}
-            slots={{
-              toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
-                </GridToolbarContainer>
-              ),
-            }}
           />
         </div>
+
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
-            index:
-              activities.findIndex(
-                (activity) => activity.id === selectedRow?.id
-              ) + 1,
-          }}
+            index: activities.findIndex(a => a.id === selectedRow?.id) + 1,
+            resources: Array.isArray(selectedRow.resources) ? selectedRow.resources.map(r => {
+              if (!r) return r;
+              if (/^https?:\/\//i.test(r)) {
+                // Represent URL as object for DetailViewer links rendering by reusing existing 'links' type? We'll instead pass a special structure and adjust column to 'links'
+                return { url: r };
+              }
+              return r;
+            }) : []
+          } : null}
           formtype="TinkeringActivity"
           columns={[
             { label: "S.No", field: "index" },
@@ -390,16 +349,16 @@ export default function TinkeringActivityReport() {
             { label: "Topic", field: "topic_name" },
             { label: "Subtopic", field: "subtopic_name" },
             { label: "Introduction", field: "introduction" },
-
             { label: "Goals", field: "goals" },
             { label: "Materials", field: "materials" },
             { label: "Instructions", field: "instructions" },
             { label: "Tips", field: "tips" },
             { label: "Observations", field: "observations" },
             { label: "Extensions", field: "extensions" },
-            { label: "Resources", field: "resources" },
+            { label: "Resources", type: 'links', field: 'resources' },
           ]}
         />
+        
         <AssignDialog
           open={assignDialogOpen}
           formtype="Tinkering-activity"
@@ -408,6 +367,6 @@ export default function TinkeringActivityReport() {
           setSuccess={setSuccess}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

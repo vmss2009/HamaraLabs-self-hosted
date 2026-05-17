@@ -11,14 +11,11 @@ import {
   GridRowParams,
 } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import Alert from "@/components/ui/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
-import DetailViewer from "@/components/DetailViewer";
+import DetailViewer from "@/components/form/DetailViewer";
+import ReportShell from "@/components/form/ReportShell";
 
 export default function SchoolVisitReport() {
   const router = useRouter();
@@ -78,11 +75,6 @@ export default function SchoolVisitReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any) => {
-    if (value === null || value === undefined) return "N/A";
-    if (typeof value === "object") return JSON.stringify(value);
-    return value.toString();
-  };
 
   const columns: GridColDef[] = [
     {
@@ -136,7 +128,7 @@ export default function SchoolVisitReport() {
             }
           />
           <GridActionsCellItem
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id.toString())}
             color="error"
@@ -147,82 +139,74 @@ export default function SchoolVisitReport() {
   ];
 
   return (
-    <div>
-      {error && (
-        <Alert
-          severity="error"
-          className="mb-4"
-          sx={{
-            borderRadius: "8px",
-            backgroundColor: "#FFEBEE",
-            border: "1px solid #FFCDD2",
-            padding: "10px 16px",
-          }}
-        >
-          {error}
-        </Alert>
-      )}
+    <ReportShell>
+      <div className="w-full px-6 md:px-10">
+  <div className="bg-white rounded-xl shadow-sm max-w-5xl w-full mt-8 mb-10 mr-auto">
+          <DataGrid
+            rows={visits}
+            columns={columns}
+            loading={loading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            onRowClick={handleRowClick}
+            slots={{
+              toolbar: () => (
+                <GridToolbarContainer className="bg-gray-50 p-2">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarColumnsButton />
+                </GridToolbarContainer>
+              ),
+            }}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
+          />
+        </div>
 
-      <div className="bg-white rounded-xl shadow-sm">
-        <DataGrid
-          rows={visits}
-          columns={columns}
-          loading={loading}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
-          disableRowSelectionOnClick
-          autoHeight
-          onRowClick={handleRowClick}
-          sx={{
-            borderRadius: "12px",
-            "& .MuiDataGrid-cell": {
-              color: "#1f2937",
+        {error && (
+          <Alert severity="error" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
+        <DetailViewer
+          drawerOpen={drawerOpen}
+          closeDrawer={closeDrawer}
+          selectedRow={selectedRow ? {
+            ...selectedRow,
+            index: visits.findIndex((visit) => visit.id === selectedRow?.id) + 1,
+            point_of_contact_name: selectedRow?.point_of_contact
+              ? `${selectedRow.point_of_contact.first_name} ${selectedRow.point_of_contact.last_name}`
+              : selectedRow?.other_poc || "N/A",
+          } : null}
+          formtype="School Visit"
+          columns={[
+            { label: "S.No", field: "index" },
+            { label: "School", field: "school.name" },
+            { label: "Visit Date", field: "visit_date", type: "date" },
+            { label: "Point of Contact", field: "point_of_contact_name" },
+            { label: "School Performance", field: "school_performance" },
+            {
+              label: "No of UCs submitted",
+              field: "details.No of UCs submitted",
             },
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f3f4f6",
-              color: "#1f2937",
+            {
+              label: "Planned showcase date",
+              field: "details.Planned showcase date",
             },
-          }}
-          slots={{
-            toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                <GridToolbarColumnsButton />
-              </GridToolbarContainer>
-            ),
-          }}
+          ]}
         />
       </div>
-
-      <DetailViewer
-        drawerOpen={drawerOpen}
-        closeDrawer={closeDrawer}
-        selectedRow={{
-          ...selectedRow,
-          index: visits.findIndex((visit) => visit.id === selectedRow?.id) + 1,
-          point_of_contact_name: selectedRow?.point_of_contact
-            ? `${selectedRow.point_of_contact.first_name} ${selectedRow.point_of_contact.last_name}`
-            : selectedRow?.other_poc || "N/A",
-        }}
-        formtype="School Visit"
-        columns={[
-          { label: "S.No", field: "index" },
-          { label: "School", field: "school.name" },
-          { label: "Visit Date", field: "visit_date", type: "date" },
-          { label: "Point of Contact", field: "point_of_contact_name" },
-          { label: "School Performance", field: "school_performance" },
-          {
-            label: "No of UCs submitted",
-            field: "details.No of UCs submitted",
-          },
-          {
-            label: "Planned showcase date",
-            field: "details.Planned showcase date",
-          },
-        ]}
-      />
-    </div>
+    </ReportShell>
   );
 }

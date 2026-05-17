@@ -8,28 +8,29 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
-import DetailViewer from "@/components/DetailViewer";
+import DetailViewer from "@/components/form/DetailViewer";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import Alert from "@/components/ui/Alert";
+import ReportShell from "@/components/form/ReportShell";
 
 interface Mentor {
   id: string;
   first_name: string;
   last_name: string;
-  email: string;
-  user_meta_data: {
-    phone_number: string;
-  };
-  schools: Array<{
-    id: number;
-    name: string;
-  }>;
+  email?: string;
+  phone_number?: string;
+  school_ids: string[];
+  comments?: string;
+  user_id?: string | null;
+  user?: {
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+  } | null;
 }
 
 export default function MentorReport() {
@@ -40,6 +41,7 @@ export default function MentorReport() {
   const [selectedRow, setSelectedRow] = useState<Mentor | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [schoolNameById, setSchoolNameById] = useState<Record<string, string>>({});
 
   const fetchMentors = async () => {
     try {
@@ -58,7 +60,27 @@ export default function MentorReport() {
   };
 
   useEffect(() => {
-    fetchMentors();
+    // Load schools and mentors in parallel; map school IDs to names
+    const load = async () => {
+      try {
+        const [schoolsRes] = await Promise.all([
+          fetch('/api/schools'),
+        ]);
+        if (!schoolsRes.ok) throw new Error('Failed to fetch schools');
+        const schools = await schoolsRes.json();
+        const map: Record<string, string> = {};
+        for (const s of schools as Array<{id: string; name: string}>) {
+          map[s.id] = s.name;
+        }
+        setSchoolNameById(map);
+      } catch (e) {
+        console.error(e);
+        // non-fatal: we'll still show IDs if names unavailable
+      } finally {
+        fetchMentors();
+      }
+    };
+    load();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -84,7 +106,7 @@ export default function MentorReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<Mentor>) => {
     if (!params || !params.row) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
@@ -94,26 +116,6 @@ export default function MentorReport() {
     setDrawerOpen(false);
   };
 
-  const formatValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) return "N/A";
-    if (Array.isArray(value)) {
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    if (typeof value === "object") {
-      if (value.subtopic_name) return value.subtopic_name;
-      if (value.topic_name) return value.topic_name;
-      return Object.entries(value)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(", ");
-    }
-    return String(value);
-  };
 
   const columns: GridColDef[] = [
     {
@@ -135,14 +137,43 @@ export default function MentorReport() {
       width: 200,
     },
     {
-      field: "schools",
+      field: "school_ids",
       headerName: "Schools",
       width: 200,
-      renderCell: (params) => (
-        <div className="truncate">
-          {params.value?.map((school: any) => school.name).join(", ") || "N/A"}
-        </div>
-      ),
+      renderCell: (params) => {
+        const ids = (params.value as string[] | undefined) ?? [];
+        const names = ids.map((id) => schoolNameById[id] || id).join(', ');
+        return (
+          <div className="truncate">{names || 'N/A'}</div>
+        );
+      },
+    },
+    {
+      field: "phone_number",
+      headerName: "Phone",
+      width: 150,
+    },
+    {
+      field: "calendar_link",
+      headerName: "Calendar",
+      width: 150,
+      renderCell: (params) => {
+        const userId = params.row.user_id;
+        if (!userId) {
+          return <span className="text-gray-400 text-xs">No calendar</span>;
+        }
+        return (
+          <a
+            href={`/calendar/${userId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View Calendar
+          </a>
+        );
+      },
     },
     {
       field: "actions",
@@ -160,7 +191,8 @@ export default function MentorReport() {
             }
           />
           <GridActionsCellItem
-            icon={<DeleteOutlineIcon />}
+            key="delete"
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"
@@ -171,39 +203,36 @@ export default function MentorReport() {
   ];
 
   return (
-    <div className="flex justify-center items-start h-screen  w-screen bg-gray-500">
-      <div className="pt-20 ">
+    <ReportShell>
+      <div className="w-full">
         {error && (
-          <Alert severity="error" className="mb-4">
+          <Alert severity="error" className="mx-10 mb-4">
             {error}
           </Alert>
         )}
 
         {success && (
-          <Alert severity="success" className="mb-4">
+          <Alert severity="success" className="mx-10 mb-4">
             {success}
           </Alert>
         )}
-
-        <div className="bg-white rounded-xl shadow-sm">
+        
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={mentors}
             columns={columns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
-            }}
-            pageSizeOptions={[5, 10, 25, 50]}
-            disableRowSelectionOnClick
-            autoHeight
-            onRowClick={handleRowClick}
-            sx={{
-              borderRadius: "12px",
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f3f4f6",
-                color: "#1f2937",
+              columns: {
+                columnVisibilityModel: {
+                  calendar_link: false,
+                },
               },
             }}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            onRowClick={handleRowClick}
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
@@ -212,28 +241,42 @@ export default function MentorReport() {
                 </GridToolbarContainer>
               ),
             }}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
           />
         </div>
 
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          formtype="Mentor"
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               mentors.findIndex((mentor) => mentor.id === selectedRow?.id) + 1,
-          }}
+            school_ids: (selectedRow.school_ids || []).map((id) => schoolNameById[id] || id),
+            calendar_link: selectedRow.user_id ? `/calendar/${selectedRow.user_id}` : null,
+          } : null}
+          formtype="Mentor"
           columns={[
             { label: "S.No", field: "index" },
             { label: "First name", field: "first_name" },
             { label: "Last name", field: "last_name" },
             { label: "Email", field: "email" },
-            { label: "Phone Number", field: "user_meta_data.phone_number" },
-            { label: "Schools", field: "schools" },
+            { label: "Phone Number", field: "phone_number" },
+            { label: "Schools", field: "school_ids" },
+            { label: "Comments", field: "comments" },
+            { label: "Calendar", field: "calendar_link", type: "link" },
           ]}
         />
       </div>
-    </div>
+    </ReportShell>
   );
 }

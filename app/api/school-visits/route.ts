@@ -1,8 +1,5 @@
-import { NextResponse } from "next/server";
-import {
-  createSchoolVisit,
-  getSchoolVisits,
-} from "@/lib/db/school-visits/crud";
+import { failure, success } from "@/lib/api/http";
+import { createSchoolVisit, getSchoolVisits } from "@/lib/db/school-visits/crud";
 import { schoolVisitSchema } from "@/lib/db/school-visits/type";
 
 export async function GET(request: Request) {
@@ -19,13 +16,12 @@ export async function GET(request: Request) {
     };
 
     const visits = await getSchoolVisits(filter);
-    return NextResponse.json(visits);
+    return success(visits);
   } catch (error) {
     console.error("Error fetching school visits:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch school visits" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch school visits", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -38,7 +34,10 @@ export async function POST(request: Request) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
@@ -53,12 +52,11 @@ export async function POST(request: Request) {
       details: validatedData.details,
     });
 
-    return NextResponse.json(visit);
+    return success(visit);
   } catch (error) {
     console.error("Error creating school visit:", error);
-    return NextResponse.json(
-      { error: "Failed to create school visit" },
-      { status: 500 }
-    );
+    return failure("Failed to create school visit", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -8,14 +8,15 @@ import {
   GridToolbarQuickFilter,
   GridToolbarContainer,
   GridToolbarColumnsButton,
+  GridRowParams,
 } from "@mui/x-data-grid";
-import { Button } from "@/components/Button";
-import DetailViewer from "@/components/DetailViewer";
+import { Button } from "@/components/ui/Button";
+import DetailViewer from "@/components/form/DetailViewer";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Alert from "@mui/material/Alert";
-import AssignDialog from "@/components/DialogBox";
+import { EditIcon, DeleteIcon } from "@/components/form/Icons";
+import ReportShell from "@/components/form/ReportShell";
+import Alert from "@/components/ui/Alert";
+import AssignDialog from "@/components/form/DialogBox";
 import { Course } from "@/lib/db/course/type";
 
 export default function CourseReport() {
@@ -23,7 +24,7 @@ export default function CourseReport() {
   const [courses, setCourses] = useState<Course[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<Course | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Course | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function CourseReport() {
       if (!response.ok) {
         throw new Error("Failed to fetch courses");
       }
-      let data = await response.json();
+      const data = await response.json();
 
       setCourses(data);
     } catch (error) {
@@ -51,7 +52,7 @@ export default function CourseReport() {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString();
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
@@ -81,7 +82,7 @@ export default function CourseReport() {
     }
   };
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams<Course>) => {
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -167,7 +168,7 @@ export default function CourseReport() {
           />
           <GridActionsCellItem
             key="delete"
-            icon={<DeleteOutlineIcon />}
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={() => handleDelete(params.row.id)}
             color="error"
@@ -178,8 +179,8 @@ export default function CourseReport() {
   ];
 
   return (
-    <div className="bg-gray-500 flex justify-center h-screen w-auto">
-      <div className="pt-20">
+    <ReportShell>
+      <div className="w-full">
         {error && (
           <Alert
             severity="error"
@@ -195,20 +196,12 @@ export default function CourseReport() {
           </Alert>
         )}
         {success && (
-          <Alert
-            severity="success"
-            className="mb-2 ml-7 mr-7"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "#E3F2E8",
-              border: "1px solid #A5D6A7",
-              padding: "10px 16px",
-            }}
-          >
+          <Alert severity="success" className="mb-4">
             {success}
           </Alert>
         )}
-        <div className="bg-white rounded-xl shadow-sm overflow-x-auto w-[calc(100vw-6rem)]  m-10 ">
+        
+        <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={courses}
             columns={columns}
@@ -216,17 +209,9 @@ export default function CourseReport() {
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
-            pageSizeOptions={[5, 10, 25, 50]}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
-            autoHeight
             onRowClick={handleRowClick}
-            sx={{
-              borderRadius: "12px",
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f3f4f6",
-                color: "#1f2937",
-              },
-            }}
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
@@ -235,16 +220,27 @@ export default function CourseReport() {
                 </GridToolbarContainer>
               ),
             }}
+            sx={{
+              borderRadius: "12px",
+              "& .MuiDataGrid-cell": {
+                color: "#1f2937",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f3f4f6",
+                color: "#1f2937",
+              },
+            }}
           />
         </div>
+        
         <DetailViewer
           drawerOpen={drawerOpen}
           closeDrawer={closeDrawer}
-          selectedRow={{
+          selectedRow={selectedRow ? {
             ...selectedRow,
             index:
               courses.findIndex((course) => course.id === selectedRow?.id) + 1,
-          }}
+          } : null}
           formtype="Course"
           columns={[
             { label: "S.No", field: "index" },
@@ -284,6 +280,7 @@ export default function CourseReport() {
             { label: "Course Tags", field: "course_tags" },
           ]}
         />
+        
         <AssignDialog
           open={assignDialogOpen}
           formtype="Course"
@@ -291,8 +288,7 @@ export default function CourseReport() {
           selectedActivity={selectedActivity}
           setSuccess={setSuccess}
         />
-        ;
       </div>
-    </div>
+    </ReportShell>
   );
 }

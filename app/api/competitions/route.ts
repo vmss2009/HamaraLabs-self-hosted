@@ -1,8 +1,6 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { createCompetition, getCompetitions } from "@/lib/db/competition/crud";
-import { CompetitionCreateInput } from "@/lib/db/competition/type";
-import { competitionSchema } from "@/lib/db/competition/type";
-
+import { CompetitionCreateInput, competitionSchema } from "@/lib/db/competition/type";
 
 export async function POST(request: Request) {
   try {
@@ -24,10 +22,7 @@ export async function POST(request: Request) {
 
     for (const field of requiredFields) {
       if (!body[field]) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
+        return failure(`Missing required field: ${field}`, 400, { code: "VALIDATION_ERROR" });
       }
     }
 
@@ -50,25 +45,20 @@ export async function POST(request: Request) {
 
     const result = competitionSchema.safeParse(competitionData);
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.errors[0]?.message ?? "Invalid data" },
-        { status: 400 }
-      );
+      return failure(result.error.errors[0]?.message ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const competition = await createCompetition(result.data);
-    return NextResponse.json(competition);
+    return success(competition);
   } catch (error) {
     console.error("Error creating competition:", error);
 
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create competition",
-      },
-      { status: 400 }
+    return failure(
+      error instanceof Error ? error.message : "Failed to create competition",
+      400
     );
   }
 }
@@ -76,12 +66,11 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const competitions = await getCompetitions();
-    return NextResponse.json(competitions);
+    return success(competitions);
   } catch (error) {
     console.error("Error fetching competitions:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch competitions" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch competitions", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -1,15 +1,16 @@
 import React from "react";
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import EditIcon from "@mui/icons-material/Edit";
-import { Button } from "@/components/Button";
+import { DeleteIcon, EditIcon } from "@/components/form/Icons";
+import { Button } from "@/components/ui/Button";
+
+type SnapshotItem = Record<string, unknown>;
 
 type ModifyStatusHandler = (
-  item: any,
+  item: SnapshotItem,
   type: "tinkering" | "competition" | "courses"
 ) => void;
-type EditTinkeringHandler = (item: any) => void;
-type DeleteTinkeringHandler = (item: any) => void;
+type EditTinkeringHandler = (item: SnapshotItem) => void;
+type DeleteTinkeringHandler = (item: SnapshotItem) => void;
 
 export function getTinkeringActivityColumns(
   handleModifyStatus: ModifyStatusHandler,
@@ -34,6 +35,12 @@ export function getTinkeringActivityColumns(
       headerName: "Introduction",
       width: 200,
       renderCell: (params) => params.value ?? "N/A",
+    },
+    {
+      field: "comments",
+      headerName: "Comments",
+      width: 200,
+      renderCell: (params) => params.row?.comments ?? "",
     },
     {
       field: "subject",
@@ -96,18 +103,7 @@ export function getTinkeringActivityColumns(
           </Button>
 
           <GridActionsCellItem
-            icon={
-              <EditIcon
-                sx={{
-                  fontSize: 22,
-                  color: "#4b5563",
-                  transition: "color 0.2s ease-in-out",
-                  "&:hover": {
-                    color: "#111827",
-                  },
-                }}
-              />
-            }
+            icon={<EditIcon />}
             label="Edit"
             onClick={(e) => {
               e.stopPropagation();
@@ -117,18 +113,7 @@ export function getTinkeringActivityColumns(
           />
 
           <GridActionsCellItem
-            icon={
-              <DeleteOutlineIcon
-                sx={{
-                  fontSize: 22,
-                  color: "#ef4444",
-                  transition: "color 0.2s ease-in-out",
-                  "&:hover": {
-                    color: "#b91c1c",
-                  },
-                }}
-              />
-            }
+            icon={<DeleteIcon />}
             label="Delete"
             onClick={(e) => {
               e.stopPropagation();

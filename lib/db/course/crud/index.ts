@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
-import { CourseFilter } from "../type";
+import { CourseFilter, CourseCreateInput, CourseUpdateInput } from "../type";
 
-export async function createCourse(data: any) {
+export async function createCourse(data: CourseCreateInput) {
   try {
     const formattedData = {
       ...data,
@@ -68,7 +68,7 @@ export async function getCourseById(id: string) {
   }
 }
 
-export async function updateCourse(id: string, data: any) {
+export async function updateCourse(id: string, data: CourseUpdateInput) {
   try {
     const updatedCourse = await prisma.course.update({
       where: { id },

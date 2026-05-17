@@ -1,11 +1,14 @@
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/Button";
 
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { DeleteIcon, EditIcon } from "@/components/form/Icons";
+
+type SnapshotItem = Record<string, unknown>;
 
 export const getCourseColumns = (
-  handleModifyStatus: (row: any, type: string) => void,
-  handleDeleteCourse: (row: any) => void
+  handleModifyStatus: (row: SnapshotItem, type: string) => void,
+  handleEditCourse: (row: SnapshotItem) => void,
+  handleDeleteCourse: (row: SnapshotItem) => void
 ): GridColDef[] => [
   {
     field: "id",
@@ -83,6 +86,12 @@ export const getCourseColumns = (
     },
   },
   {
+    field: "comments",
+    headerName: "Comments",
+    width: 220,
+    renderCell: (params) => params.row?.comments ?? "",
+  },
+  {
     field: "reference_link",
     headerName: "Reference",
     width: 220,
@@ -140,18 +149,18 @@ export const getCourseColumns = (
         </Button>
 
         <GridActionsCellItem
-          key="delete"
-          icon={
-            <DeleteOutlineIcon
-              sx={{
-                color: "#ef4444",
-                transition: "color 0.2s ease-in-out",
-                "&:hover": {
-                  color: "#dc2626",
-                },
-              }}
-            />
-          }
+          key="edit"
+icon={<EditIcon />}
+          label="Edit"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEditCourse(params.row);
+          }}
+          showInMenu={false}
+        />
+
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
           label="Delete"
           onClick={(e) => {
             e.stopPropagation();

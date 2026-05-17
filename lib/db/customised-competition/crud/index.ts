@@ -1,4 +1,19 @@
 import { prisma } from "@/lib/db/prisma";
+import { pruneCompetitionAttachments } from "@/lib/db/snapshot-attachments/crud";
+import { notifyStudentAssignment, notifyStudentStatusUpdate } from "@/lib/notifications/service";
+
+function haveStatusesChanged(previous: string[] | null | undefined, next: string[] | null | undefined) {
+  if (!next) return false;
+  const prev = previous ?? [];
+  if (prev.length !== next.length) return true;
+  const prevSet = new Set(prev);
+  const nextSet = new Set(next);
+  if (prevSet.size !== nextSet.size) return true;
+  for (const status of nextSet) {
+    if (!prevSet.has(status)) return true;
+  }
+  return false;
+}
 import {
   CustomisedCompetitionCreateInput,
   CustomisedCompetitionFilter,
@@ -6,13 +21,16 @@ import {
 } from "../type";
 
 export async function createCustomisedCompetition(
-  data: CustomisedCompetitionCreateInput
+  data: CustomisedCompetitionCreateInput,
+  createdByUserId?: string | null
 ): Promise<CustomisedCompetitionWithRelations> {
-  return prisma.customisedCompetition.create({
+  const created = await prisma.customisedCompetition.create({
     data: {
       competition_id: data.competition_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       competition: {
@@ -39,8 +57,19 @@ export async function createCustomisedCompetition(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
+
+  await notifyStudentAssignment({
+    studentId: created.student.id,
+    entityType: "competition",
+    entityName: created.competition.name,
+    resourceId: created.id,
+    createdByUserId,
+  });
+
+  return created;
 }
 
 export async function getCustomisedCompetitions(
@@ -77,6 +106,7 @@ export async function getCustomisedCompetitions(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -111,20 +141,29 @@ export async function getCustomisedCompetitionById(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
 
 export async function updateCustomisedCompetition(
   id: string,
-  data: Partial<CustomisedCompetitionCreateInput>
+  data: Partial<CustomisedCompetitionCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
+  updatedByUserId?: string | null
 ): Promise<CustomisedCompetitionWithRelations> {
-  return prisma.customisedCompetition.update({
+  const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const existing = await prisma.customisedCompetition.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+  const updated = await prisma.customisedCompetition.update({
     where: { id },
     data: {
       competition_id: data.competition_id,
       student_id: data.student_id,
       status: data.status,
+      comments: (data as any).comments,
+      attachments: (data as any).attachments,
     },
     include: {
       competition: {
@@ -151,8 +190,28 @@ export async function updateCustomisedCompetition(
           last_name: true,
         },
       },
+      snapshot_attachments: true,
     },
   });
+  if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
+    await pruneCompetitionAttachments(id, keepUrls);
+  }
+  if (haveStatusesChanged(existing?.status, Array.isArray(data.status) ? data.status : undefined)) {
+    const previousStatuses = Array.isArray(existing?.status) ? existing?.status ?? [] : [];
+    const nextStatuses = Array.isArray(updated.status) ? updated.status ?? [] : [];
+    const previousStatus = previousStatuses.length ? previousStatuses[previousStatuses.length - 1] : null;
+    const currentStatus = nextStatuses.length ? nextStatuses[nextStatuses.length - 1] : null;
+    await notifyStudentStatusUpdate({
+      studentId: updated.student.id,
+      entityType: "competition",
+      entityName: updated.competition.name,
+      previousStatus,
+      currentStatus,
+      resourceId: updated.id,
+      excludeUserId: updatedByUserId,
+    });
+  }
+  return updated;
 }
 
 export async function deleteCustomisedCompetition(

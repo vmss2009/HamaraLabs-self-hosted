@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { getSchoolKeyUsers } from "@/lib/db/auth/user";
 
 export async function GET(request: Request) {
@@ -7,19 +7,15 @@ export async function GET(request: Request) {
         const school_id = searchParams.get("school_id");
 
         if (!school_id) {
-            return NextResponse.json(
-                { error: "School ID is required" },
-                { status: 400 }
-            );
+            return failure("School ID is required", 400, { code: "MISSING_PARAM" });
         }
 
         const users = await getSchoolKeyUsers(school_id);
-        return NextResponse.json(users);
+        return success(users);
     } catch (error) {
         console.error("Error fetching users:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch users" },
-            { status: 500 }
-        );
+        return failure("Failed to fetch users", 500, {
+            details: error instanceof Error ? error.message : String(error),
+        });
     }
 } 

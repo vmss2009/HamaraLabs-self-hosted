@@ -5,6 +5,7 @@ import {
   SubtopicCreateInput,
   TinkeringActivityWithSubtopic,
 } from "../type";
+import { TinkeringActivityCreateInput } from "../type";
 
 export async function createSubject(data: SubjectCreateInput) {
   try {
@@ -104,7 +105,7 @@ export async function getSubtopicsByTopic(topicId: number) {
   }
 }
 
-export async function createTinkeringActivity(data: any) {
+export async function createTinkeringActivity(data: TinkeringActivityCreateInput) {
   try {
     const validatedData = data;
 
@@ -206,7 +207,7 @@ export async function getTinkeringActivityById(
     throw error;
   }
 }
-export async function updateTinkeringActivity(id: string, data: any) {
+export async function updateTinkeringActivity(id: string, data: TinkeringActivityCreateInput) {
   try {
     const validatedData = data;
 

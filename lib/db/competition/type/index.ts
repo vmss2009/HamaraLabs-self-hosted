@@ -32,8 +32,7 @@ export interface CompetitionCreateInput {
   reference_links: string[];
 }
 
-export interface CompetitionUpdateInput
-  extends Partial<CompetitionCreateInput> {}
+export type CompetitionUpdateInput = Partial<CompetitionCreateInput>;
 
 export interface CompetitionFilter {
   name?: string;

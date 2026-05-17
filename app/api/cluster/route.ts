@@ -1,17 +1,16 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { createCluster, getClusters } from "@/lib/db/cluster/crud";
 import { clusterSchema } from "@/lib/db/cluster/type";
 
 export async function GET() {
   try {
     const clusters = await getClusters();
-    return NextResponse.json(clusters);
+    return success(clusters);
   } catch (error) {
     console.error("Error fetching clusters:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch clusters" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch clusters", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -24,23 +23,23 @@ export async function POST(request: Request) {
     if (!result.success) {
       const errorMessages = result.error.errors.map((err) => err.message);
       console.error("Validation failed:", errorMessages);
-      return NextResponse.json({ error: errorMessages[0] }, { status: 400 });
+      return failure(errorMessages[0] ?? "Invalid data", 400, {
+        code: "VALIDATION_ERROR",
+        details: result.error.flatten(),
+      });
     }
 
     const validatedData = result.data;
 
     const cluster = await createCluster(validatedData);
-    return NextResponse.json(cluster);
+    return success(cluster);
   } catch (error) {
     console.error("Error creating cluster:", error);
 
     if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
+      return failure(error.message, 500);
     }
 
-    return NextResponse.json(
-      { message: "Failed to create cluster" },
-      { status: 500 }
-    );
+    return failure("Failed to create cluster", 500);
   }
 }

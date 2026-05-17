@@ -1,6 +1,12 @@
 import { Student as PrismaStudent } from "@prisma/client";
 import { z } from "zod";
 
+export interface Guardian {
+  name: string;
+  relationship: string;
+  email: string;
+}
+
 export interface Student {
   instructions?: string;
   id: string;
@@ -17,6 +23,7 @@ export interface StudentCreateInput {
   class: string;
   section: string;
   comments?: string;
+  guardians?: Guardian[];
   schoolId: string;
 }
 
@@ -37,6 +44,12 @@ export interface StudentFilter {
   schoolId?: string;
 }
 
+const guardianSchema = z.object({
+  name: z.string().trim().min(1, "Guardian name is required"),
+  relationship: z.string().trim().min(1, "Relationship is required"),
+  email: z.string().email("Invalid email address"),
+});
+
 export const studentSchema = z.object({
   first_name: z.string().trim().min(1, "First name is required"),
   last_name: z.string().trim().min(1, "Last name is required"),
@@ -49,5 +62,6 @@ export const studentSchema = z.object({
   class: z.string().trim().min(1, "Class is required"),
   section: z.string().trim().min(1, "Section is required"),
   comments: z.string().trim().optional().nullable(),
+  guardians: z.array(guardianSchema).optional().nullable(),
   schoolId: z.string().uuid("schoolId must be a valid UUID"),
 });

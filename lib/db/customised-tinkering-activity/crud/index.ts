@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { pruneTAAttachments } from "@/lib/db/snapshot-attachments/crud";
 import {
   CustomisedTinkeringActivityCreateInput,
   CustomisedTinkeringActivityFilter,
@@ -10,14 +11,30 @@ import {
   DetailedGeneratedTA,
 } from "../type";
 import { GoogleGenAI, Type } from "@google/genai";
+import type { Prisma } from "@prisma/client";
+import { notifyStudentAssignment, notifyStudentStatusUpdate } from "@/lib/notifications/service";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
 
+function haveStatusesChanged(previous: string[] | null | undefined, next: string[] | null | undefined) {
+  if (!next) return false;
+  const prev = previous ?? [];
+  if (prev.length !== next.length) return true;
+  const prevSet = new Set(prev);
+  const nextSet = new Set(next);
+  if (prevSet.size !== nextSet.size) return true;
+  for (const status of nextSet) {
+    if (!prevSet.has(status)) return true;
+  }
+  return false;
+}
+
 export async function createCustomisedTinkeringActivity(
-  data: CustomisedTinkeringActivityCreateInput
+  data: CustomisedTinkeringActivityCreateInput,
+  createdByUserId?: string | null
 ): Promise<CustomisedTinkeringActivityWithRelations> {
-  return prisma.customisedTinkeringActivity.create({
-    data: {
+  const created = await prisma.customisedTinkeringActivity.create({
+    data: ({
       name: data.name,
       subtopic_id: data.subtopic_id,
       introduction: data.introduction,
@@ -28,10 +45,12 @@ export async function createCustomisedTinkeringActivity(
       observations: data.observations,
       extensions: data.extensions,
       resources: data.resources,
+      comments: data.comments,
+      attachments: data.attachments,
       base_ta_id: data.base_ta_id,
       student_id: data.student_id,
       status: data.status,
-    },
+    } as any),
     include: {
       subtopic: {
         select: {
@@ -51,14 +70,25 @@ export async function createCustomisedTinkeringActivity(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
+
+  await notifyStudentAssignment({
+    studentId: created.student_id,
+    entityType: "tinkering-activity",
+    entityName: created.name,
+    resourceId: created.id,
+    createdByUserId,
+  });
+
+  return created;
 }
 
 export async function getCustomisedTinkeringActivities(
   filter?: CustomisedTinkeringActivityFilter
 ): Promise<CustomisedTinkeringActivityWithRelations[]> {
-  const where: any = {};
+  const where: Prisma.CustomisedTinkeringActivityWhereInput = {};
 
   if (filter?.name) {
     where.name = { contains: filter.name, mode: "insensitive" };
@@ -101,6 +131,7 @@ export async function getCustomisedTinkeringActivities(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
@@ -129,17 +160,24 @@ export async function getCustomisedTinkeringActivityById(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
 }
 
 export async function updateCustomisedTinkeringActivity(
   id: string,
-  data: Partial<CustomisedTinkeringActivityCreateInput>
+  data: Partial<CustomisedTinkeringActivityCreateInput> & { keepSnapshotAttachmentUrls?: string[] },
+  updatedByUserId?: string | null
 ): Promise<CustomisedTinkeringActivityWithRelations> {
-  return prisma.customisedTinkeringActivity.update({
+  const keepUrls = data.keepSnapshotAttachmentUrls || [];
+  const existing = await prisma.customisedTinkeringActivity.findUnique({
     where: { id },
-    data: {
+    select: { status: true },
+  });
+  const updated = await prisma.customisedTinkeringActivity.update({
+    where: { id },
+    data: ({
       name: data.name,
       subtopic_id: data.subtopic_id,
       introduction: data.introduction,
@@ -150,10 +188,12 @@ export async function updateCustomisedTinkeringActivity(
       observations: data.observations,
       extensions: data.extensions,
       resources: data.resources,
+      comments: data.comments,
+      attachments: data.attachments,
       base_ta_id: data.base_ta_id,
       student_id: data.student_id,
       status: data.status,
-    },
+    } as any),
     include: {
       subtopic: {
         select: {
@@ -173,8 +213,29 @@ export async function updateCustomisedTinkeringActivity(
           },
         },
       },
+      snapshot_attachments: true,
     },
   });
+  // Prune snapshot attachments (not stored in attachments[] array) if caller provided urls to keep
+  if (Object.prototype.hasOwnProperty.call(data, 'keepSnapshotAttachmentUrls')) {
+    await pruneTAAttachments(id, keepUrls);
+  }
+  if (haveStatusesChanged(existing?.status, Array.isArray(data.status) ? data.status : undefined)) {
+      const previousStatuses = Array.isArray(existing?.status) ? existing?.status ?? [] : [];
+      const nextStatuses = Array.isArray(updated.status) ? updated.status ?? [] : [];
+      const previousStatus = previousStatuses.length ? previousStatuses[previousStatuses.length - 1] : null;
+      const currentStatus = nextStatuses.length ? nextStatuses[nextStatuses.length - 1] : null;
+    await notifyStudentStatusUpdate({
+      studentId: updated.student_id,
+      entityType: "tinkering-activity",
+      entityName: updated.name,
+        previousStatus,
+        currentStatus,
+      resourceId: updated.id,
+      excludeUserId: updatedByUserId,
+    });
+  }
+  return updated;
 }
 
 export async function deleteCustomisedTinkeringActivity(
@@ -210,7 +271,7 @@ export async function generateCustomisedTinkeringActivities(
 ): Promise<GeneratedTinkeringActivity[]> {
   const { previousActivities, prompt } = input;
 
-  const updatedData = previousActivities.map((obj: any) =>
+  const updatedData = previousActivities.map((obj: Record<string, unknown>) =>
     Object.fromEntries(
       Object.entries(obj).filter(([key]) => 
         ["name", "introduction", "status"].includes(key)
@@ -349,15 +410,16 @@ export async function generateCustomisedTinkeringActivity(
 
     const data: DetailedGeneratedTA = JSON.parse(response.text!);
     
-    const arrayFields: (keyof DetailedGeneratedTA)[] = [
+    
+    const arrayFields: Array<keyof Pick<DetailedGeneratedTA, "goals" | "materials" | "instructions" | "tips" | "observations" | "extensions" | "resources">> = [
       "goals", "materials", "instructions", "tips", "observations", "extensions", "resources"
     ];
-    
-    arrayFields.forEach(field => {
+
+    for (const field of arrayFields) {
       if (!Array.isArray(data[field])) {
-        (data as any)[field] = [];
+        (data as any)[field] = [] as string[];
       }
-    });
+    }
 
     return data;
 

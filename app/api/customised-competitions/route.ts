@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { createCustomisedCompetition } from "@/lib/db/customised-competition/crud";
 import { CustomisedCompetitionCreateInput } from "@/lib/db/customised-competition/type";
 
@@ -9,10 +9,7 @@ export async function POST(request: Request) {
     const requiredFields = ["id", "student_id", "status"];
     for (const field of requiredFields) {
       if (!body[field]) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
+        return failure(`Missing required field: ${field}`, 400, { code: "VALIDATION_ERROR" });
       }
     }
 
@@ -25,12 +22,11 @@ export async function POST(request: Request) {
     const customisedCompetition = await createCustomisedCompetition(
       competitionData
     );
-    return NextResponse.json(customisedCompetition);
+    return success(customisedCompetition);
   } catch (error) {
     console.error("Error creating customised competition:", error);
-    return NextResponse.json(
-      { error: "Failed to create customised competition" },
-      { status: 500 }
-    );
+    return failure("Failed to create customised competition", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -8,16 +8,30 @@ datasource db {
 }
 
 model User {
-  id             String        @id
-  email          String        @unique
-  user_meta_data Json?         @default("{}")
-  created_at     DateTime      @default(now())
-  updated_at     DateTime      @updatedAt
-  first_name     String?
-  last_name      String?
-  school_visits  SchoolVisit[] @relation("VisitPOC")
-  students       Student[]
-  schools        School[]      @relation("UserSchools")
+  id              String         @id
+  email           String         @unique
+  schools         String[]       @default([])
+  user_meta_data  Json?          @default("{}")
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  first_name      String?
+  last_name       String?
+  priority        Int?           @default(3)
+  school_visits   SchoolVisit[]  @relation("VisitPOC")
+  students        Student[]
+  mentors         Mentor[]
+  chatRooms       ChatRoom[]     @relation("ChatRoomMembers")
+  messages        Message[]
+  adminOf         ChatRoom[]     @relation("ChatRoomAdmin")
+  Schedule        Schedule[]
+  Booking         Booking[]
+  notifications   Notification[]
+  createdTasks    Task[]         @relation("CreatedTasks")
+  assignedTasks   Task[]         @relation("AssignedTasks")
+  // Role-based school relations
+  inchargeOf      School[]       @relation("SchoolIncharges")
+  principalOf     School[]       @relation("SchoolPrincipals")
+  correspondentOf School[]       @relation("SchoolCorrespondents")
 }
 
 model Country {
@@ -60,22 +74,22 @@ model School {
   id                     String        @id @default(uuid())
   created_at             DateTime      @default(now())
   name                   String
+  udise_code             String?
   is_ATL                 Boolean
   syllabus               String[]
   website_url            String?
   paid_subscription      Boolean
   social_links           String[]
   address_id             Int
-  correspondent_id       String?
-  in_charge_id           String?
-  principal_id           String?
   ATL_establishment_year Int?
   hub_school             Hub[]         @relation("HubSchool")
   address                Address       @relation(fields: [address_id], references: [id])
   visits                 SchoolVisit[]
   students               Student[]
   hub_spokes             Hub[]         @relation("HubSpokes")
-  users                  User[]        @relation("UserSchools")
+  incharges              User[]        @relation("SchoolIncharges")
+  principals             User[]        @relation("SchoolPrincipals")
+  correspondents         User[]        @relation("SchoolCorrespondents")
 }
 
 model Student {
@@ -89,6 +103,7 @@ model Student {
   class                 String
   section               String
   comments              String?
+  guardians             Json?
   school_id             String
   user_id               String?
   school                School                        @relation(fields: [school_id], references: [id])
@@ -96,6 +111,20 @@ model Student {
   CustomisedCompetition CustomisedCompetition[]
   CustomisedCourse      CustomisedCourse[]
   customised_activities CustomisedTinkeringActivity[]
+  tasks                 TaskStudent[]
+}
+
+model Mentor {
+  id           String   @id @default(uuid())
+  created_at   DateTime @default(now())
+  first_name   String
+  last_name    String
+  email        String?
+  phone_number String?
+  school_ids   String[]
+  comments     String?
+  user_id      String?
+  user         User?    @relation(fields: [user_id], references: [id])
 }
 
 model Subject {
@@ -180,44 +209,53 @@ model Course {
 }
 
 model CustomisedCourse {
-  id         String   @id @default(uuid())
-  created_at DateTime @default(now())
-  course_id  String
-  student_id String
-  status     String[]
-  course     Course   @relation(fields: [course_id], references: [id])
-  student    Student  @relation(fields: [student_id], references: [id])
+  id                   String                @id @default(uuid())
+  created_at           DateTime              @default(now())
+  course_id            String
+  student_id           String
+  status               String[]
+  comments             String?
+  attachments          String[]              @default([])
+  course               Course                @relation(fields: [course_id], references: [id])
+  student              Student               @relation(fields: [student_id], references: [id])
+  snapshot_attachments SnapshotAttachments[]
 }
 
 model CustomisedTinkeringActivity {
-  id           String            @id @default(uuid())
-  created_at   DateTime          @default(now())
-  name         String
-  subtopic_id  Int
-  introduction String
-  goals        String[]
-  materials    String[]
-  instructions String[]
-  tips         String[]
-  observations String[]
-  extensions   String[]
-  resources    String[]
-  base_ta_id   String
-  student_id   String
-  status       String[]
-  base_ta      TinkeringActivity @relation(fields: [base_ta_id], references: [id])
-  student      Student           @relation(fields: [student_id], references: [id])
-  subtopic     Subtopic          @relation(fields: [subtopic_id], references: [id])
+  id                   String                @id @default(uuid())
+  created_at           DateTime              @default(now())
+  name                 String
+  subtopic_id          Int
+  introduction         String
+  goals                String[]
+  materials            String[]
+  instructions         String[]
+  tips                 String[]
+  observations         String[]
+  extensions           String[]
+  resources            String[]
+  comments             String?
+  attachments          String[]
+  base_ta_id           String
+  student_id           String
+  status               String[]
+  base_ta              TinkeringActivity     @relation(fields: [base_ta_id], references: [id])
+  student              Student               @relation(fields: [student_id], references: [id])
+  subtopic             Subtopic              @relation(fields: [subtopic_id], references: [id])
+  snapshot_attachments SnapshotAttachments[]
 }
 
 model CustomisedCompetition {
-  id             String      @id @default(uuid())
-  created_at     DateTime    @default(now())
-  competition_id String
-  student_id     String
-  status         String[]
-  competition    Competition @relation(fields: [competition_id], references: [id])
-  student        Student     @relation(fields: [student_id], references: [id])
+  id                   String                @id @default(uuid())
+  created_at           DateTime              @default(now())
+  competition_id       String
+  student_id           String
+  status               String[]
+  comments             String?
+  attachments          String[]              @default([])
+  competition          Competition           @relation(fields: [competition_id], references: [id])
+  student              Student               @relation(fields: [student_id], references: [id])
+  snapshot_attachments SnapshotAttachments[]
 }
 
 model Hub {
@@ -251,3 +289,205 @@ model SchoolVisit {
   point_of_contact   User?    @relation("VisitPOC", fields: [poc_id], references: [id])
   school             School   @relation(fields: [school_id], references: [id])
 }
+
+// Chat models
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  CALL
+}
+
+model ChatRoom {
+  id            String    @id @default(cuid())
+  name          String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastMessageAt DateTime? @default(now())
+  adminId       String?
+  admin         User?     @relation("ChatRoomAdmin", fields: [adminId], references: [id])
+  members       User[]    @relation("ChatRoomMembers")
+  messages      Message[]
+}
+
+model Message {
+  id          String       @id @default(cuid())
+  chatRoom    ChatRoom     @relation(fields: [chatRoomId], references: [id])
+  chatRoomId  String
+  sender      User         @relation(fields: [senderId], references: [id])
+  senderId    String
+  content     String?
+  type        MessageType  @default(TEXT)
+  attachments Attachment[]
+  replyToId   String?
+  replyTo     Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[]    @relation("MessageReplies")
+  createdAt   DateTime     @default(now())
+
+  @@index([chatRoomId, createdAt])
+  @@index([replyToId])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  url       String
+  type      String
+  filename  String?
+  size      Int?
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id])
+  messageId String
+
+  @@index([messageId])
+}
+
+// Snapshot attachments for customised entities in Student Snapshot
+model SnapshotAttachments {
+  id        String   @id @default(cuid())
+  url       String
+  type      String
+  filename  String?
+  size      Int?
+  createdAt DateTime @default(now())
+
+  customised_ta_id          String?
+  customised_competition_id String?
+  customised_course_id      String?
+
+  customised_ta          CustomisedTinkeringActivity? @relation(fields: [customised_ta_id], references: [id])
+  customised_competition CustomisedCompetition?       @relation(fields: [customised_competition_id], references: [id])
+  customised_course      CustomisedCourse?            @relation(fields: [customised_course_id], references: [id])
+
+  @@index([customised_ta_id])
+  @@index([customised_competition_id])
+  @@index([customised_course_id])
+}
+
+model Notification {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  readAt       DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  category     String    @default("general")
+  title        String
+  description  String?
+  resourceType String?
+  resourceId   String?
+  data         Json?
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+// Calendar models (merged from hamaralabs-calendar)
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+}
+
+model Schedule {
+  id        String     @id @default(cuid())
+  userId    String
+  date      DateTime
+  timeSlots TimeSlot[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model TimeSlot {
+  id          String   @id @default(cuid())
+  scheduleId  String
+  startTime   String
+  endTime     String
+  maxSlots    Int      @default(1)
+  bookedSlots Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, startTime, endTime])
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  userId     String
+  date       DateTime
+  startTime  String
+  endTime    String
+  guestName  String
+  guestEmail String
+  notes      String?
+  status     BookingStatus @default(CONFIRMED)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Slot   Slot?   @relation(fields: [slotId], references: [id])
+  slotId String?
+
+  @@index([userId, date, startTime, endTime])
+}
+
+model Slot {
+  id                    String   @id @default(cuid())
+  merchantTransactionId String   @unique
+  merchantId            String
+  email                 String
+  phone                 String
+  amount                Int
+  status                String
+  items                 Json     @default("[]")
+  paidBy                String?
+  paymentMethod         String?
+  notes                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Task {
+  id           String     @id @default(uuid())
+  title        String
+  description  String?
+  status       TaskStatus @default(PENDING)
+  dueDate      DateTime?
+  assignedToId String?
+  createdById  String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  students   TaskStudent[]
+  assignedTo User?         @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdBy  User          @relation("CreatedTasks", fields: [createdById], references: [id])
+
+  @@index([assignedToId])
+  @@index([createdById])
+}
+
+model TaskStudent {
+  id        String   @id @default(uuid())
+  taskId    String
+  studentId String
+  createdAt DateTime @default(now())
+
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, studentId])
+  @@index([taskId])
+  @@index([studentId])
+}
+

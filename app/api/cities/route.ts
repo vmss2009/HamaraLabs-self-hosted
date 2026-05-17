@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { failure, success } from "@/lib/api/http";
 import { getCitiesByState } from "@/lib/db/location/crud";
 
 export async function GET(request: Request) {
@@ -7,20 +7,16 @@ export async function GET(request: Request) {
     const stateId = searchParams.get("stateId");
 
     if (!stateId) {
-      return NextResponse.json(
-        { error: "State ID is required" },
-        { status: 400 }
-      );
+      return failure("State ID is required", 400, { code: "MISSING_PARAM" });
     }
 
     const cities = await getCitiesByState(parseInt(stateId));
     
-    return NextResponse.json(cities);
+    return success(cities);
   } catch (error) {
     console.error("Error fetching cities:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch cities" },
-      { status: 500 }
-    );
+    return failure("Failed to fetch cities", 500, {
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 } 
