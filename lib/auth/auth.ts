@@ -49,6 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, profile }) {
       if (user) {
         // Persist our internal user id and provider subject on first sign-in
+        console.log(token, user, profile);
         (token as any).id = (user as any).id;
         token.sub = (profile?.sub as string) ?? token.sub;
       }

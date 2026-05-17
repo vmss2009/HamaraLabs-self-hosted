@@ -55,7 +55,9 @@ interface AuthentikGroup {
 function mapRoleToGroupName(role?: string): string | undefined {
   if (!role) return undefined;
   const normalized = role.toUpperCase();
-  if (["PRINCIPAL", "INCHARGE", "CORRESPONDENT"].includes(normalized)) return "incharge";
+  if (normalized === "PRINCIPAL") return "principal";
+  if (normalized === "INCHARGE") return "incharge";
+  if (normalized === "CORRESPONDENT") return "correspondent";
   if (normalized === "MENTOR") return "mentor";
   if (normalized === "STUDENT") return "student";
   return undefined;
