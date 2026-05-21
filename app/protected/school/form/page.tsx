@@ -10,7 +10,7 @@ import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import DynamicFieldArray from "@/components/form/DynamicFieldArray";
 import MultipleUserInput from "@/components/form/MultipleUserInput";
 import { useRouter } from "next/navigation";
-import { Element } from "@/components/authz";
+import { Element, useAppAbility } from "@/components/authz";
 
 interface UserData {
   email: string;
@@ -38,6 +38,7 @@ type City = {
 
 export default function SchoolForm() {
   const router = useRouter();
+  const ability = useAppAbility();
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
@@ -334,10 +335,14 @@ export default function SchoolForm() {
                       required: false,
                       placeholder: "Enter UDISE code (optional)",
                     },
-                  ]}
+                  ].filter(f => {
+                    const map: Record<string, string> = { name: "field.name", udiseCode: "field.udise_code" };
+                    return !map[f.name] || ability.can("view", "SchoolForm", map[f.name]);
+                  })}
                 />
               </div>
 
+              {ability.can("view", "SchoolForm", "field.is_ATL") && (
               <RadioButtonGroup
                 name="isATL"
                 legend="Is ATL?"
@@ -345,8 +350,9 @@ export default function SchoolForm() {
                 value={isATL}
                 onChange={setIsATL}
               />
+              )}
 
-              {isATL === "Yes" && (
+              {isATL === "Yes" && ability.can("view", "SchoolForm", "field.ATL_establishment_year") && (
                 <TextFieldGroup
                   fields={[
                     {
@@ -382,10 +388,14 @@ export default function SchoolForm() {
                     label: "Address Line 2",
                     placeholder: "Enter address line 2 (optional)",
                   },
-                ]}
+                ].filter(f => {
+                  const map: Record<string, string> = { addressLine1: "field.address_line1", addressLine2: "field.address_line2" };
+                  return !map[f.name] || ability.can("view", "SchoolForm", map[f.name]);
+                })}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
+                {ability.can("view", "SchoolForm", "field.country") && (
                 <SearchableSelect<string>
                   label="Country"
                   options={countryOptions}
@@ -415,7 +425,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                     })();
                   }}
                 />
+                )}
 
+                {ability.can("view", "SchoolForm", "field.state") && (
                 <SearchableSelect<string>
                   label="State"
                   options={stateOptions}
@@ -444,9 +456,11 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                   }}
                   className={!selectedCountry ? "opacity-50 pointer-events-none" : ""}
                 />
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+                {ability.can("view", "SchoolForm", "field.city") && (
                 <SearchableSelect<string>
                   label="City"
                   options={cityOptions}
@@ -454,7 +468,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                   onChange={(val) => setSelectedCity((Array.isArray(val) ? val[0] : val) ?? "")}
                   className={!selectedState ? "opacity-50 pointer-events-none" : ""}
                 />
+                )}
 
+                {ability.can("view", "SchoolForm", "field.pincode") && (
                 <TextFieldGroup
                   fields={[
                     {
@@ -466,6 +482,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                     },
                   ]}
                 />
+                )}
               </div>
             </div>
           </FormSection>
@@ -476,6 +493,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
             title="In-Charge Details"
             description="Add one or more in-charge persons (at least one is required)"
           >
+            <Element subject="SchoolForm" elementKey="field.in_charges">
             <MultipleUserInput
               title="In-Charges"
               description="At least one in-charge is required"
@@ -484,6 +502,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               required={true}
               minUsers={1}
             />
+            </Element>
           </FormSection>
           </Element>
 
@@ -492,6 +511,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
             title="Principal Details"
             description="Add principals for the school (optional)"
           >
+            <Element subject="SchoolForm" elementKey="field.principals">
             <MultipleUserInput
               title="Principals"
               description="Add school principals (optional)"
@@ -500,6 +520,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               required={false}
               minUsers={0}
             />
+            </Element>
           </FormSection>
           </Element>
 
@@ -508,6 +529,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
             title="Correspondent Details"
             description="Add correspondents for the school (optional)"
           >
+            <Element subject="SchoolForm" elementKey="field.correspondents">
             <MultipleUserInput
               title="Correspondents"
               description="Add school correspondents (optional)"
@@ -516,6 +538,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               required={false}
               minUsers={0}
             />
+            </Element>
           </FormSection>
           </Element>
 
@@ -525,6 +548,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
             description="Enter additional details about the school"
           >
             <div className="space-y-6">
+              {ability.can("view", "SchoolForm", "field.syllabus") && (
               <CheckboxGroup
                 options={syllabusOptions}
                 legend="Syllabus"
@@ -532,7 +556,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                 selectedValues={syllabus}
                 className="mb-5"
               />
+              )}
 
+              {ability.can("view", "SchoolForm", "field.website_url") && (
               <TextFieldGroup
                 fields={[
                   {
@@ -542,7 +568,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                   },
                 ]}
               />
+              )}
 
+              {ability.can("view", "SchoolForm", "field.paid_subscription") && (
               <RadioButtonGroup
                 name="paidSubscription"
                 legend="Paid Subscription"
@@ -551,7 +579,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                 onChange={setPaidSubscription}
                 className="mb-5"
               />
+              )}
 
+              {ability.can("view", "SchoolForm", "field.social_links") && (
               <DynamicFieldArray
                 placeholder="SocialLink"
                 values={socialLinks}
@@ -561,6 +591,7 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
                 legend="Social Links"
                 fieldLabel="Social Link"
               />
+              )}
             </div>
           </FormSection>
           </Element>

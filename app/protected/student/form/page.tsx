@@ -8,10 +8,21 @@ import SelectField from "@/components/form/SelectField";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import GuardianMultiform, { Guardian } from "@/components/form/GuardianMultiform";
 import { useRouter } from "next/navigation";
-import { Element } from "@/components/authz";
+import { Element, useAppAbility } from "@/components/authz";
+
+const STUDENT_FIELD_MAP: Record<string, string> = {
+  firstName: "field.first_name",
+  lastName: "field.last_name",
+  email: "field.email",
+  class: "field.class",
+  section: "field.section",
+  aspiration: "field.aspiration",
+  comments: "field.comments",
+};
 
 export default function StudentForm() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [schools, setSchools] = useState<Array<{ id: number; name: string }>>(
     []
   );
@@ -130,18 +141,20 @@ export default function StudentForm() {
         <form onSubmit={onSubmit} className="space-y-8">
           <Element subject="StudentForm" elementKey="section.school">
           <FormSection title="School Information">
-            <SelectField
-              label="Select School"
-              name="school"
-              options={schools.map((school) => ({
-                value: school.id.toString(),
-                label: school.name,
-              }))}
-              value={selectedSchool}
-              onChange={(e) => setSelectedSchool(e.target.value)}
-              required
-              className="w-full px-4 py-2rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
+            <Element subject="StudentForm" elementKey="field.school_id">
+              <SelectField
+                label="Select School"
+                name="school"
+                options={schools.map((school) => ({
+                  value: school.id.toString(),
+                  label: school.name,
+                }))}
+                value={selectedSchool}
+                onChange={(e) => setSelectedSchool(e.target.value)}
+                required
+                className="w-full px-4 py-2rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </Element>
           </FormSection>
           </Element>
 
@@ -151,47 +164,39 @@ export default function StudentForm() {
               fields={[
                 { name: "firstName", label: "First Name", required: true },
                 { name: "lastName", label: "Last Name", required: true },
-                {
-                  name: "email",
-                  label: "Email",
-                  type: "email",
-                  required: true,
-                  placeholder: "student@example.com",
-                },
+                { name: "email", label: "Email", type: "email", required: true, placeholder: "student@example.com" },
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
                 { name: "aspiration", label: "Aspiration", required: true },
-                {
-                  name: "comments",
-                  label: "Comments",
-                  required: false,
-                  multiline: true,
-                  rows: 3,
-                },
-              ]}
+                { name: "comments", label: "Comments", required: false, multiline: true, rows: 3 },
+              ].filter(f => !STUDENT_FIELD_MAP[f.name] || ability.can("view", "StudentForm", STUDENT_FIELD_MAP[f.name]))}
             />
-            <RadioButtonGroup
-              legend="Gender"
-              name="gender"
-              options={[
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" },
-              ]}
-              value={gender}
-              onChange={(value) => setGender(value)}
-              required
-              className="mt-5"
-            />
+            {ability.can("view", "StudentForm", "field.gender") && (
+              <RadioButtonGroup
+                legend="Gender"
+                name="gender"
+                options={[
+                  { value: "Male", label: "Male" },
+                  { value: "Female", label: "Female" },
+                  { value: "Other", label: "Other" },
+                ]}
+                value={gender}
+                onChange={(value) => setGender(value)}
+                required
+                className="mt-5"
+              />
+            )}
           </FormSection>
           </Element>
 
           <Element subject="StudentForm" elementKey="section.guardians">
           <FormSection title="Guardian Information">
-            <GuardianMultiform
-              guardians={guardians}
-              onChange={setGuardians}
-            />
+            <Element subject="StudentForm" elementKey="field.guardians">
+              <GuardianMultiform
+                guardians={guardians}
+                onChange={setGuardians}
+              />
+            </Element>
           </FormSection>
           </Element>
 

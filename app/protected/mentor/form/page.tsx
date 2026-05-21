@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import { Input } from "@/components/form/Input";
 import { Autocomplete, TextField, Chip } from "@mui/material";
-import { Element } from "@/components/authz";
+import { Element, useAppAbility } from "@/components/authz";
 
 type School = {
   id: string;
@@ -15,6 +15,7 @@ type School = {
 
 export default function MentorForm() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -130,47 +131,30 @@ export default function MentorForm() {
           <Element subject="MentorForm" elementKey="section.personal">
           <FormSection title="Personal Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-              <div className="w-full">
-                <Input
-                  name="firstName"
-                  label="First Name"
-                  required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div className="w-full">
-                <Input
-                  name="lastName"
-                  label="Last Name"
-                  required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div className="w-full">
-                <Input
-                  name="email"
-                  label="Email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div className="w-full">
-                <Input
-                  name="phoneNumber"
-                  label="WhatsApp Number"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+              {ability.can("view", "MentorForm", "field.first_name") && (
+                <div className="w-full">
+                  <Input name="firstName" label="First Name" required value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)} className="focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+              )}
+              {ability.can("view", "MentorForm", "field.last_name") && (
+                <div className="w-full">
+                  <Input name="lastName" label="Last Name" required value={lastName}
+                    onChange={(e) => setLastName(e.target.value)} className="focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+              )}
+              {ability.can("view", "MentorForm", "field.email") && (
+                <div className="w-full">
+                  <Input name="email" label="Email" type="email" required value={email}
+                    onChange={(e) => setEmail(e.target.value)} className="focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+              )}
+              {ability.can("view", "MentorForm", "field.phone_number") && (
+                <div className="w-full">
+                  <Input name="phoneNumber" label="WhatsApp Number" type="tel" value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)} className="focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+              )}
             </div>
           </FormSection>
           </Element>
