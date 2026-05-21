@@ -229,6 +229,10 @@ export async function getSchools(filter?: SchoolFilter): Promise<SchoolWithAddre
       where.paid_subscription = filter.paid_subscription;
     }
 
+    if (filter?.ids !== undefined) {
+      where.id = { in: filter.ids };
+    }
+
     if (filter?.cityId || filter?.stateId || filter?.countryId) {
       where.address = {
         city: {

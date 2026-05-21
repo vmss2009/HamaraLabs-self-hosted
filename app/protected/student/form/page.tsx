@@ -43,6 +43,9 @@ export default function StudentForm() {
         }
         const data = await response.json();
         setSchools(data);
+        if (data.length === 1) {
+          setSelectedSchool(data[0].id.toString());
+        }
       } catch (error) {
         console.error("Error fetching schools:", error);
       }

@@ -36,6 +36,9 @@ export default function MentorForm() {
         }
         const data = await response.json();
         setSchools(data);
+        if (data.length === 1) {
+          setSelectedSchools([data[0].id]);
+        }
       } catch (error) {
         console.error("Error fetching schools:", error);
         setError("Failed to load schools. Please try again later.");
