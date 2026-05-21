@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import Alert from "@/components/ui/Alert";
 import ReportShell from "@/components/form/ReportShell";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 interface Mentor {
   id: string;
@@ -35,6 +36,7 @@ interface Mentor {
 
 export default function MentorReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +110,7 @@ export default function MentorReport() {
 
   const handleRowClick = (params: GridRowParams<Mentor>) => {
     if (!params || !params.row) return;
+    if (!ability.can("view", "MentorReport", "row.click-detail")) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -162,6 +165,9 @@ export default function MentorReport() {
         if (!userId) {
           return <span className="text-gray-400 text-xs">No calendar</span>;
         }
+        if (!ability.can("view", "MentorReport", "row.open-calendar")) {
+          return <span className="text-gray-400 text-xs">—</span>;
+        }
         return (
           <a
             href={`/calendar/${userId}`}
@@ -182,25 +188,31 @@ export default function MentorReport() {
       width: 170,
       renderCell: (params) => (
         <div className="flex items-center justify-center gap-2 w-full h-full">
-          <GridActionsCellItem
-            key="edit"
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={() =>
-              router.push(`/protected/mentor/form/${params.row.id}`)
-            }
-          />
-          <GridActionsCellItem
-            key="delete"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => handleDelete(params.row.id)}
-            color="error"
-          />
+          {ability.can("view", "MentorReport", "row.edit") && (
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/mentor/form/${params.row.id}`)
+              }
+            />
+          )}
+          {ability.can("view", "MentorReport", "row.delete") && (
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />
+          )}
         </div>
       ),
     },
   ];
+
+  const visibleColumns = useGridColumns("MentorReport", columns);
 
   return (
     <ReportShell>
@@ -220,7 +232,7 @@ export default function MentorReport() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={mentors}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -236,8 +248,12 @@ export default function MentorReport() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="MentorReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="MentorReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

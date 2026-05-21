@@ -18,9 +18,11 @@ import DetailViewer from "@/components/form/DetailViewer";
 import AssignDialog from "@/components/form/DialogBox";
 import ReportShell from "@/components/form/ReportShell";
 import { Competition } from "@/lib/db/competition/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 export default function CompetitionReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -146,36 +148,49 @@ export default function CompetitionReport() {
       width: 200,
       getActions: (params) => {
         if (!params || !params.row) return [];
-
-        return [
-          <Button
-            key="assign"
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={() => handleAssign(params.row)}
-          >
-            Assign
-          </Button>,
-          <GridActionsCellItem
-            key="edit"
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={() =>
-              router.push(`/protected/competition/form/${params.row.id}`)
-            }
-          />,
-          <GridActionsCellItem
-            key="delete"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => handleDelete(params.row.id)}
-            color="error"
-          />,
-        ];
+        const acts: any[] = [];
+        if (ability.can("view", "CompetitionReport", "row.assign")) {
+          acts.push(
+            <Button
+              key="assign"
+              variant="default"
+              color="primary"
+              size="sm"
+              onClick={() => handleAssign(params.row)}
+            >
+              Assign
+            </Button>,
+          );
+        }
+        if (ability.can("view", "CompetitionReport", "row.edit")) {
+          acts.push(
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/competition/form/${params.row.id}`)
+              }
+            />,
+          );
+        }
+        if (ability.can("view", "CompetitionReport", "row.delete")) {
+          acts.push(
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />,
+          );
+        }
+        return acts;
       },
     },
   ];
+
+  const visibleColumns = useGridColumns("CompetitionReport", columns);
 
   return (
     <ReportShell>
@@ -195,7 +210,7 @@ export default function CompetitionReport() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={competitions}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -206,8 +221,12 @@ export default function CompetitionReport() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="CompetitionReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="CompetitionReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

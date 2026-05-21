@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import clsx from 'clsx';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Element } from '@/components/authz';
 import StarterKit from '@tiptap/starter-kit';
 import Mathematics from '@tiptap/extension-mathematics';
 import TextAlign from '@tiptap/extension-text-align';
@@ -1051,13 +1052,15 @@ const removeFileAt = (idx: number) => {
                       </div>
                     ) : null}
                   </div>
-                  <button
-                    onClick={cancelReply}
-                    className="text-slate-400 hover:text-slate-200 transition p-1"
-                    aria-label="Cancel reply"
-                  >
-                    <IconX className="h-4 w-4" />
-                  </button>
+                  <Element subject="ChatRoom" elementKey="action.cancel-reply">
+                    <button
+                      onClick={cancelReply}
+                      className="text-slate-400 hover:text-slate-200 transition p-1"
+                      aria-label="Cancel reply"
+                    >
+                      <IconX className="h-4 w-4" />
+                    </button>
+                  </Element>
                 </div>
               )}
               <div className="flex items-center gap-3">
@@ -1177,51 +1180,61 @@ const removeFileAt = (idx: number) => {
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col">
           <div className="flex items-center justify-between p-3 text-slate-200">
             <div className="flex items-center gap-2">
-              <button
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
-                onClick={() => setViewerZoom(z => Math.min(5, z + 0.25))}
-                aria-label="Zoom in"
-                title="Zoom in"
-              >
-                <IconPlus className="h-4 w-4" />
-              </button>
-              <button
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
-                onClick={() => setViewerZoom(z => Math.max(0.25, z - 0.25))}
-                aria-label="Zoom out"
-                title="Zoom out"
-              >
-                <IconMinus className="h-4 w-4" />
-              </button>
-              <button
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
-                onClick={() => setViewerZoom(1)}
-                aria-label="Reset zoom"
-                title="Reset zoom"
-              >
-                100%
-              </button>
+              <Element subject="ChatRoom" elementKey="media.zoom-in">
+                <button
+                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
+                  onClick={() => setViewerZoom(z => Math.min(5, z + 0.25))}
+                  aria-label="Zoom in"
+                  title="Zoom in"
+                >
+                  <IconPlus className="h-4 w-4" />
+                </button>
+              </Element>
+              <Element subject="ChatRoom" elementKey="media.zoom-out">
+                <button
+                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
+                  onClick={() => setViewerZoom(z => Math.max(0.25, z - 0.25))}
+                  aria-label="Zoom out"
+                  title="Zoom out"
+                >
+                  <IconMinus className="h-4 w-4" />
+                </button>
+              </Element>
+              <Element subject="ChatRoom" elementKey="media.reset-zoom">
+                <button
+                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
+                  onClick={() => setViewerZoom(1)}
+                  aria-label="Reset zoom"
+                  title="Reset zoom"
+                >
+                  100%
+                </button>
+              </Element>
             </div>
             <div className="flex items-center gap-2">
-              <a
-                href={viewerSrc || undefined}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
-                aria-label="Download media"
-                title="Download media"
-              >
-                Download
-              </a>
-              <button
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
-                onClick={() => setViewerSrc(null)}
-                aria-label="Close"
-                title="Close"
-              >
-                <IconX className="h-4 w-4" />
-              </button>
+              <Element subject="ChatRoom" elementKey="media.download">
+                <a
+                  href={viewerSrc || undefined}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
+                  aria-label="Download media"
+                  title="Download media"
+                >
+                  Download
+                </a>
+              </Element>
+              <Element subject="ChatRoom" elementKey="media.close">
+                <button
+                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-xs"
+                  onClick={() => setViewerSrc(null)}
+                  aria-label="Close"
+                  title="Close"
+                >
+                  <IconX className="h-4 w-4" />
+                </button>
+              </Element>
             </div>
           </div>
           <div className="flex-1 overflow-auto">

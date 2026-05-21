@@ -16,9 +16,11 @@ import ReportShell from "@/components/form/ReportShell";
 import DetailViewer from "@/components/form/DetailViewer";
 import Alert from "@/components/ui/Alert";
 import { StudentWithSchool } from "@/lib/db/student/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 export default function StudentReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [students, setStudents] =useState<StudentWithSchool[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -71,6 +73,7 @@ export default function StudentReport() {
   };
 
   const handleRowClick = (params: GridRowParams<StudentWithSchool>) => {
+    if (!ability.can("view", "StudentReport", "row.click-detail")) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -99,6 +102,9 @@ export default function StudentReport() {
         const userId = params.row.user_id;
         if (!userId) {
           return <span className="text-gray-400 text-xs">No calendar</span>;
+        }
+        if (!ability.can("view", "StudentReport", "row.open-calendar")) {
+          return <span className="text-gray-400 text-xs">—</span>;
         }
         return (
           <a
@@ -131,25 +137,37 @@ export default function StudentReport() {
       type: "actions",
       headerName: "Actions",
       width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label="Edit"
-          onClick={() =>
-            router.push(`/protected/student/form/${params.row.id}`)
-          }
-        />,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteIcon />}
-          label="Delete"
-          onClick={() => handleDelete(params.row.id)}
-          color="error"
-        />,
-      ],
+      getActions: (params) => {
+        const actions: any[] = [];
+        if (ability.can("view", "StudentReport", "row.edit")) {
+          actions.push(
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/student/form/${params.row.id}`)
+              }
+            />,
+          );
+        }
+        if (ability.can("view", "StudentReport", "row.delete")) {
+          actions.push(
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />,
+          );
+        }
+        return actions;
+      },
     },
   ];
+
+  const visibleColumns = useGridColumns("StudentReport", columns);
 
   return (
     <ReportShell>
@@ -169,7 +187,7 @@ export default function StudentReport() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={students}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -185,8 +203,12 @@ export default function StudentReport() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="StudentReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="StudentReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

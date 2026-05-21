@@ -28,10 +28,53 @@ model User {
   notifications   Notification[]
   createdTasks    Task[]         @relation("CreatedTasks")
   assignedTasks   Task[]         @relation("AssignedTasks")
-  // Role-based school relations
   inchargeOf      School[]       @relation("SchoolIncharges")
   principalOf     School[]       @relation("SchoolPrincipals")
   correspondentOf School[]       @relation("SchoolCorrespondents")
+  roles           String[]       @default([])
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  action      String
+  subject     String
+  field       String   @default("")
+  conditions  Json?
+  inverted    Boolean  @default(false)
+  reason      String?
+  description String?
+
+  role_permissions RolePermission[]
+
+  @@unique([action, subject, field])
+  @@index([subject])
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  is_system   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  role_permissions RolePermission[]
+}
+
+model RolePermission {
+  id            String   @id @default(uuid())
+  role_id       String
+  permission_id String
+  created_at    DateTime @default(now())
+
+  role       Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+  @@index([role_id])
+  @@index([permission_id])
 }
 
 model Country {

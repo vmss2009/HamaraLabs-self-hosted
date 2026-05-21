@@ -16,9 +16,11 @@ import Alert from "@/components/ui/Alert";
 import { SchoolVisitWithRelations } from "@/lib/db/school-visits/type";
 import DetailViewer from "@/components/form/DetailViewer";
 import ReportShell from "@/components/form/ReportShell";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 export default function SchoolVisitReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [visits, setVisits] = useState<SchoolVisitWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +69,7 @@ export default function SchoolVisitReport() {
   };
 
   const handleRowClick = (params: GridRowParams<SchoolVisitWithRelations>) => {
+    if (!ability.can("view", "SchoolVisitReport", "row.click-detail")) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -120,23 +123,29 @@ export default function SchoolVisitReport() {
       width: 200,
       renderCell: (params: { row: SchoolVisitWithRelations }) => (
         <div className="flex items-center justify-center gap-2 w-full h-full">
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={() =>
-              router.push(`/protected/sarthi/school-visits/${params.row.id}`)
-            }
-          />
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => handleDelete(params.row.id.toString())}
-            color="error"
-          />
+          {ability.can("view", "SchoolVisitReport", "row.edit") && (
+            <GridActionsCellItem
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/sarthi/school-visits/${params.row.id}`)
+              }
+            />
+          )}
+          {ability.can("view", "SchoolVisitReport", "row.delete") && (
+            <GridActionsCellItem
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id.toString())}
+              color="error"
+            />
+          )}
         </div>
       ),
     },
   ];
+
+  const visibleColumns = useGridColumns("SchoolVisitReport", columns);
 
   return (
     <ReportShell>
@@ -144,7 +153,7 @@ export default function SchoolVisitReport() {
   <div className="bg-white rounded-xl shadow-sm max-w-5xl w-full mt-8 mb-10 mr-auto">
           <DataGrid
             rows={visits}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -155,8 +164,12 @@ export default function SchoolVisitReport() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="SchoolVisitReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="SchoolVisitReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

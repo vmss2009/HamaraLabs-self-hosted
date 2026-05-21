@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import SchoolVisitReport from "./school-visits/report/page";
+import { Element } from "@/components/authz";
 
 export default function SarthiPage() {
   const [activeTab, setActiveTab] = useState<'visits' | 'compliance' | 'hackathons'>('visits');
@@ -11,13 +12,15 @@ export default function SarthiPage() {
     <div className="flex flex-col items-center w-screen min-h-screen bg-gray-500">
       <div className="w-full max-w-7xl mt-20">
         <div className="flex gap-4 mb-4">
-          <Button
-            variant={activeTab === 'visits' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('visits')}
-            className="min-w-[120px]"
-          >
-            Visits
-          </Button>
+          <Element subject="Sarthi" elementKey="tab.visits">
+            <Button
+              variant={activeTab === 'visits' ? 'default' : 'outline'}
+              onClick={() => setActiveTab('visits')}
+              className="min-w-[120px]"
+            >
+              Visits
+            </Button>
+          </Element>
           {/* <Button
             variant={activeTab === 'compliance' ? 'default' : 'outline'}
             onClick={() => setActiveTab('compliance')}

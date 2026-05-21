@@ -20,9 +20,11 @@ import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type"
 import DetailViewer from "@/components/form/DetailViewer";
 import ReportShell from "@/components/form/ReportShell";
 import { TinkeringActivity } from "@/lib/db/tinkering-activity/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 export default function TinkeringActivityReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [activities, setActivities] = useState<TinkeringActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +135,7 @@ export default function TinkeringActivityReport() {
 
   const handleRowClick = (params: GridRowParams<TinkeringActivity>) => {
     if (!params || !params.row) return;
+    if (!ability.can("view", "TinkeringActivityReport", "row.click-detail")) return;
 
     const fullRow = fullActivities.find((item) => item.id === params.row.id);
 
@@ -233,33 +236,41 @@ export default function TinkeringActivityReport() {
       width: 200,
       renderCell: (params) => (
         <div className="flex items-center justify-center gap-2 w-full h-full">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={() => handleAssign(params.row)}
-          >
-            Assign
-          </Button>
-          <GridActionsCellItem
-            key="edit"
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={() =>
-              router.push(`/protected/tinkering-activity/form/${params.row.id}`)
-            }
-          />
-          <GridActionsCellItem
-            key="delete"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => handleDelete(params.row.id)}
-            color="error"
-          />
+          {ability.can("view", "TinkeringActivityReport", "row.assign") && (
+            <Button
+              variant="default"
+              color="primary"
+              size="sm"
+              onClick={() => handleAssign(params.row)}
+            >
+              Assign
+            </Button>
+          )}
+          {ability.can("view", "TinkeringActivityReport", "row.edit") && (
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/tinkering-activity/form/${params.row.id}`)
+              }
+            />
+          )}
+          {ability.can("view", "TinkeringActivityReport", "row.delete") && (
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />
+          )}
         </div>
       ),
     },
   ];
+
+  const visibleColumns = useGridColumns("TinkeringActivityReport", columns);
 
   return (
     <ReportShell>
@@ -290,7 +301,7 @@ export default function TinkeringActivityReport() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={activities}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -305,8 +316,12 @@ export default function TinkeringActivityReport() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="TinkeringActivityReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="TinkeringActivityReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

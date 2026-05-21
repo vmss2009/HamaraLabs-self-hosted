@@ -7,18 +7,10 @@ import {
   UserInput,
 } from "../type";
 import type { Prisma } from "@prisma/client";
-import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
-import { ensureEmailsAvailable, normalizeEmail } from "@/lib/db/shared/email";
+import { createUser, updateUser, deleteUser, syncDerivedRolesForUsers } from "@/lib/db/auth/user";
+import { normalizeEmail } from "@/lib/db/shared/email";
 
-type SchoolRole = 'INCHARGE' | 'PRINCIPAL' | 'CORRESPONDENT';
 type UserMeta = Prisma.InputJsonValue;
-
-async function getUsersBySchoolBasic(school_id: string): Promise<Array<{ id: string; email: string; schools: string[] }>> {
-    return prisma.user.findMany({
-        where: { schools: { has: school_id } },
-        select: { id: true, email: true, schools: true },
-    });
-}
 
 async function getUsersBySchoolWithMeta(school_id: string): Promise<Array<{ id: string; email: string; first_name: string | null; last_name: string | null; schools: string[]; user_meta_data: Prisma.JsonValue | null }>> {
     return prisma.user.findMany({
@@ -27,7 +19,7 @@ async function getUsersBySchoolWithMeta(school_id: string): Promise<Array<{ id: 
     });
 }
 
-async function addOrUpdateUserForSchoolRole(userData: UserInput, schoolId: string, role: SchoolRole) {
+async function addOrUpdateUserForSchool(userData: UserInput, schoolId: string) {
     const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
 
     if (existingUser) {
@@ -36,60 +28,60 @@ async function addOrUpdateUserForSchoolRole(userData: UserInput, schoolId: strin
             : [...existingUser.schools, schoolId];
 
         const currentMeta = (existingUser.user_meta_data ?? {}) as Record<string, any>;
-        const rolesBySchool: Record<string, string[] | string> = { ...(currentMeta.rolesBySchool ?? {}) };
-        const existing = rolesBySchool[schoolId];
-        let updatedForSchool: string[];
-        if (!existing) updatedForSchool = [role];
-        else if (Array.isArray(existing)) updatedForSchool = Array.from(new Set([...existing, role]));
-        else updatedForSchool = Array.from(new Set([existing, role]));
-        rolesBySchool[schoolId] = updatedForSchool;
 
-    // Only patch names when provided and non-empty after trim
-    const namePatch: Partial<{ first_name: string; last_name: string }> = {};
-    const fn = userData.first_name?.trim();
-    const ln = userData.last_name?.trim();
-    if (fn) namePatch.first_name = fn;
-    if (ln) namePatch.last_name = ln;
+        const namePatch: Partial<{ first_name: string; last_name: string }> = {};
+        const fn = userData.first_name?.trim();
+        const ln = userData.last_name?.trim();
+        if (fn) namePatch.first_name = fn;
+        if (ln) namePatch.last_name = ln;
 
-    return updateUser(existingUser.id, {
-      ...namePatch,
-      schools: updatedSchools,
-      user_meta_data: {
-        ...currentMeta,
-        phone_number: userData.phone_number,
-        ...(userData.user_meta_data ?? {}),
-        rolesBySchool,
-      } as UserMeta,
-    });
+        return updateUser(existingUser.id, {
+          ...namePatch,
+          schools: updatedSchools,
+          user_meta_data: {
+            ...currentMeta,
+            phone_number: userData.phone_number,
+            ...(userData.user_meta_data ?? {}),
+          } as UserMeta,
+        });
     }
 
-  const fn = userData.first_name?.trim() || undefined;
-  const ln = userData.last_name?.trim() || undefined;
-  return createUser({
-    email: userData.email,
-    first_name: fn,
-    last_name: ln,
-    schools: [schoolId],
-    user_meta_data: {
-      phone_number: userData.phone_number,
-      ...(userData.user_meta_data ?? {}),
-      rolesBySchool: { [schoolId]: [role] },
-    } as UserMeta,
-  });
+    const fn = userData.first_name?.trim() || undefined;
+    const ln = userData.last_name?.trim() || undefined;
+    return createUser({
+      email: userData.email,
+      first_name: fn,
+      last_name: ln,
+      schools: [schoolId],
+      user_meta_data: {
+        phone_number: userData.phone_number,
+        ...(userData.user_meta_data ?? {}),
+      } as UserMeta,
+    });
 }
 
 async function cleanupOrphanedUser(userId: string) {
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { students: true, mentors: true, school_visits: true },
+            include: {
+                students: true,
+                mentors: true,
+                school_visits: true,
+                principalOf: { select: { id: true } },
+                inchargeOf: { select: { id: true } },
+                correspondentOf: { select: { id: true } },
+            },
         });
         if (!user) return;
         if (
             user.schools.length === 0 &&
             user.students.length === 0 &&
             user.mentors.length === 0 &&
-            user.school_visits.length === 0
+            user.school_visits.length === 0 &&
+            user.principalOf.length === 0 &&
+            user.inchargeOf.length === 0 &&
+            user.correspondentOf.length === 0
         ) {
             await deleteUser(userId);
         }
@@ -98,28 +90,12 @@ async function cleanupOrphanedUser(userId: string) {
     }
 }
 
-async function removeSchoolFromUserAndCleanup(userId: string, schoolId: string) {
-    const current = await prisma.user.findUnique({ where: { id: userId }, select: { schools: true, user_meta_data: true } });
-    if (!current) return [] as string[];
-    const updatedSchools = (current.schools || []).filter((s) => s !== schoolId);
-    const currentMeta = (current.user_meta_data ?? {}) as Record<string, any>;
-    const rolesBySchool: Record<string, string[] | string> = { ...(currentMeta.rolesBySchool ?? {}) };
-    if (rolesBySchool[schoolId]) delete rolesBySchool[schoolId];
-    const newMeta = { ...currentMeta, rolesBySchool };
-    await updateUser(userId, { schools: updatedSchools, user_meta_data: newMeta });
-    if (updatedSchools.length === 0) await cleanupOrphanedUser(userId);
-    return updatedSchools;
-}
 
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
-    const candidateEmails = [
-      ...data.in_charges.map((u) => u.email),
-      ...data.principals.map((u) => u.email),
-      ...data.correspondents.map((u) => u.email),
-    ];
-    await ensureEmailsAvailable(candidateEmails);
-
+    // No email uniqueness gate here: addOrUpdateUserForSchool upserts, so a
+    // person who is already principal/incharge at another school is simply
+    // linked to this school without creating a duplicate account.
     const school = await prisma.school.create({
       data: {
         name: data.name,
@@ -149,17 +125,15 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
       },
     });
 
-    // Create or update users and add school to their schools array
-    const usersWithRoles: Array<{user: UserInput; role: SchoolRole}> = [
-      ...data.in_charges.map(u => ({ user: u, role: 'INCHARGE' as const })),
-      ...data.principals.map(u => ({ user: u, role: 'PRINCIPAL' as const })),
-      ...data.correspondents.map(u => ({ user: u, role: 'CORRESPONDENT' as const })),
+    const allUsers: UserInput[] = [
+      ...data.in_charges,
+      ...data.principals,
+      ...data.correspondents,
     ];
 
     await Promise.all(
-      usersWithRoles.map(({user, role}) => addOrUpdateUserForSchoolRole(user, school.id, role))
+      allUsers.map((u) => addOrUpdateUserForSchool(u, school.id))
     );
-    
 
     // Connect role-based relations on School to Users by email
     const inchargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());
@@ -180,6 +154,13 @@ export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithA
         correspondents: { set: correspondentUsers.map(u => ({ id: u.id })) },
       } as any,
     });
+
+    const touchedUserIds = Array.from(new Set([
+      ...inchargeUsers.map(u => u.id),
+      ...principalUsers.map(u => u.id),
+      ...correspondentUsers.map(u => u.id),
+    ]));
+    await syncDerivedRolesForUsers(touchedUserIds);
 
     return {
       ...school,
@@ -293,9 +274,9 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     const currentSchool = await prisma.school.findUnique({
       where: { id },
       include: {
-        incharges: { select: { email: true } },
-        principals: { select: { email: true } },
-        correspondents: { select: { email: true } },
+        incharges: { select: { id: true, email: true } },
+        principals: { select: { id: true, email: true } },
+        correspondents: { select: { id: true, email: true } },
       },
     });
 
@@ -303,24 +284,27 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       throw new Error("School not found");
     }
 
-    // Get current users associated with this school before update
-    const allowedEmails = new Set(
-      [
-        ...(currentSchool.incharges ?? []),
-        ...(currentSchool.principals ?? []),
-        ...(currentSchool.correspondents ?? []),
-      ]
-        .map((user) => normalizeEmail(user.email))
-        .filter(Boolean)
-    );
-    const currentUsers = await getUsersBySchoolBasic(id);
-    const candidateEmails = [
-      ...data.in_charges.map((u) => u.email),
-      ...data.principals.map((u) => u.email),
-      ...data.correspondents.map((u) => u.email),
-    ];
-    await ensureEmailsAvailable(candidateEmails, allowedEmails);
+    // Deduplicated map of current role-holder id -> email (a user can hold multiple roles)
+    const currentRoleUsers = new Map<string, string>();
+    for (const u of [
+      ...currentSchool.incharges,
+      ...currentSchool.principals,
+      ...currentSchool.correspondents,
+    ]) {
+      currentRoleUsers.set(u.id, u.email);
+    }
 
+    // Emails that will be in at least one role after the update
+    const newRoleEmails = new Set([
+      ...data.in_charges.map(u => normalizeEmail(u.email)),
+      ...data.principals.map(u => normalizeEmail(u.email)),
+      ...data.correspondents.map(u => normalizeEmail(u.email)),
+    ]);
+
+    // Users dropped from every role they held at this school
+    const removedUserIds = [...currentRoleUsers.entries()]
+      .filter(([, email]) => !newRoleEmails.has(normalizeEmail(email)))
+      .map(([uid]) => uid);
 
     if (data.address) {
       await prisma.address.update({
@@ -334,14 +318,13 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       });
     }
 
-    // Update school data
     const school = await prisma.school.update({
       where: { id },
       data: {
         name: data.name,
         udise_code: data.udise_code,
         is_ATL: data.is_ATL,
-  ATL_establishment_year: data.is_ATL ? (data.ATL_establishment_year ?? null) : null,
+        ATL_establishment_year: data.is_ATL ? (data.ATL_establishment_year ?? null) : null,
         syllabus: data.syllabus,
         website_url: data.website_url,
         paid_subscription: data.paid_subscription,
@@ -353,9 +336,7 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
             city: {
               include: {
                 state: {
-                  include: {
-                    country: true,
-                  },
+                  include: { country: true },
                 },
               },
             },
@@ -364,40 +345,23 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       },
     });
 
-    // Get all new user emails from the update data
-    const newUserEmails = new Set([
-      ...data.in_charges.map(u => u.email.toLowerCase().trim()),
-      ...data.principals.map(u => u.email.toLowerCase().trim()),
-      ...data.correspondents.map(u => u.email.toLowerCase().trim()),
-    ]);
+    // Upsert all new role holders (creates account or adds this school to their schools array)
+    await Promise.all(
+      [...data.in_charges, ...data.principals, ...data.correspondents].map(u =>
+        addOrUpdateUserForSchool(u, school.id)
+      )
+    );
 
-    // Process user associations
-    await Promise.all([
-      // 1. Remove school from users who are no longer associated
-      ...currentUsers.map(async (user) => {
-        if (!newUserEmails.has(user.email.toLowerCase().trim())) {
-          await removeSchoolFromUserAndCleanup(user.id, id);
-        }
-      }),
-      
-      // 2. Add school to new/existing users
-      ...[
-        ...data.in_charges.map(u => ({ user: u, role: 'INCHARGE' as const })),
-        ...data.principals.map(u => ({ user: u, role: 'PRINCIPAL' as const })),
-        ...data.correspondents.map(u => ({ user: u, role: 'CORRESPONDENT' as const })),
-  ].map(({user, role}) => addOrUpdateUserForSchoolRole(user, school.id, role)),
-    ]);
-
-
-    // Rebuild role-based relations on School to match latest emails
-    const inchargeEmails = data.in_charges.map(u => u.email.toLowerCase().trim());
-    const principalEmails = data.principals.map(u => u.email.toLowerCase().trim());
-    const correspondentEmails = data.correspondents.map(u => u.email.toLowerCase().trim());
+    // Rebuild role relation tables — must happen BEFORE cleanup so that
+    // cleanupOrphanedUser sees the final state of principalOf/inchargeOf/correspondentOf.
+    const inchargeEmails = data.in_charges.map(u => normalizeEmail(u.email));
+    const principalEmails = data.principals.map(u => normalizeEmail(u.email));
+    const correspondentEmails = data.correspondents.map(u => normalizeEmail(u.email));
 
     const [inchargeUsers, principalUsers, correspondentUsers] = await Promise.all([
-      prisma.user.findMany({ where: { email: { in: inchargeEmails } }, select: { id: true } }),
-      prisma.user.findMany({ where: { email: { in: principalEmails } }, select: { id: true } }),
-      prisma.user.findMany({ where: { email: { in: correspondentEmails } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: inchargeEmails, mode: "insensitive" } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: principalEmails, mode: "insensitive" } }, select: { id: true } }),
+      prisma.user.findMany({ where: { email: { in: correspondentEmails, mode: "insensitive" } }, select: { id: true } }),
     ]);
 
     await prisma.school.update({
@@ -409,20 +373,88 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
       } as any,
     });
 
-    return {
-      ...school,
-      id: school.id.toString(),
-    };
+    // Now remove this school from dropped users' schools array
+    await Promise.all(
+      removedUserIds.map(async (userId) => {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { schools: true } });
+        if (!user) return;
+        await updateUser(userId, { schools: user.schools.filter(s => s !== id) });
+      })
+    );
+
+    // Sync roles then safely clean up users who no longer have any role anywhere
+    const allTouchedIds = Array.from(new Set([
+      ...currentRoleUsers.keys(),
+      ...inchargeUsers.map(u => u.id),
+      ...principalUsers.map(u => u.id),
+      ...correspondentUsers.map(u => u.id),
+    ]));
+    await syncDerivedRolesForUsers(allTouchedIds);
+    await Promise.all(removedUserIds.map(userId => cleanupOrphanedUser(userId)));
+
+    return { ...school, id: school.id.toString() };
   } catch (error) {
     console.error(`Error updating school with id ${id}:`, error);
     throw error;
   }
 }
 
-export async function getSchoolUsers(schoolId: string) {
+export type SchoolUserEntry = {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone_number: string | null;
+};
+
+export type SchoolUsersGrouped = {
+  incharges: SchoolUserEntry[];
+  principals: SchoolUserEntry[];
+  correspondents: SchoolUserEntry[];
+};
+
+function toEntry(u: {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  user_meta_data: Prisma.JsonValue | null;
+}): SchoolUserEntry {
+  const meta = (u.user_meta_data as Record<string, unknown> | null) ?? {};
+  const phone = typeof (meta as any).phone_number === "string"
+    ? ((meta as any).phone_number as string)
+    : null;
+  return {
+    id: u.id,
+    email: u.email,
+    first_name: u.first_name,
+    last_name: u.last_name,
+    phone_number: phone,
+  };
+}
+
+export async function getSchoolUsers(schoolId: string): Promise<SchoolUsersGrouped> {
   try {
-    const users = await getUsersBySchoolWithMeta(schoolId);
-    return users;
+    const school = await prisma.school.findUnique({
+      where: { id: schoolId },
+      include: {
+        incharges: {
+          select: { id: true, email: true, first_name: true, last_name: true, user_meta_data: true },
+        },
+        principals: {
+          select: { id: true, email: true, first_name: true, last_name: true, user_meta_data: true },
+        },
+        correspondents: {
+          select: { id: true, email: true, first_name: true, last_name: true, user_meta_data: true },
+        },
+      },
+    });
+    if (!school) return { incharges: [], principals: [], correspondents: [] };
+    return {
+      incharges: school.incharges.map(toEntry),
+      principals: school.principals.map(toEntry),
+      correspondents: school.correspondents.map(toEntry),
+    };
   } catch (error) {
     console.error(`Error fetching users for school ${schoolId}:`, error);
     throw error;
@@ -432,25 +464,22 @@ export async function getSchoolUsers(schoolId: string) {
 export async function deleteSchool(id: string) {
   const users = await getUsersBySchoolWithMeta(id);
 
+  // Delete school first: the CASCADE on _SchoolPrincipals/_SchoolIncharges/
+  // _SchoolCorrespondents removes M2M role rows so that cleanupOrphanedUser
+  // sees reality (no stale principalOf/inchargeOf/correspondentOf entries).
+  const deleted = await prisma.school.delete({ where: { id } });
+
+  // Remove this school from each user's schools array
   await Promise.all(
     users.map(async (user) => {
       const updatedSchools = user.schools.filter((sid) => sid !== id);
-
-      const currentMeta = (user.user_meta_data ?? {}) as Record<string, any>;
-      const rolesBySchool: Record<string, string[] | string> = {
-        ...(currentMeta.rolesBySchool ?? {}),
-      };
-      if (rolesBySchool[id]) {
-        delete rolesBySchool[id];
-      }
-    const newMeta = { ...currentMeta, rolesBySchool };
-
-    // Update the user using centralized helper instead of direct prisma call
-    await updateUser(user.id, { schools: updatedSchools, user_meta_data: newMeta as any });
-      if (updatedSchools.length === 0) { await removeSchoolFromUserAndCleanup(user.id, id); }
+      await updateUser(user.id, { schools: updatedSchools });
     })
   );
 
-  // 3) Delete the school
-  return prisma.school.delete({ where: { id } });
+  // Sync roles then safely delete users who have no remaining roles anywhere
+  await syncDerivedRolesForUsers(users.map(u => u.id));
+  await Promise.all(users.map(user => cleanupOrphanedUser(user.id)));
+
+  return deleted;
 }

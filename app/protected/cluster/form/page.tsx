@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import { Input } from "@/components/form/Input";
 import SearchableSelect from "@/components/form/SearchableSelect";
+import { Element } from "@/components/authz";
 
 type School = {
   id: number;
@@ -180,14 +181,16 @@ export default function ClusterForm() {
                   <h3 className="text-lg font-semibold text-gray-800">
                     Hub {index + 1}
                   </h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => removeHub(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Remove Hub
-                  </Button>
+                  <Element subject="ClusterForm" elementKey="field.hub.remove">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => removeHub(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove Hub
+                    </Button>
+                  </Element>
                 </div>
 
                 <div className="space-y-4">
@@ -225,26 +228,30 @@ export default function ClusterForm() {
               </div>
             ))}
 
-            <Button
-              type="button"
-              onClick={addHub}
-              variant="outline"
-              className="mt-4"
-            >
-              Add Hub
-            </Button>
+            <Element subject="ClusterForm" elementKey="field.hub.add">
+              <Button
+                type="button"
+                onClick={addHub}
+                variant="outline"
+                className="mt-4"
+              >
+                Add Hub
+              </Button>
+            </Element>
           </FormSection>
 
           <div className="flex justify-end space-x-4">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-              disabled={hubs.length === 0}
-            >
-              Submit
-            </Button>
+            <Element subject="ClusterForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+                disabled={hubs.length === 0}
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>

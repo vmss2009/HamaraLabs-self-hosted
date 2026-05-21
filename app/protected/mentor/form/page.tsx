@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import FormSection from "@/components/form/FormSection";
 import { Input } from "@/components/form/Input";
 import { Autocomplete, TextField, Chip } from "@mui/material";
+import { Element } from "@/components/authz";
 
 type School = {
   id: string;
@@ -126,6 +127,7 @@ export default function MentorForm() {
         )}
 
         <form onSubmit={onSubmit} className="space-y-8">
+          <Element subject="MentorForm" elementKey="section.personal">
           <FormSection title="Personal Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
               <div className="w-full">
@@ -171,7 +173,9 @@ export default function MentorForm() {
               </div>
             </div>
           </FormSection>
+          </Element>
 
+          <Element subject="MentorForm" elementKey="section.schools">
           <FormSection title="School Selection">
             <div className="w-full">
               <Autocomplete
@@ -237,16 +241,19 @@ export default function MentorForm() {
               />
             </div>
           </FormSection>
+          </Element>
 
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Submit
-            </Button>
+            <Element subject="MentorForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>

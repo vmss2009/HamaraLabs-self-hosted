@@ -23,6 +23,7 @@ import { getTinkeringActivityColumns } from "./tinkering-activity/columns";
 import { getTaskColumns, TaskSnapshotRow } from "./tasks/columns";
 import { EditCompetitionDialog } from "./competition/competition-edit-form/edit";
 import { EditCourseDialog } from "./course/course-edit-form/edit";
+import { Element } from "@/components/authz";
 
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
@@ -1238,18 +1239,22 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         )}
 
         <div className="flex justify-center items-center space-x-4 mb-6">
-          <Button
-            variant={currentView === "cluster" ? "default" : "outline"}
-            onClick={() => handleViewChange("cluster")}
-          >
-            Cluster View
-          </Button>
-          <Button
-            variant={currentView === "school" ? "default" : "outline"}
-            onClick={() => handleViewChange("school")}
-          >
-            School View
-          </Button>
+          <Element subject="Snapshot" elementKey="selector.view-mode">
+            <Button
+              variant={currentView === "cluster" ? "default" : "outline"}
+              onClick={() => handleViewChange("cluster")}
+            >
+              Cluster View
+            </Button>
+          </Element>
+          <Element subject="Snapshot" elementKey="selector.view-mode">
+            <Button
+              variant={currentView === "school" ? "default" : "outline"}
+              onClick={() => handleViewChange("school")}
+            >
+              School View
+            </Button>
+          </Element>
         </div>
 
   <div className="mt-4 flex items-start space-x-4 mb-6 w-[calc(100vw-6rem)] mx-auto">
@@ -1376,75 +1381,83 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   <div className="mb-6 w-[calc(100vw-6rem)] mx-auto">
           <div>
             <div className="flex space-x-4">
-              <Button
-                variant={activeTab === "tinkering" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("tinkering");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "tinkering",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Tinkering Activities
-              </Button>
-              <Button
-                variant={activeTab === "competition" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("competition");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "competition",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Competitions
-              </Button>
+              <Element subject="Snapshot" elementKey="tab.tinkering">
+                <Button
+                  variant={activeTab === "tinkering" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("tinkering");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "tinkering",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Tinkering Activities
+                </Button>
+              </Element>
+              <Element subject="Snapshot" elementKey="tab.competition">
+                <Button
+                  variant={activeTab === "competition" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("competition");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "competition",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Competitions
+                </Button>
+              </Element>
 
-              <Button
-                variant={activeTab === "courses" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("courses");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "courses",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Courses
-              </Button>
-              <Button
-                variant={activeTab === "tasks" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("tasks");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "tasks",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Tasks
-              </Button>
+              <Element subject="Snapshot" elementKey="tab.courses">
+                <Button
+                  variant={activeTab === "courses" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("courses");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "courses",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Courses
+                </Button>
+              </Element>
+              <Element subject="Snapshot" elementKey="tab.tasks">
+                <Button
+                  variant={activeTab === "tasks" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("tasks");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "tasks",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Tasks
+                </Button>
+              </Element>
             </div>
           </div>
         </div>

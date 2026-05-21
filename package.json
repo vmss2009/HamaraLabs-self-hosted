@@ -12,16 +12,17 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
+    "@aws-sdk/client-s3": "^3.884.0",
+    "@casl/ability": "^6.8.1",
+    "@casl/react": "^6.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@faker-js/faker": "^9.8.0",
+    "@floating-ui/react": "^0.27.16",
     "@google/genai": "^1.9.0",
     "@mui/material": "^7.3.2",
     "@mui/x-data-grid": "^7.28.1",
     "@prisma/client": "^6.15.0",
-    "@types/uuid": "^10.0.0",
-    "@aws-sdk/client-s3": "^3.884.0",
-    "@floating-ui/react": "^0.27.16",
     "@radix-ui/react-popover": "^1.1.15",
     "@tiptap/extension-highlight": "^3.4.2",
     "@tiptap/extension-mathematics": "^3.4.2",
@@ -34,6 +35,7 @@
     "@tiptap/pm": "^3.4.2",
     "@tiptap/react": "^3.4.2",
     "@tiptap/starter-kit": "^3.4.2",
+    "@types/uuid": "^10.0.0",
     "axios": "^1.8.4",
     "clsx": "^2.1.1",
     "countries-list": "^3.1.1",
@@ -54,6 +56,7 @@
     "zod": "^3.25.57"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -65,7 +68,6 @@
     "postcss": "^8",
     "prisma": "^6.15.0",
     "tailwindcss": "^3.4.1",
-    "@tailwindcss/typography": "^0.5.10",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }

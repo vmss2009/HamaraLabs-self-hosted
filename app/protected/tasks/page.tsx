@@ -17,6 +17,7 @@ import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import TaskDetailViewer from "@/components/form/TaskDetailViewer";
 import SearchableSelect from "@/components/form/SearchableSelect";
 import type { TaskStatus } from "@/lib/db/task/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 type TaskRow = {
   id: string;
@@ -73,6 +74,7 @@ function formatDate(value: string | null) {
 }
 
 export default function TasksPage() {
+  const ability = useAppAbility();
   const [activeTab, setActiveTab] = useState<"assigned" | "created">("assigned");
   const [assignedTasks, setAssignedTasks] = useState<TaskRow[]>([]);
   const [createdTasks, setCreatedTasks] = useState<TaskRow[]>([]);
@@ -347,15 +349,18 @@ export default function TasksPage() {
         width: 120,
         getActions: (params) => {
           const current = params.row.status as TaskStatus;
-          const actions: any[] = [
-            <GridActionsCellItem
-              key="edit"
-              icon={<EditIcon />}
-              label="Edit"
-              onClick={() => handleEdit(params.row)}
-            />,
-          ];
-          if (current !== "COMPLETED") {
+          const actions: any[] = [];
+          if (ability.can("view", "TaskReport", "row.edit")) {
+            actions.push(
+              <GridActionsCellItem
+                key="edit"
+                icon={<EditIcon />}
+                label="Edit"
+                onClick={() => handleEdit(params.row)}
+              />
+            );
+          }
+          if (current !== "COMPLETED" && ability.can("view", "TaskReport", "row.mark-complete")) {
             actions.push(
               <GridActionsCellItem
                 key="complete"
@@ -365,7 +370,7 @@ export default function TasksPage() {
               />
             );
           }
-          if (current === "COMPLETED") {
+          if (current === "COMPLETED" && ability.can("view", "TaskReport", "row.reopen")) {
             actions.push(
               <GridActionsCellItem
                 key="reopen"
@@ -379,7 +384,7 @@ export default function TasksPage() {
         },
       },
     ],
-    [schoolNameLookup]
+    [schoolNameLookup, ability]
   );
 
   const columnsCreated: GridColDef[] = useMemo(
@@ -442,29 +447,38 @@ export default function TasksPage() {
         headerName: "Actions",
         width: 120,
         getActions: (params) => {
-          return [
-            <GridActionsCellItem
-              key="edit"
-              icon={<EditIcon />}
-              label="Edit"
-              onClick={() => handleEdit(params.row)}
-            />,
-            <GridActionsCellItem
-              key="delete"
-              icon={<DeleteIcon />}
-              label="Delete"
-              onClick={() => handleDelete(params.row)}
-              color="error"
-            />,
-          ];
+          const acts: any[] = [];
+          if (ability.can("view", "TaskReport", "row.edit")) {
+            acts.push(
+              <GridActionsCellItem
+                key="edit"
+                icon={<EditIcon />}
+                label="Edit"
+                onClick={() => handleEdit(params.row)}
+              />
+            );
+          }
+          if (ability.can("view", "TaskReport", "row.delete")) {
+            acts.push(
+              <GridActionsCellItem
+                key="delete"
+                icon={<DeleteIcon />}
+                label="Delete"
+                onClick={() => handleDelete(params.row)}
+                color="error"
+              />
+            );
+          }
+          return acts;
         },
       },
     ],
-    [schoolNameLookup]
+    [schoolNameLookup, ability]
   );
 
   const rows = activeTab === "assigned" ? assignedTasks : createdTasks;
   const columns = activeTab === "assigned" ? columnsAssigned : columnsCreated;
+  const visibleColumns = useGridColumns("TaskReport", columns);
 
   const openCreateModal = () => {
     setEditingTask(null);
@@ -566,24 +580,30 @@ export default function TasksPage() {
   <div className="p-6 space-y-6 lg:pl-24">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-white">Tasks</h1>
-        <Button variant="default" onClick={openCreateModal}>
-          New Task
-        </Button>
+        <Element subject="TaskReport" elementKey="action.create-task">
+          <Button variant="default" onClick={openCreateModal}>
+            New Task
+          </Button>
+        </Element>
       </div>
 
       <div className="flex gap-3">
-        <Button
-          variant={activeTab === "assigned" ? "default" : "outline"}
-          onClick={() => setActiveTab("assigned")}
-        >
-          Assigned to me
-        </Button>
-        <Button
-          variant={activeTab === "created" ? "default" : "outline"}
-          onClick={() => setActiveTab("created")}
-        >
-          Created by me
-        </Button>
+        <Element subject="TaskReport" elementKey="tab.assigned">
+          <Button
+            variant={activeTab === "assigned" ? "default" : "outline"}
+            onClick={() => setActiveTab("assigned")}
+          >
+            Assigned to me
+          </Button>
+        </Element>
+        <Element subject="TaskReport" elementKey="tab.created">
+          <Button
+            variant={activeTab === "created" ? "default" : "outline"}
+            onClick={() => setActiveTab("created")}
+          >
+            Created by me
+          </Button>
+        </Element>
       </div>
 
       {error && (
@@ -601,7 +621,7 @@ export default function TasksPage() {
       <div className="bg-gray-50 rounded-xl shadow-sm">
         <DataGrid
           rows={rows}
-          columns={columns}
+          columns={visibleColumns}
           getRowId={(row) => row.id}
           loading={loading}
           autoHeight
@@ -628,7 +648,9 @@ export default function TasksPage() {
           slots={{
             toolbar: () => (
               <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                <Element subject="TaskReport" elementKey="tool.quick-filter">
+                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                </Element>
               </GridToolbarContainer>
             ),
           }}

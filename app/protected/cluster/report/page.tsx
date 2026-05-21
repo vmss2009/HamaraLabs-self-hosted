@@ -7,6 +7,7 @@ import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import { useRouter } from "next/navigation";
 import ReportShell from "@/components/form/ReportShell";
 import Alert from "@/components/ui/Alert";
+import { Element } from "@/components/authz";
 
 type ClusterSchool = { id: number; name: string };
 
@@ -78,28 +79,34 @@ export default function ClusterReport() {
               <div className="space-y-2 h-64 overflow-y-auto">
                 {clusters.map((cluster) => (
                   <div key={cluster.id} className="flex items-center space-x-2">
-                    <Button
-                      variant={selectedCluster?.id === cluster.id ? "default" : "outline"}
-                      className="flex-grow justify-start"
-                      onClick={() => setSelectedCluster(cluster)}
-                    >
-                      {cluster.name}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push(`/protected/cluster/form/${cluster.id}`)}
-                    >
-                      <EditIcon />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => handleDelete(cluster.id)}
-                    >
-                      <DeleteIcon />
-                    </Button>
+                    <Element subject="ClusterReport" elementKey="card.view">
+                      <Button
+                        variant={selectedCluster?.id === cluster.id ? "default" : "outline"}
+                        className="flex-grow justify-start"
+                        onClick={() => setSelectedCluster(cluster)}
+                      >
+                        {cluster.name}
+                      </Button>
+                    </Element>
+                    <Element subject="ClusterReport" elementKey="card.edit">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/protected/cluster/form/${cluster.id}`)}
+                      >
+                        <EditIcon />
+                      </Button>
+                    </Element>
+                    <Element subject="ClusterReport" elementKey="card.delete">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDelete(cluster.id)}
+                      >
+                        <DeleteIcon />
+                      </Button>
+                    </Element>
                   </div>
                 ))}
               </div>

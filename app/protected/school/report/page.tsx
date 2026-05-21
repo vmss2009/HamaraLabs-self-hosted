@@ -16,6 +16,7 @@ import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import SchoolDetailViewer from "@/components/form/SchoolDetailViewer";
 import Alert from "@/components/ui/Alert";
 import ReportShell from "@/components/form/ReportShell";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 interface UserRole {
   id: string;
@@ -57,6 +58,7 @@ interface School {
 
 export default function Page() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -175,23 +177,35 @@ export default function Page() {
       type: "actions",
       headerName: "Actions",
       width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label="Edit"
-          onClick={() => router.push(`/protected/school/form/${params.row.id}`)}
-        />,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteIcon />}
-          label="Delete"
-          onClick={() => handleDelete(params.row.id)}
-          color="error"
-        />,
-      ],
+      getActions: (params) => {
+        const actions: any[] = [];
+        if (ability.can("view", "SchoolReport", "row.edit")) {
+          actions.push(
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() => router.push(`/protected/school/form/${params.row.id}`)}
+            />,
+          );
+        }
+        if (ability.can("view", "SchoolReport", "row.delete")) {
+          actions.push(
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />,
+          );
+        }
+        return actions;
+      },
     },
   ];
+
+  const visibleColumns = useGridColumns("SchoolReport", columns);
 
   const fetchSchools = async () => {
     try {
@@ -201,43 +215,36 @@ export default function Page() {
       }
       const data = await response.json();
 
-      // Fetch users for all schools
+      // Fetch users (grouped by role via FK relations) for all schools
       const schoolsWithUsers = await Promise.all(
         data.map(async (school: Record<string, unknown>) => {
           try {
             const usersResponse = await fetch(`/api/schools/${school.id}/users`);
-            const users = usersResponse.ok ? await usersResponse.json() : [];
-            
+            const grouped = usersResponse.ok
+              ? (await usersResponse.json()) as {
+                  incharges: Array<{ id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+                  principals: Array<{ id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+                  correspondents: Array<{ id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+                }
+              : { incharges: [], principals: [], correspondents: [] };
+
             const sc: any = school as any;
             const address: any = sc.address || {};
             const city: any = address.city || {};
             const state: any = city.state || {};
             const country: any = state.country || {};
-            const schoolId = String(sc.id);
 
-            // Split users by role for this school using user_meta_data.rolesBySchool
-            const principalsList: any[] = [];
-            const correspondentsList: any[] = [];
-            const inChargesList: any[] = [];
-            const usersList: any[] = [];
-
-            users.forEach((user: any) => {
-              const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-              const email = user.email;
-              const phone = user.user_meta_data?.phone_number || 'N/A';
-              const entry = { name, email, phone, id: user.id };
-              usersList.push(entry);
-
-              const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
-              const roles = rolesBySchool[schoolId] || [];
-              const arr = Array.isArray(roles) ? roles : [roles];
-              arr.forEach((r: string) => {
-                const role = r?.toUpperCase?.();
-                if (role === 'PRINCIPAL') principalsList.push(entry);
-                else if (role === 'CORRESPONDENT') correspondentsList.push(entry);
-                else if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargesList.push(entry);
-              });
+            const toEntry = (u: { id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }) => ({
+              id: u.id,
+              email: u.email,
+              phone: u.phone_number ?? 'N/A',
+              name: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email,
             });
+
+            const principalsList = grouped.principals.map(toEntry);
+            const correspondentsList = grouped.correspondents.map(toEntry);
+            const inChargesList = grouped.incharges.map(toEntry);
+            const usersList = [...principalsList, ...correspondentsList, ...inChargesList];
 
             const principalsDisplay = principalsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
             const correspondentsDisplay = correspondentsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
@@ -302,6 +309,7 @@ export default function Page() {
   }, []);
 
   const handleRowClick = (params: GridRowParams<School>) => {
+    if (!ability.can("view", "SchoolReport", "row.click-detail")) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -343,7 +351,7 @@ export default function Page() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={schools}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -358,8 +366,12 @@ export default function Page() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="SchoolReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="SchoolReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

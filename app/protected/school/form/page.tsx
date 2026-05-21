@@ -10,6 +10,7 @@ import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import DynamicFieldArray from "@/components/form/DynamicFieldArray";
 import MultipleUserInput from "@/components/form/MultipleUserInput";
 import { useRouter } from "next/navigation";
+import { Element } from "@/components/authz";
 
 interface UserData {
   email: string;
@@ -312,6 +313,7 @@ export default function SchoolForm() {
         )}
 
         <form onSubmit={onSubmit} className="space-y-6">
+          <Element subject="SchoolForm" elementKey="section.basic">
           <FormSection
             title="Basic Information"
             description="Enter the basic details of the school"
@@ -359,7 +361,9 @@ export default function SchoolForm() {
               )}
             </div>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.address">
           <FormSection
             title="School Address"
             description="Enter the address details of the school"
@@ -465,7 +469,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               </div>
             </div>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.in-charges">
           <FormSection
             title="In-Charge Details"
             description="Add one or more in-charge persons (at least one is required)"
@@ -479,7 +485,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               minUsers={1}
             />
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.principals">
           <FormSection
             title="Principal Details"
             description="Add principals for the school (optional)"
@@ -493,7 +501,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               minUsers={0}
             />
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.correspondents">
           <FormSection
             title="Correspondent Details"
             description="Add correspondents for the school (optional)"
@@ -507,7 +517,9 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               minUsers={0}
             />
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.additional">
           <FormSection
             title="Additional Information"
             description="Enter additional details about the school"
@@ -551,16 +563,19 @@ const response = await fetch(`/api/states?countryId=${v}`, { signal: ctrl.signal
               />
             </div>
           </FormSection>
+          </Element>
 
           <div className="flex justify-end space-x-4">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Submit
-            </Button>
+            <Element subject="SchoolForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>

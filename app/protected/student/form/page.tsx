@@ -8,6 +8,7 @@ import SelectField from "@/components/form/SelectField";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import GuardianMultiform, { Guardian } from "@/components/form/GuardianMultiform";
 import { useRouter } from "next/navigation";
+import { Element } from "@/components/authz";
 
 export default function StudentForm() {
   const router = useRouter();
@@ -127,6 +128,7 @@ export default function StudentForm() {
         )}
 
         <form onSubmit={onSubmit} className="space-y-8">
+          <Element subject="StudentForm" elementKey="section.school">
           <FormSection title="School Information">
             <SelectField
               label="Select School"
@@ -141,7 +143,9 @@ export default function StudentForm() {
               className="w-full px-4 py-2rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
             />
           </FormSection>
+          </Element>
 
+          <Element subject="StudentForm" elementKey="section.basic">
           <FormSection title="Basic Information">
             <TextFieldGroup
               fields={[
@@ -180,23 +184,28 @@ export default function StudentForm() {
               className="mt-5"
             />
           </FormSection>
+          </Element>
 
+          <Element subject="StudentForm" elementKey="section.guardians">
           <FormSection title="Guardian Information">
             <GuardianMultiform
               guardians={guardians}
               onChange={setGuardians}
             />
           </FormSection>
+          </Element>
 
           <div className="flex justify-end mt-6">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Submit
-            </Button>
+            <Element subject="StudentForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>

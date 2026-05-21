@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { CreateRoomModal } from '@/components/chat/CreateRoomModal';
+import { Element } from '@/components/authz';
 
 export default function ChatsIndex() {
   const { data: session } = useSession();
@@ -50,13 +51,15 @@ export default function ChatsIndex() {
       <header className="sticky top-0 z-10 h-14 border-b" style={{ background: 'var(--surface-2)', borderColor: 'var(--border-subtle)' }}>
         <div className="h-full w-full pl-14 pr-3 sm:pl-16 sm:pr-5 flex items-center justify-between">
           <h1 className="text-sm font-semibold tracking-wide uppercase">Chats</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-3 py-1.5 rounded text-xs font-medium border transition-colors"
-            style={{ background: 'color-mix(in srgb, var(--foreground) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--foreground) 18%, transparent)' }}
-          >
-            Create chat
-          </button>
+          <Element subject="Chats" elementKey="action.create-room">
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-3 py-1.5 rounded text-xs font-medium border transition-colors"
+              style={{ background: 'color-mix(in srgb, var(--foreground) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--foreground) 18%, transparent)' }}
+            >
+              Create chat
+            </button>
+          </Element>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6">

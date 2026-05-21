@@ -106,32 +106,26 @@ export default function EditSchoolForm({
         setCities(citiesData);
         setSelectedCity(data.address.city.id.toString());
 
-        // Fetch users and classify by rolesBySchool metadata
+        // Fetch users grouped by role (via FK relations)
         const usersResp = await fetch(`/api/schools/${resolvedParams.id}/users`);
-        const users = usersResp.ok ? await usersResp.json() : [];
+        const grouped = usersResp.ok
+          ? (await usersResp.json()) as {
+              incharges: Array<{ email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+              principals: Array<{ email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+              correspondents: Array<{ email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+            }
+          : { incharges: [], principals: [], correspondents: [] };
 
-        const schoolId = String(resolvedParams.id);
-        const inChargeUsers: UserData[] = [];
-        const principalUsers: UserData[] = [];
-        const correspondentUsers: UserData[] = [];
-
-        users.forEach((user: any) => {
-          const entry: UserData = {
-            email: user.email,
-            first_name: user.first_name || "",
-            last_name: user.last_name || "",
-            phone_number: user.user_meta_data?.phone_number || "",
-          };
-          const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
-          const roles = rolesBySchool[schoolId] || [];
-          const arr = Array.isArray(roles) ? roles : [roles];
-          arr.forEach((r: string) => {
-            const role = r?.toUpperCase?.();
-            if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargeUsers.push(entry);
-            else if (role === 'PRINCIPAL') principalUsers.push(entry);
-            else if (role === 'CORRESPONDENT') correspondentUsers.push(entry);
-          });
+        const toUserData = (u: { email: string; first_name: string | null; last_name: string | null; phone_number: string | null }): UserData => ({
+          email: u.email,
+          first_name: u.first_name || "",
+          last_name: u.last_name || "",
+          phone_number: u.phone_number || "",
         });
+
+        const inChargeUsers = grouped.incharges.map(toUserData);
+        const principalUsers = grouped.principals.map(toUserData);
+        const correspondentUsers = grouped.correspondents.map(toUserData);
 
         setInCharges(inChargeUsers.length > 0 ? inChargeUsers : [{
           email: "",

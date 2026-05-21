@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
 import { StudentCreateInput, StudentFilter } from "../type";
-import { createUser, updateUser, deleteUser } from "@/lib/db/auth/user";
+import { createUser, updateUser, deleteUser, syncDerivedRoles } from "@/lib/db/auth/user";
 import { ensureEmailsAvailable, normalizeEmail } from "@/lib/db/shared/email";
-
-type StudentRole = 'STUDENT';
 
 async function cleanupOrphanedUser(userId: string) {
   try {
@@ -28,41 +26,6 @@ async function cleanupOrphanedUser(userId: string) {
   }
 }
 
-function addRoleForSchool(meta: any, schoolId: string, role: StudentRole) {
-  const currentMeta = (meta ?? {}) as Record<string, any>;
-  const rolesBySchool: Record<string, string[] | string> = {
-    ...(currentMeta.rolesBySchool ?? {}),
-  };
-  const existing = rolesBySchool[schoolId];
-  let updatedForSchool: string[];
-  if (!existing) {
-    updatedForSchool = [role];
-  } else if (Array.isArray(existing)) {
-    updatedForSchool = Array.from(new Set([...existing, role]));
-  } else {
-    updatedForSchool = Array.from(new Set([existing, role]));
-  }
-  rolesBySchool[schoolId] = updatedForSchool;
-  return { ...currentMeta, rolesBySchool };
-}
-
-function removeRoleForSchool(meta: any, schoolId: string, role: StudentRole) {
-  const currentMeta = (meta ?? {}) as Record<string, any>;
-  const rolesBySchool: Record<string, string[] | string> = {
-    ...(currentMeta.rolesBySchool ?? {}),
-  };
-  const existing = rolesBySchool[schoolId];
-  if (!existing) return currentMeta;
-  const arr = Array.isArray(existing) ? existing : [existing];
-  const filtered = arr.filter((r) => String(r).toUpperCase() !== role);
-  if (filtered.length === 0) {
-    delete rolesBySchool[schoolId];
-  } else {
-    rolesBySchool[schoolId] = filtered;
-  }
-  return { ...currentMeta, rolesBySchool };
-}
-
 async function ensureUserForStudent(
   email: string,
   first_name: string,
@@ -75,12 +38,10 @@ async function ensureUserForStudent(
     const updatedSchools = existingUser.schools.includes(schoolId)
       ? existingUser.schools
       : [...existingUser.schools, schoolId];
-    const newMeta = addRoleForSchool(existingUser.user_meta_data, schoolId, 'STUDENT');
     const updated = await updateUser(existingUser.id, {
       first_name,
       last_name,
       schools: updatedSchools,
-      user_meta_data: newMeta,
     });
     return updated.id;
   } else {
@@ -89,7 +50,6 @@ async function ensureUserForStudent(
       first_name,
       last_name,
       schools: [schoolId],
-      user_meta_data: addRoleForSchool({}, schoolId, 'STUDENT'),
     });
     return created.id;
   }
@@ -99,8 +59,7 @@ async function removeStudentAccessFromUser(userId: string, schoolId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return;
   const updatedSchools = user.schools.filter((s) => s !== schoolId);
-  const newMeta = removeRoleForSchool(user.user_meta_data, schoolId, 'STUDENT');
-  await updateUser(userId, { schools: updatedSchools, user_meta_data: newMeta });
+  await updateUser(userId, { schools: updatedSchools });
   await cleanupOrphanedUser(userId);
 }
 
@@ -144,6 +103,8 @@ export async function createStudent(data: StudentCreateInput) {
         school: true,
       },
     });
+
+    if (userId) await syncDerivedRoles(userId);
 
     return student;
   } catch (error) {
@@ -325,8 +286,10 @@ export async function updateStudent(id: string, data: StudentCreateInput) {
 
     // Now that student points to the new user, safely cleanup the old user if any
     if (oldUserIdForCleanup) {
+      await syncDerivedRoles(oldUserIdForCleanup);
       await cleanupOrphanedUser(oldUserIdForCleanup);
     }
+    if (userId) await syncDerivedRoles(userId);
 
     return updatedStudent;
   } catch (error) {
@@ -360,12 +323,13 @@ export async function deleteStudent(id: string) {
 
     // Delete the student
     await prisma.student.delete({ where: { id } });
-    
-    // Attempt safe cleanup of user AFTER student deletion (only if no associations)
+
+    // Sync roles + safe cleanup of user AFTER student deletion
     if (student.user_id) {
+      await syncDerivedRoles(student.user_id);
       await cleanupOrphanedUser(student.user_id);
     }
-    
+
   } catch (error) {
     console.error(`Error deleting student with id ${id}:`, error);
     throw error;

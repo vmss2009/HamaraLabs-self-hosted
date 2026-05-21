@@ -18,9 +18,11 @@ import ReportShell from "@/components/form/ReportShell";
 import Alert from "@/components/ui/Alert";
 import AssignDialog from "@/components/form/DialogBox";
 import { Course } from "@/lib/db/course/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 export default function CourseReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [courses, setCourses] = useState<Course[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -150,33 +152,41 @@ export default function CourseReport() {
       width: 170,
       renderCell: (params) => (
         <div className="flex items-center justify-center gap-2 w-full h-full">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={() => handleAssign(params.row)}
-          >
-            Assign
-          </Button>
-          <GridActionsCellItem
-            key="edit"
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={() =>
-              router.push(`/protected/course/form/${params.row.id}`)
-            }
-          />
-          <GridActionsCellItem
-            key="delete"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => handleDelete(params.row.id)}
-            color="error"
-          />
+          {ability.can("view", "CourseReport", "row.assign") && (
+            <Button
+              variant="default"
+              color="primary"
+              size="sm"
+              onClick={() => handleAssign(params.row)}
+            >
+              Assign
+            </Button>
+          )}
+          {ability.can("view", "CourseReport", "row.edit") && (
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/course/form/${params.row.id}`)
+              }
+            />
+          )}
+          {ability.can("view", "CourseReport", "row.delete") && (
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />
+          )}
         </div>
       ),
     },
   ];
+
+  const visibleColumns = useGridColumns("CourseReport", columns);
 
   return (
     <ReportShell>
@@ -204,7 +214,7 @@ export default function CourseReport() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={courses}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -215,8 +225,12 @@ export default function CourseReport() {
             slots={{
               toolbar: () => (
                 <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                  <Element subject="CourseReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  </Element>
+                  <Element subject="CourseReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
                 </GridToolbarContainer>
               ),
             }}

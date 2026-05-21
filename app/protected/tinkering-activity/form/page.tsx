@@ -9,6 +9,7 @@ import SearchableSelect from "@/components/form/SearchableSelect";
 import MultiForm from "@/components/form/Multiform";
 import { Input } from "@/components/form/Input";
 import { Subject, Topic, Subtopic } from "@/lib/db/tinkering-activity/type";
+import { Element } from "@/components/authz";
 
 export default function TinkeringActivityForm() {
   const router = useRouter();
@@ -387,14 +388,16 @@ export default function TinkeringActivityForm() {
           </FormSection>
 
           <div className="flex justify-end space-x-4">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Submit
-            </Button>
+            <Element subject="TinkeringActivityForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>
