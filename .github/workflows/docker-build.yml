@@ -1,8 +1,12 @@
 name: Build and Push Docker Image
 
 on:
-  repository_dispatch:
-    types: [deploy]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Docker image version tag (e.g., v1.0.0, 1.2.3)'
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -16,10 +20,8 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout repository (latest code)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,14 +33,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from dispatch payload
+      - name: Set version tag
         id: version
         run: |
-          VERSION="${{ github.event.client_payload.version }}"
-          if [ -z "$VERSION" ]; then
-            VERSION="latest"
-          fi
-          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${{ inputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels)
         id: meta
