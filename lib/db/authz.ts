@@ -54,6 +54,21 @@ export async function getRulesForUser(userId: string): Promise<{
     }
   }
 
+  const userPerms = await prisma.userPermission.findMany({
+    where: { user_id: userId },
+    include: { permission: true },
+  });
+  for (const up of userPerms) {
+    if (up.inverted) {
+      // Deny override — push regardless of role grants; CASL deny takes precedence
+      permissions.push({ ...up.permission, inverted: true });
+    } else {
+      if (seen.has(up.permission.id)) continue;
+      seen.add(up.permission.id);
+      permissions.push(up.permission);
+    }
+  }
+
   return { user, permissions };
 }
 
@@ -155,6 +170,60 @@ export async function upsertPermission(input: {
       reason: reason ?? undefined,
       description: description ?? undefined,
     },
+  });
+}
+
+export async function getUserPermissionState(userId: string): Promise<{
+  roleGrantedIds: string[];
+  customGrantedIds: string[];
+  customDeniedIds: string[];
+}> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { roles: true },
+  });
+  const roleGrantedIds: string[] = [];
+  if (user && user.roles.length > 0) {
+    const rolesWithPerms = await prisma.role.findMany({
+      where: { name: { in: user.roles } },
+      include: { role_permissions: { select: { permission_id: true } } },
+    });
+    const seen = new Set<string>();
+    for (const role of rolesWithPerms) {
+      for (const rp of role.role_permissions) {
+        if (!seen.has(rp.permission_id)) {
+          seen.add(rp.permission_id);
+          roleGrantedIds.push(rp.permission_id);
+        }
+      }
+    }
+  }
+
+  const userPerms = await prisma.userPermission.findMany({
+    where: { user_id: userId },
+    select: { permission_id: true, inverted: true },
+  });
+  const customGrantedIds = userPerms.filter((u) => !u.inverted).map((u) => u.permission_id);
+  const customDeniedIds = userPerms.filter((u) => u.inverted).map((u) => u.permission_id);
+
+  return { roleGrantedIds, customGrantedIds, customDeniedIds };
+}
+
+export async function addUserPermission(
+  userId: string,
+  permissionId: string,
+  inverted = false,
+) {
+  return prisma.userPermission.upsert({
+    where: { user_id_permission_id: { user_id: userId, permission_id: permissionId } },
+    create: { user_id: userId, permission_id: permissionId, inverted },
+    update: { inverted },
+  });
+}
+
+export async function removeUserPermission(userId: string, permissionId: string) {
+  return prisma.userPermission.deleteMany({
+    where: { user_id: userId, permission_id: permissionId },
   });
 }
 

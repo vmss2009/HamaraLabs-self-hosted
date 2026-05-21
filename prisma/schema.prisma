@@ -28,10 +28,11 @@ model User {
   notifications   Notification[]
   createdTasks    Task[]         @relation("CreatedTasks")
   assignedTasks   Task[]         @relation("AssignedTasks")
-  inchargeOf      School[]       @relation("SchoolIncharges")
-  principalOf     School[]       @relation("SchoolPrincipals")
-  correspondentOf School[]       @relation("SchoolCorrespondents")
-  roles           String[]       @default([])
+  inchargeOf         School[]         @relation("SchoolIncharges")
+  principalOf        School[]         @relation("SchoolPrincipals")
+  correspondentOf    School[]         @relation("SchoolCorrespondents")
+  roles              String[]         @default([])
+  custom_permissions UserPermission[]
 }
 
 model Permission {
@@ -46,7 +47,8 @@ model Permission {
   reason      String?
   description String?
 
-  role_permissions RolePermission[]
+  role_permissions   RolePermission[]
+  user_permissions   UserPermission[]
 
   @@unique([action, subject, field])
   @@index([subject])
@@ -74,6 +76,21 @@ model RolePermission {
 
   @@unique([role_id, permission_id])
   @@index([role_id])
+  @@index([permission_id])
+}
+
+model UserPermission {
+  id            String   @id @default(uuid())
+  user_id       String
+  permission_id String
+  inverted      Boolean  @default(false)
+  created_at    DateTime @default(now())
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, permission_id])
+  @@index([user_id])
   @@index([permission_id])
 }
 

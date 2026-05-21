@@ -51,6 +51,8 @@ const UI_ELEMENTS: Record<string, string[]> = {
     "nav.calendar",
     "nav.chats",
     "nav.notifications",
+    "nav.admin.users",
+    "nav.admin.roles",
     "action.logout",
   ],
 

@@ -60,6 +60,43 @@ async function addOrUpdateUserForSchool(userData: UserInput, schoolId: string) {
     });
 }
 
+/**
+ * Throws if any email in `emails` already belongs to a school other than
+ * `currentSchoolId`. Pass null for create (any existing school is a conflict).
+ * Within-school multi-role is fine — same email, same school → passes.
+ */
+async function checkSingleSchoolConstraint(
+  emails: string[],
+  currentSchoolId: string | null,
+): Promise<void> {
+  const normalized = [...new Set(emails.map(normalizeEmail))];
+  if (normalized.length === 0) return;
+
+  const existingUsers = await prisma.user.findMany({
+    where: { email: { in: normalized, mode: "insensitive" } },
+    select: { email: true, schools: true },
+  });
+
+  const conflicts: string[] = [];
+  for (const user of existingUsers) {
+    const otherSchoolIds = user.schools.filter((s) => s !== currentSchoolId);
+    if (otherSchoolIds.length === 0) continue;
+
+    const schools = await prisma.school.findMany({
+      where: { id: { in: otherSchoolIds } },
+      select: { name: true },
+    });
+    const names = schools.map((s) => s.name).join(", ");
+    conflicts.push(`${user.email} is already associated with: ${names}`);
+  }
+
+  if (conflicts.length > 0) {
+    throw new Error(
+      `The following people are already linked to another school and cannot be added here:\n${conflicts.join("\n")}`,
+    );
+  }
+}
+
 async function cleanupOrphanedUser(userId: string) {
     try {
         const user = await prisma.user.findUnique({
@@ -93,9 +130,13 @@ async function cleanupOrphanedUser(userId: string) {
 
 export async function createSchool(data: SchoolCreateInput): Promise<SchoolWithAddress> {
   try {
-    // No email uniqueness gate here: addOrUpdateUserForSchool upserts, so a
-    // person who is already principal/incharge at another school is simply
-    // linked to this school without creating a duplicate account.
+    const allEmails = [
+      ...data.in_charges.map((u) => u.email),
+      ...data.principals.map((u) => u.email),
+      ...data.correspondents.map((u) => u.email),
+    ];
+    await checkSingleSchoolConstraint(allEmails, null);
+
     const school = await prisma.school.create({
       data: {
         name: data.name,
@@ -283,6 +324,13 @@ export async function updateSchool(id: string, data: SchoolUpdateInput): Promise
     if (!currentSchool) {
       throw new Error("School not found");
     }
+
+    const allEmails = [
+      ...data.in_charges.map((u) => u.email),
+      ...data.principals.map((u) => u.email),
+      ...data.correspondents.map((u) => u.email),
+    ];
+    await checkSingleSchoolConstraint(allEmails, id);
 
     // Deduplicated map of current role-holder id -> email (a user can hold multiple roles)
     const currentRoleUsers = new Map<string, string>();

@@ -83,6 +83,13 @@ const SECTIONS: NavSection[] = [
         title: "Chats",
         items: [{ key: "nav.chats", href: "/protected/chats", label: "Chats" }],
     },
+    {
+        title: "Admin",
+        items: [
+            { key: "nav.admin.users", href: "/protected/admin/users", label: "Users" },
+            { key: "nav.admin.roles", href: "/protected/admin/roles", label: "Roles" },
+        ],
+    },
 ];
 
 function NavLinkItem({
