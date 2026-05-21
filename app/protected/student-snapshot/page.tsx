@@ -23,7 +23,7 @@ import { getTinkeringActivityColumns } from "./tinkering-activity/columns";
 import { getTaskColumns, TaskSnapshotRow } from "./tasks/columns";
 import { EditCompetitionDialog } from "./competition/competition-edit-form/edit";
 import { EditCourseDialog } from "./course/course-edit-form/edit";
-import { Element } from "@/components/authz";
+import { Element, useAppAbility } from "@/components/authz";
 
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
@@ -96,6 +96,7 @@ interface TinkeringActivitySelection extends SnapshotItem {
 function StudentSnapshot() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const ability = useAppAbility();
 
   // Prevent state updates before mount or after unmount
   const isMounted = useRef(false);
@@ -1225,6 +1226,17 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       tab: activeTab,
     });
   };
+
+  if (!ability.can("view", "Drawer", "nav.student-snapshot")) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-400">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
+          <p className="text-xl font-semibold text-gray-700">Access Denied</p>
+          <p className="text-gray-500 mt-2">You don&apos;t have permission to view this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-400 h-screen  w-screen ">

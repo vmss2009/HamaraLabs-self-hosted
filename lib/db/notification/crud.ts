@@ -30,7 +30,7 @@ async function sendExternalNotificationAlerts(notifications: ExternalNotifyPaylo
   await Promise.allSettled(
     notifications.map(async (notification) => {
         const message = buildMessageBody(notification) ?? "";
-        const url = `https://hamaralabs-notify.hamaralabs.com/alerts-${notification.userId}`;
+        const url = `${process.env.NOTIFY_BASE_URL}/alerts-${notification.userId}`;
         const priority = userPriorityMap.get(notification.userId) ?? 3;
         try {
         fetch(url, {
