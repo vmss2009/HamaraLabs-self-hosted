@@ -88,6 +88,7 @@ const SECTIONS: NavSection[] = [
         items: [
             { key: "nav.admin.users", href: "/protected/admin/users", label: "Users" },
             { key: "nav.admin.roles", href: "/protected/admin/roles", label: "Roles" },
+            { key: "nav.admin.subjects", href: "/protected/admin/subjects", label: "Subjects" },
         ],
     },
 ];

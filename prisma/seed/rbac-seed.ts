@@ -24,6 +24,9 @@ const MODEL_SUBJECTS = [
   "Schedule",
   "Message",
   "ChatRoom",
+  "Subject",
+  "Topic",
+  "Subtopic",
 ] as const;
 
 const CRUD_ACTIONS = ["view", "create", "update", "delete"] as const;
@@ -53,6 +56,7 @@ const UI_ELEMENTS: Record<string, string[]> = {
     "nav.notifications",
     "nav.admin.users",
     "nav.admin.roles",
+    "nav.admin.subjects",
     "action.logout",
   ],
 
@@ -633,6 +637,18 @@ const UI_ELEMENTS: Record<string, string[]> = {
     "row.delete",
     "filter.subject",
     "filter.action",
+  ],
+
+  AdminSubjects: [
+    "action.create-subject",
+    "action.create-topic",
+    "action.create-subtopic",
+    "row.edit-subject",
+    "row.delete-subject",
+    "row.edit-topic",
+    "row.delete-topic",
+    "row.edit-subtopic",
+    "row.delete-subtopic",
   ],
 };
 

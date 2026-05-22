@@ -66,6 +66,10 @@ export type AppSubject =
   | "AdminUsers"
   | "AdminRoles"
   | "AdminPermissions"
+  | "AdminSubjects"
+  | "Subject"
+  | "Topic"
+  | "Subtopic"
   | (string & {});
 
 export type SerializedRule = {
