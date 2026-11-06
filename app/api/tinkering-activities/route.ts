@@ -6,8 +6,12 @@ import {
 } from "@/lib/db/tinkering-activity/crud";
 import { TinkeringActivityWithSubtopic } from "@/lib/db/tinkering-activity/type";
 import { tinkeringActivitySchema } from "@/lib/db/tinkering-activity/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const subtopicId = searchParams.get("subtopicId");
@@ -41,6 +45,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const data = await request.json();
 

@@ -10,6 +10,7 @@ import SearchableSelect from "@/components/form/SearchableSelect";
 import { SchoolWithAddress } from "@/lib/db/school/type";
 import { User } from "@prisma/client";
 import DateFieldGroup from "@/components/form/DateField";
+import { Element } from "@/components/authz";
 
 interface DetailItem {
   key: string;
@@ -361,23 +362,27 @@ export default function SchoolVisitForm() {
                   </div>
                   <div className="flex gap-2 mt-8">
                     {index === details.length - 1 && (
+                      <Element subject="SchoolVisitForm" elementKey="field.details.add">
+                        <button
+                          type="button"
+                          onClick={addDetailField}
+                          className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
+                          aria-label="Add"
+                        >
+                          +
+                        </button>
+                      </Element>
+                    )}
+                    <Element subject="SchoolVisitForm" elementKey="field.details.remove">
                       <button
                         type="button"
-                        onClick={addDetailField}
-                        className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-full font-bold"
-                        aria-label="Add"
+                        onClick={() => removeDetailField(index)}
+                        className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
+                        aria-label="Remove"
                       >
-                        +
+                        −
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeDetailField(index)}
-                      className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full font-bold"
-                      aria-label="Remove"
-                    >
-                      −
-                    </button>
+                    </Element>
                   </div>
                 </div>
               ))}
@@ -385,14 +390,16 @@ export default function SchoolVisitForm() {
           </FormSection>
 
           <div className="flex justify-end space-x-4">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Submit
-            </Button>
+            <Element subject="SchoolVisitForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>

@@ -5,8 +5,12 @@ import {
   deleteTinkeringActivity,
 } from "@/lib/db/tinkering-activity/crud";
 import { tinkeringActivitySchema } from "@/lib/db/tinkering-activity/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
 
@@ -30,6 +34,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "update", subject: "TinkeringActivity" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const data = await request.json();
@@ -62,7 +69,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "delete", subject: "TinkeringActivity" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
 

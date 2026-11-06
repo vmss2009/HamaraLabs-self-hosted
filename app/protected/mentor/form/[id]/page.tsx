@@ -7,6 +7,7 @@ import FormSection from "@/components/form/FormSection";
 import { Input } from "@/components/form/Input";
 import { Autocomplete, TextField, Chip } from "@mui/material";
 import { MentorUpdateInput } from "@/lib/db/mentor/type";
+import { Element, useAppAbility } from "@/components/authz";
 
 type School = {
   id: string;
@@ -20,6 +21,7 @@ export default function EditMentorPage({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const ability = useAppAbility();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -144,8 +146,10 @@ export default function EditMentorPage({
         )}
 
         <form onSubmit={onSubmit} className="space-y-8">
+          <Element subject="MentorForm" elementKey="section.personal">
           <FormSection title="Personal Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+              {ability.can("view", "MentorForm", "field.first_name") && (
               <div className="w-full">
                 <Input
                   name="firstName"
@@ -156,6 +160,8 @@ export default function EditMentorPage({
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
+              )}
+              {ability.can("view", "MentorForm", "field.last_name") && (
               <div className="w-full">
                 <Input
                   name="lastName"
@@ -166,6 +172,8 @@ export default function EditMentorPage({
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
+              )}
+              {ability.can("view", "MentorForm", "field.email") && (
               <div className="w-full">
                 <Input
                   name="email"
@@ -177,6 +185,8 @@ export default function EditMentorPage({
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
+              )}
+              {ability.can("view", "MentorForm", "field.phone_number") && (
               <div className="w-full">
                 <Input
                   name="phoneNumber"
@@ -187,10 +197,14 @@ export default function EditMentorPage({
                   className="focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
+              )}
             </div>
           </FormSection>
+          </Element>
 
+          <Element subject="MentorForm" elementKey="section.schools">
           <FormSection title="School Selection">
+            <Element subject="MentorForm" elementKey="field.school_ids">
             <div className="w-full">
               <Autocomplete
                 multiple
@@ -254,9 +268,12 @@ export default function EditMentorPage({
                 }}
               />
             </div>
+            </Element>
           </FormSection>
+          </Element>
 
           <div className="flex justify-end gap-4">
+            <Element subject="MentorForm" elementKey="cancel">
             <Button
               type="button"
               className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
@@ -266,7 +283,9 @@ export default function EditMentorPage({
             >
               Cancel
             </Button>
+            </Element>
 
+            <Element subject="MentorForm" elementKey="submit">
             <Button
               type="submit"
               isLoading={isLoading}
@@ -275,6 +294,7 @@ export default function EditMentorPage({
             >
               Update
             </Button>
+            </Element>
           </div>
         </form>
       </div>

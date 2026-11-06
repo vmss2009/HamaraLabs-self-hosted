@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Slider } from "@mui/material";
 import {
   DataGrid,
   GridActionsCellItem,
@@ -17,6 +18,7 @@ import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import TaskDetailViewer from "@/components/form/TaskDetailViewer";
 import SearchableSelect from "@/components/form/SearchableSelect";
 import type { TaskStatus } from "@/lib/db/task/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 type TaskRow = {
   id: string;
@@ -73,6 +75,8 @@ function formatDate(value: string | null) {
 }
 
 export default function TasksPage() {
+  const ability = useAppAbility();
+  const [rowHeight, setRowHeight] = useState(52);
   const [activeTab, setActiveTab] = useState<"assigned" | "created">("assigned");
   const [assignedTasks, setAssignedTasks] = useState<TaskRow[]>([]);
   const [createdTasks, setCreatedTasks] = useState<TaskRow[]>([]);
@@ -286,6 +290,18 @@ export default function TasksPage() {
     setDrawerOpen(false);
   };
 
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
+
   const columnsAssigned: GridColDef[] = useMemo(
     () => [
       {
@@ -299,34 +315,39 @@ export default function TasksPage() {
         headerName: "Title",
         flex: 1,
         minWidth: 200,
+        renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
       },
       {
         field: "student",
         headerName: "Students",
         flex: 1,
         minWidth: 200,
-        valueGetter: (value, row) => {
-          if (!row.students || row.students.length === 0) return "";
-          return row.students
+        renderCell: (params: any) => {
+          if (!params.row.students || params.row.students.length === 0)
+            return <span style={clampStyle}>{""}</span>;
+          const text = params.row.students
             .map((s: any) => `${s.student.first_name} ${s.student.last_name}`)
             .join(", ");
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
         field: "school",
         headerName: "School",
         minWidth: 200,
-        valueGetter: (value, row) => {
-          const firstStudent = row.students?.[0]?.student;
-          if (!firstStudent?.school_id) return "";
-          return schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id;
+        renderCell: (params: any) => {
+          const firstStudent = params.row.students?.[0]?.student;
+          const text = firstStudent?.school_id
+            ? schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id
+            : "";
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
         field: "createdBy",
         headerName: "Created By",
         minWidth: 180,
-        valueGetter: (value, row) => row.createdBy.email,
+        renderCell: (params: any) => <span style={clampStyle}>{params.row.createdBy.email}</span>,
       },
       {
         field: "status",
@@ -347,15 +368,18 @@ export default function TasksPage() {
         width: 120,
         getActions: (params) => {
           const current = params.row.status as TaskStatus;
-          const actions: any[] = [
-            <GridActionsCellItem
-              key="edit"
-              icon={<EditIcon />}
-              label="Edit"
-              onClick={() => handleEdit(params.row)}
-            />,
-          ];
-          if (current !== "COMPLETED") {
+          const actions: any[] = [];
+          if (ability.can("view", "TaskReport", "row.edit")) {
+            actions.push(
+              <GridActionsCellItem
+                key="edit"
+                icon={<EditIcon />}
+                label="Edit"
+                onClick={() => handleEdit(params.row)}
+              />
+            );
+          }
+          if (current !== "COMPLETED" && ability.can("view", "TaskReport", "row.mark-complete")) {
             actions.push(
               <GridActionsCellItem
                 key="complete"
@@ -365,7 +389,7 @@ export default function TasksPage() {
               />
             );
           }
-          if (current === "COMPLETED") {
+          if (current === "COMPLETED" && ability.can("view", "TaskReport", "row.reopen")) {
             actions.push(
               <GridActionsCellItem
                 key="reopen"
@@ -379,7 +403,7 @@ export default function TasksPage() {
         },
       },
     ],
-    [schoolNameLookup]
+    [schoolNameLookup, ability, lineClamp]
   );
 
   const columnsCreated: GridColDef[] = useMemo(
@@ -395,33 +419,37 @@ export default function TasksPage() {
         headerName: "Title",
         flex: 1,
         minWidth: 200,
+        renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
       },
       {
         field: "student",
         headerName: "Students",
         flex: 1,
         minWidth: 200,
-        valueGetter: (value, row) => {
-          if (!row.students || row.students.length === 0) return "";
-          return row.students
+        renderCell: (params: any) => {
+          if (!params.row.students || params.row.students.length === 0) return <span style={clampStyle}>{""}</span>;
+          const text = params.row.students
             .map((s: any) => `${s.student.first_name} ${s.student.last_name}`)
             .join(", ");
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
         field: "assignedTo",
         headerName: "Assigned To",
         minWidth: 180,
-        valueGetter: (value, row) => row.assignedTo?.email ?? "Unassigned",
+        renderCell: (params: any) => <span style={clampStyle}>{params.row.assignedTo?.email ?? "Unassigned"}</span>,
       },
       {
         field: "school",
         headerName: "School",
         minWidth: 200,
-        valueGetter: (value, row) => {
-          const firstStudent = row.students?.[0]?.student;
-          if (!firstStudent?.school_id) return "";
-          return schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id;
+        renderCell: (params: any) => {
+          const firstStudent = params.row.students?.[0]?.student;
+          const text = firstStudent?.school_id
+            ? schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id
+            : "";
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
@@ -442,29 +470,38 @@ export default function TasksPage() {
         headerName: "Actions",
         width: 120,
         getActions: (params) => {
-          return [
-            <GridActionsCellItem
-              key="edit"
-              icon={<EditIcon />}
-              label="Edit"
-              onClick={() => handleEdit(params.row)}
-            />,
-            <GridActionsCellItem
-              key="delete"
-              icon={<DeleteIcon />}
-              label="Delete"
-              onClick={() => handleDelete(params.row)}
-              color="error"
-            />,
-          ];
+          const acts: any[] = [];
+          if (ability.can("view", "TaskReport", "row.edit")) {
+            acts.push(
+              <GridActionsCellItem
+                key="edit"
+                icon={<EditIcon />}
+                label="Edit"
+                onClick={() => handleEdit(params.row)}
+              />
+            );
+          }
+          if (ability.can("view", "TaskReport", "row.delete")) {
+            acts.push(
+              <GridActionsCellItem
+                key="delete"
+                icon={<DeleteIcon />}
+                label="Delete"
+                onClick={() => handleDelete(params.row)}
+                color="error"
+              />
+            );
+          }
+          return acts;
         },
       },
     ],
-    [schoolNameLookup]
+    [schoolNameLookup, ability, lineClamp]
   );
 
   const rows = activeTab === "assigned" ? assignedTasks : createdTasks;
   const columns = activeTab === "assigned" ? columnsAssigned : columnsCreated;
+  const visibleColumns = useGridColumns("TaskReport", columns);
 
   const openCreateModal = () => {
     setEditingTask(null);
@@ -566,24 +603,30 @@ export default function TasksPage() {
   <div className="p-6 space-y-6 lg:pl-24">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-white">Tasks</h1>
-        <Button variant="default" onClick={openCreateModal}>
-          New Task
-        </Button>
+        <Element subject="TaskReport" elementKey="action.create-task">
+          <Button variant="default" onClick={openCreateModal}>
+            New Task
+          </Button>
+        </Element>
       </div>
 
       <div className="flex gap-3">
-        <Button
-          variant={activeTab === "assigned" ? "default" : "outline"}
-          onClick={() => setActiveTab("assigned")}
-        >
-          Assigned to me
-        </Button>
-        <Button
-          variant={activeTab === "created" ? "default" : "outline"}
-          onClick={() => setActiveTab("created")}
-        >
-          Created by me
-        </Button>
+        <Element subject="TaskReport" elementKey="tab.assigned">
+          <Button
+            variant={activeTab === "assigned" ? "default" : "outline"}
+            onClick={() => setActiveTab("assigned")}
+          >
+            Assigned to me
+          </Button>
+        </Element>
+        <Element subject="TaskReport" elementKey="tab.created">
+          <Button
+            variant={activeTab === "created" ? "default" : "outline"}
+            onClick={() => setActiveTab("created")}
+          >
+            Created by me
+          </Button>
+        </Element>
       </div>
 
       {error && (
@@ -601,10 +644,10 @@ export default function TasksPage() {
       <div className="bg-gray-50 rounded-xl shadow-sm">
         <DataGrid
           rows={rows}
-          columns={columns}
+          columns={visibleColumns}
           getRowId={(row) => row.id}
           loading={loading}
-          autoHeight
+          rowHeight={rowHeight}
           disableRowSelectionOnClick
           onRowClick={handleRowClick}
           initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
@@ -614,7 +657,8 @@ export default function TasksPage() {
             backgroundColor: "#f3f4f6",
             "& .MuiDataGrid-cell": {
               color: "#1f2937",
-              paddingTop: "10px",
+              alignItems: rowHeight > 52 ? "flex-start" : "center",
+              paddingTop: rowHeight > 52 ? "12px" : "10px",
               paddingBottom: "10px",
             },
             "& .MuiDataGrid-columnHeaders": {
@@ -627,8 +671,22 @@ export default function TasksPage() {
           }}
           slots={{
             toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
-                <GridToolbarQuickFilter sx={{ width: "100%" }} />
+              <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
+                <Element subject="TaskReport" elementKey="tool.quick-filter">
+                  <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
+                </Element>
+                <div className="flex items-center gap-2 ml-2" style={{ minWidth: 200 }}>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                  <Slider
+                    size="small"
+                    min={36}
+                    max={200}
+                    value={rowHeight}
+                    onChange={(_, v) => setRowHeight(v as number)}
+                    sx={{ width: 120, color: "#6366f1" }}
+                  />
+                  <span className="text-xs text-gray-500 w-8 text-right">{rowHeight}</span>
+                </div>
               </GridToolbarContainer>
             ),
           }}

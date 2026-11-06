@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(req: NextRequest) {
+  const denied = await requireApiAccess(req, { action: "manage", subject: "Slot" });
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url);
   const skip = Number(searchParams.get("skip") || 0);
   const take = Math.min(Number(searchParams.get("take") || 20), 100);
@@ -17,6 +21,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireApiAccess(req, { action: "manage", subject: "Slot" });
+  if (denied) return denied;
+
   try {
     const body = await req.json();
     const {

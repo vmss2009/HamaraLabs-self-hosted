@@ -1,8 +1,12 @@
 import { failure, success } from "@/lib/api/http";
 import { createSchoolVisit, getSchoolVisits } from "@/lib/db/school-visits/crud";
 import { schoolVisitSchema } from "@/lib/db/school-visits/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const school_id = searchParams.get("school_id");
@@ -26,6 +30,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "SchoolVisit" });
+  if (denied) return denied;
+
   try {
     const body = await request.json();
 

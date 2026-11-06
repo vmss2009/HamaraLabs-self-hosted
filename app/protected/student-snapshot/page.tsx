@@ -23,6 +23,7 @@ import { getTinkeringActivityColumns } from "./tinkering-activity/columns";
 import { getTaskColumns, TaskSnapshotRow } from "./tasks/columns";
 import { EditCompetitionDialog } from "./competition/competition-edit-form/edit";
 import { EditCourseDialog } from "./course/course-edit-form/edit";
+import { Element, useAppAbility } from "@/components/authz";
 
 const TINKERING_STATUS_OPTIONS = [
   "On hold",
@@ -95,6 +96,7 @@ interface TinkeringActivitySelection extends SnapshotItem {
 function StudentSnapshot() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const ability = useAppAbility();
 
   // Prevent state updates before mount or after unmount
   const isMounted = useRef(false);
@@ -259,7 +261,10 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           throw new Error("Failed to fetch schools");
         }
         const schoolsData = await schoolsResponse.json();
-        if (isMounted.current) setSchools(schoolsData);
+        if (isMounted.current) {
+          setSchools(schoolsData);
+          if (schoolsData.length === 1) setSelectedSchool(String(schoolsData[0].id));
+        }
       } catch (error) {
         console.error("Error fetching initial data:", error);
         if (isMounted.current)
@@ -448,8 +453,11 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       if (!response.ok) {
         throw new Error("Failed to fetch students");
       }
-      const data = await response.json();
-      if (isMounted.current) setStudents(data);
+      const data: Student[] = await response.json();
+      if (isMounted.current) {
+        setStudents(data);
+        if (data.length === 1) setSelectedStudent(String(data[0].id));
+      }
     } catch (error) {
       console.error("Error fetching students:", error);
       if (isMounted.current) setError("Failed to load students");
@@ -1095,20 +1103,39 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     [fetchTasks]
   );
 
+  const tinkeringColPerms = {
+    canUpdateStatus: ability.can("view", "Snapshot", "action.tinkering.update-status"),
+    canEdit: ability.can("view", "Snapshot", "row.tinkering.edit"),
+    canDelete: ability.can("view", "Snapshot", "row.tinkering.delete"),
+  };
+  const competitionColPerms = {
+    canUpdateStatus: ability.can("view", "Snapshot", "action.competition.update-status"),
+    canEdit: ability.can("view", "Snapshot", "row.competition.edit"),
+    canDelete: ability.can("view", "Snapshot", "row.competition.delete"),
+  };
+  const courseColPerms = {
+    canUpdateStatus: ability.can("view", "Snapshot", "action.course.update-status"),
+    canEdit: ability.can("view", "Snapshot", "row.course.edit"),
+    canDelete: ability.can("view", "Snapshot", "row.course.delete"),
+  };
+
   const tinkeringActivityColumns = (getTinkeringActivityColumns as any)(
     handleModifyactivity as any,
     handleEditTinkeringActivity as any,
-    handleDeleteTinkeringActivity as any
+    handleDeleteTinkeringActivity as any,
+    tinkeringColPerms
   ) as any;
   const competitionColumns = (getCompetitionColumns as any)(
     handleModifyCompetition as any,
     handleEditCompetition as any,
-    handleDeleteCompetition as any
+    handleDeleteCompetition as any,
+    competitionColPerms
   ) as any;
   const courseColumns = (getCourseColumns as any)(
     handleModifyCourse as any,
     handleEditCourse as any,
-    handleDeleteCourse as any
+    handleDeleteCourse as any,
+    courseColPerms
   ) as any;
   const taskColumns = useMemo(
     () => getTaskColumns(handleTaskStatusChange, formatTaskDueDate),
@@ -1225,6 +1252,17 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     });
   };
 
+  if (!ability.can("view", "Drawer", "nav.student-snapshot")) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-400">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
+          <p className="text-xl font-semibold text-gray-700">Access Denied</p>
+          <p className="text-gray-500 mt-2">You don&apos;t have permission to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-400 h-screen  w-screen ">
       <div className=" p-6 ">
@@ -1238,18 +1276,22 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
         )}
 
         <div className="flex justify-center items-center space-x-4 mb-6">
-          <Button
-            variant={currentView === "cluster" ? "default" : "outline"}
-            onClick={() => handleViewChange("cluster")}
-          >
-            Cluster View
-          </Button>
-          <Button
-            variant={currentView === "school" ? "default" : "outline"}
-            onClick={() => handleViewChange("school")}
-          >
-            School View
-          </Button>
+          <Element subject="Snapshot" elementKey="selector.view-mode">
+            <Button
+              variant={currentView === "cluster" ? "default" : "outline"}
+              onClick={() => handleViewChange("cluster")}
+            >
+              Cluster View
+            </Button>
+          </Element>
+          <Element subject="Snapshot" elementKey="selector.view-mode">
+            <Button
+              variant={currentView === "school" ? "default" : "outline"}
+              onClick={() => handleViewChange("school")}
+            >
+              School View
+            </Button>
+          </Element>
         </div>
 
   <div className="mt-4 flex items-start space-x-4 mb-6 w-[calc(100vw-6rem)] mx-auto">
@@ -1376,75 +1418,83 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
   <div className="mb-6 w-[calc(100vw-6rem)] mx-auto">
           <div>
             <div className="flex space-x-4">
-              <Button
-                variant={activeTab === "tinkering" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("tinkering");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "tinkering",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Tinkering Activities
-              </Button>
-              <Button
-                variant={activeTab === "competition" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("competition");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "competition",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Competitions
-              </Button>
+              <Element subject="Snapshot" elementKey="tab.tinkering">
+                <Button
+                  variant={activeTab === "tinkering" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("tinkering");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "tinkering",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Tinkering Activities
+                </Button>
+              </Element>
+              <Element subject="Snapshot" elementKey="tab.competition">
+                <Button
+                  variant={activeTab === "competition" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("competition");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "competition",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Competitions
+                </Button>
+              </Element>
 
-              <Button
-                variant={activeTab === "courses" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("courses");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "courses",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Courses
-              </Button>
-              <Button
-                variant={activeTab === "tasks" ? "default" : "outline"}
-                onClick={() => {
-                  setActiveTab("tasks");
-                  updateURLParams({
-                    view: currentView,
-                    cluster: selectedCluster,
-                    hub: selectedHub,
-                    school: selectedSchool,
-                    student: selectedStudent,
-                    tab: "tasks",
-                  });
-                }}
-                className="px-4 py-2 rounded-t-lg"
-              >
-                Tasks
-              </Button>
+              <Element subject="Snapshot" elementKey="tab.courses">
+                <Button
+                  variant={activeTab === "courses" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("courses");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "courses",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Courses
+                </Button>
+              </Element>
+              <Element subject="Snapshot" elementKey="tab.tasks">
+                <Button
+                  variant={activeTab === "tasks" ? "default" : "outline"}
+                  onClick={() => {
+                    setActiveTab("tasks");
+                    updateURLParams({
+                      view: currentView,
+                      cluster: selectedCluster,
+                      hub: selectedHub,
+                      school: selectedSchool,
+                      student: selectedStudent,
+                      tab: "tasks",
+                    });
+                  }}
+                  className="px-4 py-2 rounded-t-lg"
+                >
+                  Tasks
+                </Button>
+              </Element>
             </div>
           </div>
         </div>
@@ -1493,20 +1543,22 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   <GridToolbarContainer className="bg-gray-50 p-2">
                     <GridToolbarQuickFilter sx={{ width: "100%" }} />
                     <GridToolbarColumnsButton />
-                    <UIButton
-                      variant="default"
-                      size="sm"
-                      className="ml-2"
-                      onClick={() => {
-                        if (selectedStudent) {
-                          fetchStudentDetails(selectedStudent);
-                        }
-                        setSelectedTinkeringActivities(tinkeringActivities);
-                        setGenerateTADialogOpen(true);
-                      }}
-                    >
-                      Generate TA
-                    </UIButton>
+                    {ability.can("view", "Snapshot", "action.generate-ta") && (
+                      <UIButton
+                        variant="default"
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => {
+                          if (selectedStudent) {
+                            fetchStudentDetails(selectedStudent);
+                          }
+                          setSelectedTinkeringActivities(tinkeringActivities);
+                          setGenerateTADialogOpen(true);
+                        }}
+                      >
+                        Generate TA
+                      </UIButton>
+                    )}
                   </GridToolbarContainer>
                 ),
               }}
@@ -1931,6 +1983,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
             open={statusDialogOpen}
             onClose={() => setStatusDialogOpen(false)}
             title="Modify Status"
+            disableBackdropClose
             footer={
               <>
                 <UIButton onClick={() => setStatusDialogOpen(false)} variant="outline">

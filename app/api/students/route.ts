@@ -5,8 +5,12 @@ import {
   getStudentById,
 } from "@/lib/db/student/crud";
 import { StudentCreateInput, studentSchema } from "@/lib/db/student/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -39,6 +43,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "Student" });
+  if (denied) return denied;
+
   try {
     const data = await request.json();
     const result = studentSchema.safeParse(data);

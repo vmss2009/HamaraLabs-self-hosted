@@ -11,6 +11,7 @@ import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import DynamicFieldArray from "@/components/form/DynamicFieldArray";
 import MultipleUserInput from "@/components/form/MultipleUserInput";
 import { useRouter } from "next/navigation";
+import { Element, useAppAbility } from "@/components/authz";
 
 interface UserData {
   email: string;
@@ -43,6 +44,7 @@ export default function EditSchoolForm({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const ability = useAppAbility();
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
@@ -106,32 +108,26 @@ export default function EditSchoolForm({
         setCities(citiesData);
         setSelectedCity(data.address.city.id.toString());
 
-        // Fetch users and classify by rolesBySchool metadata
+        // Fetch users grouped by role (via FK relations)
         const usersResp = await fetch(`/api/schools/${resolvedParams.id}/users`);
-        const users = usersResp.ok ? await usersResp.json() : [];
+        const grouped = usersResp.ok
+          ? (await usersResp.json()) as {
+              incharges: Array<{ email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+              principals: Array<{ email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+              correspondents: Array<{ email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+            }
+          : { incharges: [], principals: [], correspondents: [] };
 
-        const schoolId = String(resolvedParams.id);
-        const inChargeUsers: UserData[] = [];
-        const principalUsers: UserData[] = [];
-        const correspondentUsers: UserData[] = [];
-
-        users.forEach((user: any) => {
-          const entry: UserData = {
-            email: user.email,
-            first_name: user.first_name || "",
-            last_name: user.last_name || "",
-            phone_number: user.user_meta_data?.phone_number || "",
-          };
-          const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
-          const roles = rolesBySchool[schoolId] || [];
-          const arr = Array.isArray(roles) ? roles : [roles];
-          arr.forEach((r: string) => {
-            const role = r?.toUpperCase?.();
-            if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargeUsers.push(entry);
-            else if (role === 'PRINCIPAL') principalUsers.push(entry);
-            else if (role === 'CORRESPONDENT') correspondentUsers.push(entry);
-          });
+        const toUserData = (u: { email: string; first_name: string | null; last_name: string | null; phone_number: string | null }): UserData => ({
+          email: u.email,
+          first_name: u.first_name || "",
+          last_name: u.last_name || "",
+          phone_number: u.phone_number || "",
         });
+
+        const inChargeUsers = grouped.incharges.map(toUserData);
+        const principalUsers = grouped.principals.map(toUserData);
+        const correspondentUsers = grouped.correspondents.map(toUserData);
 
         setInCharges(inChargeUsers.length > 0 ? inChargeUsers : [{
           email: "",
@@ -452,6 +448,7 @@ export default function EditSchoolForm({
         )}
 
         <form onSubmit={onSubmit} className="space-y-6">
+          <Element subject="SchoolForm" elementKey="section.basic">
           <FormSection
             title="Basic Information"
             description="Enter the basic details of the school"
@@ -472,11 +469,15 @@ export default function EditSchoolForm({
                       required: false,
                       placeholder: "Enter UDISE code (optional)",
                     },
-                  ]}
+                  ].filter(f => {
+                    const map: Record<string, string> = { name: "field.name", udiseCode: "field.udise_code" };
+                    return !map[f.name] || ability.can("view", "SchoolForm", map[f.name]);
+                  })}
                 />
               </div>
 
               <div className="space-y-4">
+                {ability.can("view", "SchoolForm", "field.is_ATL") && (
                 <RadioButtonGroup
                   name="isATL"
                   legend="Is ATL?"
@@ -484,8 +485,9 @@ export default function EditSchoolForm({
                   value={isATL}
                   onChange={setIsATL}
                 />
+                )}
 
-                {isATL === "Yes" && (
+                {isATL === "Yes" && ability.can("view", "SchoolForm", "field.ATL_establishment_year") && (
                   <TextFieldGroup
                     fields={[
                       {
@@ -503,7 +505,9 @@ export default function EditSchoolForm({
               </div>
             </div>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.address">
           <FormSection
             title="School Address"
             description="Enter the address details of the school"
@@ -522,11 +526,15 @@ export default function EditSchoolForm({
                     label: "Address Line 2",
                     placeholder: "Enter address line 2 (optional)",
                   },
-                ]}
+                ].filter(f => {
+                  const map: Record<string, string> = { addressLine1: "field.address_line1", addressLine2: "field.address_line2" };
+                  return !map[f.name] || ability.can("view", "SchoolForm", map[f.name]);
+                })}
               />
 
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 mb-5">
+                  {ability.can("view", "SchoolForm", "field.country") && (
                   <SearchableSelect<string>
                     label="Country"
                     options={countryOptions}
@@ -556,7 +564,9 @@ export default function EditSchoolForm({
                       })();
                     }}
                   />
+                  )}
 
+                  {ability.can("view", "SchoolForm", "field.state") && (
                   <SearchableSelect<string>
                     label="State"
                     options={stateOptions}
@@ -585,9 +595,11 @@ export default function EditSchoolForm({
                     }}
                     className={!selectedCountry ? "opacity-50 pointer-events-none" : ""}
                   />
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+                  {ability.can("view", "SchoolForm", "field.city") && (
                   <SearchableSelect<string>
                     label="City"
                     options={cityOptions}
@@ -595,7 +607,9 @@ export default function EditSchoolForm({
                     onChange={(val) => setSelectedCity((Array.isArray(val) ? val[0] : val) ?? "")}
                     className={!selectedState ? "opacity-50 pointer-events-none" : ""}
                   />
+                  )}
 
+                  {ability.can("view", "SchoolForm", "field.pincode") && (
                   <TextFieldGroup
                     fields={[
                       {
@@ -607,15 +621,19 @@ export default function EditSchoolForm({
                       },
                     ]}
                   />
+                  )}
                 </div>
               </div>
             </div>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.in-charges">
           <FormSection
             title="In-Charge Details"
             description="Add one or more in-charge persons (at least one is required)"
           >
+            <Element subject="SchoolForm" elementKey="field.in_charges">
             <MultipleUserInput
               title="In-Charges"
               description="At least one in-charge is required"
@@ -624,12 +642,16 @@ export default function EditSchoolForm({
               required={true}
               minUsers={1}
             />
+            </Element>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.principals">
           <FormSection
             title="Principal Details"
             description="Add principals for the school (optional)"
           >
+            <Element subject="SchoolForm" elementKey="field.principals">
             <MultipleUserInput
               title="Principals"
               description="Add school principals (optional)"
@@ -638,12 +660,16 @@ export default function EditSchoolForm({
               required={false}
               minUsers={0}
             />
+            </Element>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.correspondents">
           <FormSection
             title="Correspondent Details"
             description="Add correspondents for the school (optional)"
           >
+            <Element subject="SchoolForm" elementKey="field.correspondents">
             <MultipleUserInput
               title="Correspondents"
               description="Add school correspondents (optional)"
@@ -652,13 +678,17 @@ export default function EditSchoolForm({
               required={false}
               minUsers={0}
             />
+            </Element>
           </FormSection>
+          </Element>
 
+          <Element subject="SchoolForm" elementKey="section.additional">
           <FormSection
             title="Additional Information"
             description="Enter additional details about the school"
           >
             <div className="space-y-6">
+              {ability.can("view", "SchoolForm", "field.syllabus") && (
               <CheckboxGroup
                 options={syllabusOptions}
                 legend="Syllabus"
@@ -666,7 +696,9 @@ export default function EditSchoolForm({
                 selectedValues={syllabus}
                 className="mb-5"
               />
+              )}
 
+              {ability.can("view", "SchoolForm", "field.website_url") && (
               <TextFieldGroup
                 fields={[
                   {
@@ -676,7 +708,9 @@ export default function EditSchoolForm({
                   },
                 ]}
               />
+              )}
 
+              {ability.can("view", "SchoolForm", "field.paid_subscription") && (
               <RadioButtonGroup
                 name="paidSubscription"
                 legend="Paid Subscription"
@@ -685,7 +719,9 @@ export default function EditSchoolForm({
                 onChange={setPaidSubscription}
                 className="mb-5"
               />
+              )}
 
+              {ability.can("view", "SchoolForm", "field.social_links") && (
               <DynamicFieldArray
                 values={socialLinks}
                 placeholder="SocialLink"
@@ -695,10 +731,13 @@ export default function EditSchoolForm({
                 legend="Social Links"
                 fieldLabel="Social Link"
               />
+              )}
             </div>
           </FormSection>
+          </Element>
 
           <div className="flex justify-end space-x-4">
+            <Element subject="SchoolForm" elementKey="cancel">
             <Button
               type="button"
               className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
@@ -708,7 +747,9 @@ export default function EditSchoolForm({
             >
               Cancel
             </Button>
+            </Element>
 
+            <Element subject="SchoolForm" elementKey="submit">
             <Button
               type="submit"
               isLoading={isLoading}
@@ -717,6 +758,7 @@ export default function EditSchoolForm({
             >
               Update
             </Button>
+            </Element>
           </div>
         </form>
       </div>

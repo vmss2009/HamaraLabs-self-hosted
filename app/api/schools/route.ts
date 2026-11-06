@@ -2,8 +2,15 @@ import { failure, success } from "@/lib/api/http";
 import { createSchool, getSchools } from "@/lib/db/school/crud";
 import { createAddress } from "@/lib/db/address/crud";
 import { schoolSchema } from "@/lib/db/school/type";
+import { auth } from "@/lib/auth/auth";
+import { isAdminUser } from "@/lib/db/auth/user";
+import { prisma } from "@/lib/db/prisma";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const filter = {
@@ -19,6 +26,21 @@ export async function GET(request: Request) {
         : undefined,
     };
 
+    const session = await auth();
+    const userId = (session?.user as { id?: string } | undefined)?.id;
+
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { user_meta_data: true, roles: true, schools: true },
+      });
+
+      if (user && !isAdminUser(user) && !user.roles.includes("admin")) {
+        const schools = await getSchools({ ...filter, ids: user.schools });
+        return success(schools);
+      }
+    }
+
     const schools = await getSchools(filter);
     return success(schools);
   } catch (error) {
@@ -30,6 +52,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "School" });
+  if (denied) return denied;
+
   try {
     const data = await request.json();
 

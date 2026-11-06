@@ -255,3 +255,41 @@ export async function deleteTinkeringActivity(id: string) {
     throw error;
   }
 }
+
+export async function updateSubject(id: number, data: { subject_name: string }) {
+  return prisma.subject.update({ where: { id }, data: { subject_name: data.subject_name } });
+}
+
+export async function deleteSubject(id: number) {
+  return prisma.subject.delete({ where: { id } });
+}
+
+export async function updateTopic(id: number, data: { topic_name: string }) {
+  return prisma.topic.update({ where: { id }, data: { topic_name: data.topic_name } });
+}
+
+export async function deleteTopic(id: number) {
+  return prisma.topic.delete({ where: { id } });
+}
+
+export async function updateSubtopic(id: number, data: { subtopic_name: string }) {
+  return prisma.subtopic.update({ where: { id }, data: { subtopic_name: data.subtopic_name } });
+}
+
+export async function deleteSubtopic(id: number) {
+  return prisma.subtopic.delete({ where: { id } });
+}
+
+export async function getSubjectsWithTopicsAndSubtopics() {
+  return prisma.subject.findMany({
+    orderBy: { subject_name: "asc" },
+    include: {
+      topics: {
+        orderBy: { topic_name: "asc" },
+        include: {
+          subtopics: { orderBy: { subtopic_name: "asc" } },
+        },
+      },
+    },
+  });
+}

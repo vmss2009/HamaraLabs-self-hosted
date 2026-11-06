@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Slider } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -16,6 +17,7 @@ import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import SchoolDetailViewer from "@/components/form/SchoolDetailViewer";
 import Alert from "@/components/ui/Alert";
 import ReportShell from "@/components/form/ReportShell";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 interface UserRole {
   id: string;
@@ -57,6 +59,7 @@ interface School {
 
 export default function Page() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,19 @@ export default function Page() {
 
   const [selectedRow, setSelectedRow] = useState<School | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [rowHeight, setRowHeight] = useState(52);
+
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
 
   const columns: GridColDef[] = [
     {
@@ -86,24 +102,25 @@ export default function Page() {
       width: 100,
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
-    { field: "name", headerName: "Name", width: 200 },
-    { field: "udise_code", headerName: "UDISE Code", width: 150 },
-    { field: "is_ATL", headerName: "Is ATL ?", width: 200 },
+    { field: "name", headerName: "Name", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "udise_code", headerName: "UDISE Code", width: 150, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "is_ATL", headerName: "Is ATL ?", width: 200, renderCell: (params) => <span style={clampStyle}>{String(params.value ?? "")}</span> },
     {
       field: "ATL_establishment_year",
       headerName: "ATL Establishment Year",
       width: 200,
+      renderCell: (params) => <span style={clampStyle}>{String(params.value ?? "")}</span>,
     },
-    { field: "paid_subscription", headerName: "Paid subscription", width: 200 },
-    { field: "website_url", headerName: "Website URL", width: 300 },
+    { field: "paid_subscription", headerName: "Paid subscription", width: 200, renderCell: (params) => <span style={clampStyle}>{String(params.value ?? "")}</span> },
+    { field: "website_url", headerName: "Website URL", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     { field: "social_links", headerName: "Social Links", width: 300 },
     { field: "syllabus", headerName: "Syllabus", width: 300 },
-    { field: "addressLine1", headerName: "Address Line 1", width: 300 },
-    { field: "addressLine2", headerName: "Address Line 2", width: 300 },
-    { field: "city", headerName: "City", width: 300 },
-    { field: "state", headerName: "State", width: 300 },
-    { field: "country", headerName: "Country", width: 300 },
-    { field: "pincode", headerName: "Pincode", width: 300 },
+    { field: "addressLine1", headerName: "Address Line 1", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "addressLine2", headerName: "Address Line 2", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "city", headerName: "City", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "state", headerName: "State", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "country", headerName: "Country", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "pincode", headerName: "Pincode", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     { 
       field: "principals", 
       headerName: "Principals", 
@@ -118,11 +135,9 @@ export default function Page() {
         const displayText = firstNames.join(', ');
         
         return (
-          <div className="py-2">
-            <div className="font-medium text-sm text-blue-600 truncate" title={fullNamesList}>
-              {displayText}
-            </div>
-          </div>
+          <span style={clampStyle} className="font-medium text-sm text-blue-600" title={fullNamesList}>
+            {displayText}
+          </span>
         );
       }
     },
@@ -140,11 +155,9 @@ export default function Page() {
         const displayText = firstNames.join(', ');
         
         return (
-          <div className="py-2">
-            <div className="font-medium text-sm text-green-600 truncate" title={fullNamesList}>
-              {displayText}
-            </div>
-          </div>
+          <span style={clampStyle} className="font-medium text-sm text-green-600" title={fullNamesList}>
+            {displayText}
+          </span>
         );
       }
     },
@@ -162,11 +175,9 @@ export default function Page() {
         const displayText = firstNames.join(', ');
         
         return (
-          <div className="py-2">
-            <div className="font-medium text-sm text-purple-600 truncate" title={fullNamesList}>
-              {displayText}
-            </div>
-          </div>
+          <span style={clampStyle} className="font-medium text-sm text-purple-600" title={fullNamesList}>
+            {displayText}
+          </span>
         );
       }
     },
@@ -175,23 +186,35 @@ export default function Page() {
       type: "actions",
       headerName: "Actions",
       width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label="Edit"
-          onClick={() => router.push(`/protected/school/form/${params.row.id}`)}
-        />,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteIcon />}
-          label="Delete"
-          onClick={() => handleDelete(params.row.id)}
-          color="error"
-        />,
-      ],
+      getActions: (params) => {
+        const actions: any[] = [];
+        if (ability.can("view", "SchoolReport", "row.edit")) {
+          actions.push(
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() => router.push(`/protected/school/form/${params.row.id}`)}
+            />,
+          );
+        }
+        if (ability.can("view", "SchoolReport", "row.delete")) {
+          actions.push(
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />,
+          );
+        }
+        return actions;
+      },
     },
   ];
+
+  const visibleColumns = useGridColumns("SchoolReport", columns);
 
   const fetchSchools = async () => {
     try {
@@ -201,43 +224,36 @@ export default function Page() {
       }
       const data = await response.json();
 
-      // Fetch users for all schools
+      // Fetch users (grouped by role via FK relations) for all schools
       const schoolsWithUsers = await Promise.all(
         data.map(async (school: Record<string, unknown>) => {
           try {
             const usersResponse = await fetch(`/api/schools/${school.id}/users`);
-            const users = usersResponse.ok ? await usersResponse.json() : [];
-            
+            const grouped = usersResponse.ok
+              ? (await usersResponse.json()) as {
+                  incharges: Array<{ id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+                  principals: Array<{ id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+                  correspondents: Array<{ id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }>;
+                }
+              : { incharges: [], principals: [], correspondents: [] };
+
             const sc: any = school as any;
             const address: any = sc.address || {};
             const city: any = address.city || {};
             const state: any = city.state || {};
             const country: any = state.country || {};
-            const schoolId = String(sc.id);
 
-            // Split users by role for this school using user_meta_data.rolesBySchool
-            const principalsList: any[] = [];
-            const correspondentsList: any[] = [];
-            const inChargesList: any[] = [];
-            const usersList: any[] = [];
-
-            users.forEach((user: any) => {
-              const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-              const email = user.email;
-              const phone = user.user_meta_data?.phone_number || 'N/A';
-              const entry = { name, email, phone, id: user.id };
-              usersList.push(entry);
-
-              const rolesBySchool = user.user_meta_data?.rolesBySchool || {};
-              const roles = rolesBySchool[schoolId] || [];
-              const arr = Array.isArray(roles) ? roles : [roles];
-              arr.forEach((r: string) => {
-                const role = r?.toUpperCase?.();
-                if (role === 'PRINCIPAL') principalsList.push(entry);
-                else if (role === 'CORRESPONDENT') correspondentsList.push(entry);
-                else if (role === 'INCHARGE' || role === 'IN-CHARGE') inChargesList.push(entry);
-              });
+            const toEntry = (u: { id: string; email: string; first_name: string | null; last_name: string | null; phone_number: string | null }) => ({
+              id: u.id,
+              email: u.email,
+              phone: u.phone_number ?? 'N/A',
+              name: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email,
             });
+
+            const principalsList = grouped.principals.map(toEntry);
+            const correspondentsList = grouped.correspondents.map(toEntry);
+            const inChargesList = grouped.incharges.map(toEntry);
+            const usersList = [...principalsList, ...correspondentsList, ...inChargesList];
 
             const principalsDisplay = principalsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
             const correspondentsDisplay = correspondentsList.map(u => `${u.name} (${u.email})`).join(', ') || 'None';
@@ -302,6 +318,7 @@ export default function Page() {
   }, []);
 
   const handleRowClick = (params: GridRowParams<School>) => {
+    if (!ability.can("view", "SchoolReport", "row.click-detail")) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -343,8 +360,9 @@ export default function Page() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)]  m-10">
           <DataGrid
             rows={schools}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
+            rowHeight={rowHeight}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
@@ -357,15 +375,28 @@ export default function Page() {
             onRowClick={handleRowClick}
             slots={{
               toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
+                  <Element subject="SchoolReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
+                  </Element>
+                  <Element subject="SchoolReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                    <Slider size="small" min={52} max={300} step={4} value={rowHeight}
+                      onChange={(_, v) => setRowHeight(v as number)}
+                      sx={{ width: 100, color: "#6366f1" }} />
+                    <span className="text-xs text-gray-400 w-8 text-right">{rowHeight}</span>
+                  </div>
                 </GridToolbarContainer>
               ),
             }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
+                alignItems: rowHeight > 52 ? "flex-start" : "center",
+                paddingTop: rowHeight > 52 ? "8px" : undefined,
                 color: "#1f2937",
               },
               "& .MuiDataGrid-columnHeaders": {

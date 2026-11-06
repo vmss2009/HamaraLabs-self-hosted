@@ -5,6 +5,7 @@ import { format, startOfWeek, isBefore, startOfDay, isSameDay, addMonths, subMon
 import { useNotifications } from "@/components/ui/notifications";
 import { useSession } from "next-auth/react";
 import Navigation from "@/components/calendar/Navigation";
+import { Element } from "@/components/authz";
 
 function formatTimeTo12Hour(time24: string): string {
   const [hours, minutes] = time24.split(':').map(Number);
@@ -457,9 +458,11 @@ export default function Calendar() {
                   <h3 className="text-lg font-medium mb-3">Configure Time Slots</h3>
 
                   <div className="mb-4">
-                    <button onClick={() => setShowReplicationModal(!showReplicationModal)} className="px-3 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>
-                      {showReplicationModal ? 'Hide replication' : 'Replicate to other dates'}
-                    </button>
+                    <Element subject="Calendar" elementKey="action.replicate">
+                      <button onClick={() => setShowReplicationModal(!showReplicationModal)} className="px-3 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>
+                        {showReplicationModal ? 'Hide replication' : 'Replicate to other dates'}
+                      </button>
+                    </Element>
                     {showReplicationModal && (
                       <div className="mt-3 border rounded-md" style={{ borderColor: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
                         <ReplicationCalendar selectedDates={selectedReplicationDates} onDateToggle={toggleReplicationDate} currentDate={selectedDate} />
@@ -487,7 +490,9 @@ export default function Calendar() {
                       <label className="text-xs font-medium block mb-1">Available Slots</label>
                       <input type="number" value={newSlotMaxSlots} onChange={(e) => setNewSlotMaxSlots(parseInt(e.target.value) || 1)} className="w-full px-2 py-1 rounded border text-sm" />
                     </div>
-                    <button onClick={addTimeSlot} className="px-3 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Add</button>
+                    <Element subject="Calendar" elementKey="timeslot.add">
+                      <button onClick={addTimeSlot} className="px-3 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Add</button>
+                    </Element>
                   </div>
 
                   {selectedTimeSlots.length > 0 && (
@@ -498,7 +503,9 @@ export default function Calendar() {
                             <div className="font-medium">{formatTimeTo12Hour(slot.startTime)}-{formatTimeTo12Hour(slot.endTime)}</div>
                             <div className="flex items-center gap-2">
                               <input type="number" min={1} value={slot.maxSlots} onChange={(e) => updateTimeSlotMaxSlots(index, parseInt(e.target.value) || 1)} className="w-20 px-2 py-1 rounded border text-sm" />
-                              <button onClick={() => removeTimeSlot(index)} className="text-xs px-2 py-1 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Remove</button>
+                              <Element subject="Calendar" elementKey="timeslot.delete">
+                                <button onClick={() => removeTimeSlot(index)} className="text-xs px-2 py-1 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Remove</button>
+                              </Element>
                             </div>
                           </div>
                         </div>
@@ -508,8 +515,12 @@ export default function Calendar() {
                 </div>
 
                 <div className="flex justify-end gap-2">
-                  <button onClick={saveSchedule} className="px-4 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Save</button>
-                  <button onClick={cancelEditing} className="px-4 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Cancel</button>
+                  <Element subject="Calendar" elementKey="action.save">
+                    <button onClick={saveSchedule} className="px-4 py-2 rounded-md" style={{ background: "var(--foreground)", color: "var(--background)" }}>Save</button>
+                  </Element>
+                  <Element subject="Calendar" elementKey="action.cancel">
+                    <button onClick={cancelEditing} className="px-4 py-2 rounded-md border" style={{ borderColor: "color-mix(in srgb, var(--foreground) 25%, transparent)" }}>Cancel</button>
+                  </Element>
                 </div>
               </div>
             )}

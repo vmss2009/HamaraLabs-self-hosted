@@ -6,8 +6,12 @@ import {
   deleteCourse,
 } from "@/lib/db/course/crud";
 import { CourseUpdateInput, courseSchema } from "@/lib/db/course/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(req);
+  if (denied) return denied;
+
   try {
     const { id: courseId } = await params;
     const course = await getCourseById(courseId);
@@ -28,6 +32,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(req, { action: "update", subject: "Course" });
+  if (denied) return denied;
+
   try {
     const { id: courseId } = await params;
     if (!courseId) {
@@ -76,7 +83,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(req, { action: "delete", subject: "Course" });
+  if (denied) return denied;
+
   try {
     const { id: courseId } = await params;
     await deleteCourse(courseId);

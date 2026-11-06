@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DataGrid,
   GridColDef,
@@ -10,15 +10,18 @@ import {
   GridToolbarColumnsButton,
   GridRowParams,
 } from "@mui/x-data-grid";
+import { Slider } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
 import ReportShell from "@/components/form/ReportShell";
 import DetailViewer from "@/components/form/DetailViewer";
 import Alert from "@/components/ui/Alert";
 import { StudentWithSchool } from "@/lib/db/student/type";
+import { Element, useAppAbility, useGridColumns } from "@/components/authz";
 
 export default function StudentReport() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [students, setStudents] =useState<StudentWithSchool[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -26,6 +29,7 @@ export default function StudentReport() {
   const [selectedRow, setSelectedRow] = useState<StudentWithSchool | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [rowHeight, setRowHeight] = useState(52);
 
   const fetchStudents = async () => {
     try {
@@ -71,6 +75,7 @@ export default function StudentReport() {
   };
 
   const handleRowClick = (params: GridRowParams<StudentWithSchool>) => {
+    if (!ability.can("view", "StudentReport", "row.click-detail")) return;
     setSelectedRow(params.row);
     setDrawerOpen(true);
   };
@@ -80,6 +85,18 @@ export default function StudentReport() {
   };
 
 
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
+
   const columns: GridColDef[] = [
     {
       field: "id",
@@ -87,10 +104,10 @@ export default function StudentReport() {
       width: 100,
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
-    { field: "first_name", headerName: "First Name", width: 150 },
-    { field: "last_name", headerName: "Last Name", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
-    { field: "gender", headerName: "Gender", width: 100 },
+    { field: "first_name", headerName: "First Name", width: 150, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "last_name", headerName: "Last Name", width: 150, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "email", headerName: "Email", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "gender", headerName: "Gender", width: 100, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     {
       field: "calendar_link",
       headerName: "Calendar",
@@ -99,6 +116,9 @@ export default function StudentReport() {
         const userId = params.row.user_id;
         if (!userId) {
           return <span className="text-gray-400 text-xs">No calendar</span>;
+        }
+        if (!ability.can("view", "StudentReport", "row.open-calendar")) {
+          return <span className="text-gray-400 text-xs">—</span>;
         }
         return (
           <a
@@ -121,35 +141,48 @@ export default function StudentReport() {
         const p = params as any;
         return p?.row?.school?.name ?? "N/A";
       },
+      renderCell: (params) => <span style={clampStyle}>{(params.row as any)?.school?.name ?? "N/A"}</span>,
     },
-    { field: "class", headerName: "Class", width: 100 },
-    { field: "section", headerName: "Section", width: 100 },
-    { field: "aspiration", headerName: "Aspiration", width: 200 },
-    { field: "comments", headerName: "Comments", width: 200 },
+    { field: "class", headerName: "Class", width: 100, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "section", headerName: "Section", width: 100, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "aspiration", headerName: "Aspiration", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "comments", headerName: "Comments", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     {
       field: "actions",
       type: "actions",
       headerName: "Actions",
       width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label="Edit"
-          onClick={() =>
-            router.push(`/protected/student/form/${params.row.id}`)
-          }
-        />,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteIcon />}
-          label="Delete"
-          onClick={() => handleDelete(params.row.id)}
-          color="error"
-        />,
-      ],
+      getActions: (params) => {
+        const actions: any[] = [];
+        if (ability.can("view", "StudentReport", "row.edit")) {
+          actions.push(
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={() =>
+                router.push(`/protected/student/form/${params.row.id}`)
+              }
+            />,
+          );
+        }
+        if (ability.can("view", "StudentReport", "row.delete")) {
+          actions.push(
+            <GridActionsCellItem
+              key="delete"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            />,
+          );
+        }
+        return actions;
+      },
     },
   ];
+
+  const visibleColumns = useGridColumns("StudentReport", columns);
 
   return (
     <ReportShell>
@@ -169,7 +202,7 @@ export default function StudentReport() {
         <div className="bg-white rounded-xl shadow-sm w-[calc(100vw-5rem)] m-10">
           <DataGrid
             rows={students}
-            columns={columns}
+            columns={visibleColumns}
             loading={loading}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
@@ -180,19 +213,33 @@ export default function StudentReport() {
               },
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
+            rowHeight={rowHeight}
             disableRowSelectionOnClick
             onRowClick={handleRowClick}
             slots={{
               toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
-                  <GridToolbarColumnsButton />
+                <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
+                  <Element subject="StudentReport" elementKey="tool.quick-filter">
+                    <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
+                  </Element>
+                  <Element subject="StudentReport" elementKey="tool.column-visibility">
+                    <GridToolbarColumnsButton />
+                  </Element>
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                    <Slider size="small" min={52} max={300} step={4} value={rowHeight}
+                      onChange={(_, v) => setRowHeight(v as number)}
+                      sx={{ width: 100, color: "#6366f1" }} />
+                    <span className="text-xs text-gray-400 w-8 text-right">{rowHeight}</span>
+                  </div>
                 </GridToolbarContainer>
               ),
             }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
+                alignItems: rowHeight > 52 ? "flex-start" : "center",
+                paddingTop: rowHeight > 52 ? "8px" : undefined,
                 color: "#1f2937",
               },
               "& .MuiDataGrid-columnHeaders": {

@@ -1,7 +1,11 @@
 import { failure, success } from "@/lib/api/http";
 import { getSchoolKeyUsers } from "@/lib/db/auth/user";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+    const denied = await requireApiAccess(request);
+    if (denied) return denied;
+
     try {
         const { searchParams } = new URL(request.url);
         const school_id = searchParams.get("school_id");

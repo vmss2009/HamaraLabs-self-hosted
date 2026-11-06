@@ -2,8 +2,12 @@ import { failure, success } from "@/lib/api/http";
 import { NextRequest } from "next/server";
 import { createCourse, getCourses } from "@/lib/db/course/crud";
 import { CourseCreateInput, courseSchema } from "@/lib/db/course/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function POST(req: NextRequest) {
+  const denied = await requireApiAccess(req, { action: "create", subject: "Course" });
+  if (denied) return denied;
+
   try {
     const body = await req.json();
 
@@ -65,7 +69,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const courses = await getCourses();
     return success(courses, 200);

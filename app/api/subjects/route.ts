@@ -1,7 +1,11 @@
 import { failure, success } from "@/lib/api/http";
 import { createSubject, getSubjects } from "@/lib/db/tinkering-activity/crud";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const subjects = await getSubjects();
     return success(subjects);
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "Subject" });
+  if (denied) return denied;
+
   try {
     const data = await request.json();
     const subject = await createSubject(data);

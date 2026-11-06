@@ -5,11 +5,15 @@ import {
   deleteCluster,
 } from "@/lib/db/cluster/crud";
 import { clusterSchema } from "@/lib/db/cluster/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const cluster = await getClusterById(id);
@@ -29,6 +33,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireApiAccess(request, { action: "update", subject: "Cluster" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const data = await request.json();
@@ -58,9 +65,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireApiAccess(request, { action: "delete", subject: "Cluster" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     await deleteCluster(id);

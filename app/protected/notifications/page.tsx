@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Element } from "@/components/authz";
 
 type Notification = {
   id: string;
@@ -232,17 +233,19 @@ export default function NotificationsPage() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => mutateNotifications("read", "all")}
-            disabled={!items.length || mutating || unreadCount === 0}
-            className="px-3 py-1.5 rounded text-xs font-medium border transition-colors disabled:opacity-50"
-            style={{
-              background: "color-mix(in srgb, var(--foreground) 6%, transparent)",
-              borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
-            }}
-          >
-            Mark all read
-          </button>
+          <Element subject="Notifications" elementKey="action.mark-all-read">
+            <button
+              onClick={() => mutateNotifications("read", "all")}
+              disabled={!items.length || mutating || unreadCount === 0}
+              className="px-3 py-1.5 rounded text-xs font-medium border transition-colors disabled:opacity-50"
+              style={{
+                background: "color-mix(in srgb, var(--foreground) 6%, transparent)",
+                borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
+              }}
+            >
+              Mark all read
+            </button>
+          </Element>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6 space-y-4">
@@ -347,42 +350,48 @@ export default function NotificationsPage() {
                           </div>
                           <div className="flex items-center gap-2 self-end sm:self-center">
                             {isUnread ? (
-                              <button
-                                onClick={() => mutateNotifications("read", [item.id])}
-                                disabled={mutating}
-                                className="text-xs font-medium px-2 py-1 rounded border disabled:opacity-50"
-                                style={{
-                                  background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
-                                  borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
-                                }}
-                              >
-                                Mark read
-                              </button>
+                              <Element subject="Notifications" elementKey="list.item.mark-read">
+                                <button
+                                  onClick={() => mutateNotifications("read", [item.id])}
+                                  disabled={mutating}
+                                  className="text-xs font-medium px-2 py-1 rounded border disabled:opacity-50"
+                                  style={{
+                                    background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
+                                    borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
+                                  }}
+                                >
+                                  Mark read
+                                </button>
+                              </Element>
                             ) : (
                               <>
-                                <button
-                                  onClick={() => mutateNotifications("unread", [item.id])}
-                                  disabled={mutating}
-                                  className="text-xs font-medium px-2 py-1 rounded border disabled:opacity-50"
-                                  style={{
-                                    background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
-                                    borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
-                                  }}
-                                >
-                                  Mark unread
-                                </button>
-                                <button
-                                  onClick={() => mutateNotifications("delete", [item.id])}
-                                  disabled={mutating}
-                                  className="text-xs font-medium px-2 py-1 rounded border disabled:opacity-50"
-                                  style={{
-                                    background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
-                                    borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
-                                  }}
-                                  aria-label="Delete notification"
-                                >
-                                  ×
-                                </button>
+                                <Element subject="Notifications" elementKey="list.item.mark-unread">
+                                  <button
+                                    onClick={() => mutateNotifications("unread", [item.id])}
+                                    disabled={mutating}
+                                    className="text-xs font-medium px-2 py-1 rounded border disabled:opacity-50"
+                                    style={{
+                                      background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
+                                      borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
+                                    }}
+                                  >
+                                    Mark unread
+                                  </button>
+                                </Element>
+                                <Element subject="Notifications" elementKey="list.item.delete">
+                                  <button
+                                    onClick={() => mutateNotifications("delete", [item.id])}
+                                    disabled={mutating}
+                                    className="text-xs font-medium px-2 py-1 rounded border disabled:opacity-50"
+                                    style={{
+                                      background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
+                                      borderColor: "color-mix(in srgb, var(--foreground) 18%, transparent)",
+                                    }}
+                                    aria-label="Delete notification"
+                                  >
+                                    ×
+                                  </button>
+                                </Element>
                               </>
                             )}
                           </div>

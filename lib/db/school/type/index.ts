@@ -70,6 +70,7 @@ export interface SchoolFilter {
   cityId?: number;
   stateId?: number;
   countryId?: number;
+  ids?: string[];
 }
 
 export interface SchoolUpdateInput {

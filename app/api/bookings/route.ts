@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { isBefore } from "date-fns";
 import { createNotifications } from "@/lib/db/notification/crud";
+import { requireSelfOrAdmin } from "@/lib/authz/guard";
 
 function utcMidnightFromYMD(ymd: string) {
   const [y, m, d] = ymd.split("-").map((n) => parseInt(n, 10));
@@ -17,6 +18,9 @@ export async function GET(req: Request) {
     if (!userId || !date) {
       return NextResponse.json({ message: "Missing userId or date" }, { status: 400 });
     }
+
+    const denied = await requireSelfOrAdmin(userId);
+    if (denied) return denied;
 
     const dayStartUtc = utcMidnightFromYMD(date);
     const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);

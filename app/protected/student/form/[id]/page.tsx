@@ -9,6 +9,7 @@ import SelectField from "@/components/form/SelectField";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import GuardianMultiform, { Guardian } from "@/components/form/GuardianMultiform";
 import { useRouter } from "next/navigation";
+import { Element, useAppAbility } from "@/components/authz";
 
 export default function EditStudentForm({
   params,
@@ -17,6 +18,7 @@ export default function EditStudentForm({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const ability = useAppAbility();
   const [schools, setSchools] = useState<Array<{ id: number; name: string }>>(
     []
   );
@@ -158,83 +160,96 @@ export default function EditStudentForm({
         )}
 
         <form onSubmit={onSubmit} className="space-y-8">
+          <Element subject="StudentForm" elementKey="section.school">
           <FormSection title="School Information">
-            <SelectField
-              label="Select School"
-              name="school"
-              options={schools.map((school) => ({
-                value: school.id.toString(),
-                label: school.name,
-              }))}
-              value={selectedSchool}
-              onChange={(e) => setSelectedSchool(e.target.value)}
-              required
-            />
+            <Element subject="StudentForm" elementKey="field.school_id">
+              <SelectField
+                label="Select School"
+                name="school"
+                options={schools.map((school) => ({
+                  value: school.id.toString(),
+                  label: school.name,
+                }))}
+                value={selectedSchool}
+                onChange={(e) => setSelectedSchool(e.target.value)}
+                required
+              />
+            </Element>
           </FormSection>
+          </Element>
 
+          <Element subject="StudentForm" elementKey="section.basic">
           <FormSection title="Basic Information">
             <TextFieldGroup
               fields={[
                 { name: "firstName", label: "First Name", required: true },
                 { name: "lastName", label: "Last Name", required: true },
-                {
-                  name: "email",
-                  label: "Email",
-                  type: "email",
-                  required: true,
-                },
+                { name: "email", label: "Email", type: "email", required: true },
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
                 { name: "aspiration", label: "Aspiration", required: true },
-                {
-                  name: "comments",
-                  label: "Comments",
-                  required: false,
-                  multiline: true,
-                  rows: 3,
-                },
-              ]}
+                { name: "comments", label: "Comments", required: false, multiline: true, rows: 3 },
+              ].filter(f => {
+                const map: Record<string, string> = {
+                  firstName: "field.first_name", lastName: "field.last_name",
+                  email: "field.email", class: "field.class",
+                  section: "field.section", aspiration: "field.aspiration",
+                  comments: "field.comments",
+                };
+                return !map[f.name] || ability.can("view", "StudentForm", map[f.name]);
+              })}
             />
-            <RadioButtonGroup
-              legend="Gender"
-              className="mt-4"
-              name="gender"
-              options={[
-                { value: "male", label: "Male" },
-                { value: "female", label: "Female" },
-                { value: "other", label: "Other" },
-              ]}
-              value={gender}
-              onChange={(value) => setGender(value)}
-              required
-            />
+            {ability.can("view", "StudentForm", "field.gender") && (
+              <RadioButtonGroup
+                legend="Gender"
+                className="mt-4"
+                name="gender"
+                options={[
+                  { value: "male", label: "Male" },
+                  { value: "female", label: "Female" },
+                  { value: "other", label: "Other" },
+                ]}
+                value={gender}
+                onChange={(value) => setGender(value)}
+                required
+              />
+            )}
           </FormSection>
+          </Element>
 
+          <Element subject="StudentForm" elementKey="section.guardians">
           <FormSection title="Guardian Information">
-            <GuardianMultiform
-              guardians={guardians}
-              onChange={setGuardians}
-            />
+            <Element subject="StudentForm" elementKey="field.guardians">
+              <GuardianMultiform
+                guardians={guardians}
+                onChange={setGuardians}
+              />
+            </Element>
           </FormSection>
+          </Element>
 
           <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-              onClick={() => router.push("/protected/student/report")}
-              variant="outline"
-              size="lg"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Update
-            </Button>
+            <Element subject="StudentForm" elementKey="cancel">
+              <Button
+                type="button"
+                className="px-8 py-3 font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+                onClick={() => router.push("/protected/student/report")}
+                variant="outline"
+                size="lg"
+              >
+                Cancel
+              </Button>
+            </Element>
+            <Element subject="StudentForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Update
+              </Button>
+            </Element>
           </div>
         </form>
       </div>

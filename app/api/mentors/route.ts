@@ -1,8 +1,12 @@
 import { failure, success } from "@/lib/api/http";
 import { createMentor, getMentors } from "@/lib/db/mentor/crud";
 import { mentorSchema, MentorCreateInput } from "@/lib/db/mentor/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const filter = {
@@ -22,6 +26,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "Mentor" });
+  if (denied) return denied;
+
   try {
     const body = await request.json();
 

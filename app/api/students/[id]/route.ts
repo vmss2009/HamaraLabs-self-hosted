@@ -5,8 +5,12 @@ import {
   deleteStudent,
 } from "@/lib/db/student/crud";
 import { StudentCreateInput, studentSchema  } from "@/lib/db/student/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const student = await getStudentById(id);
@@ -25,6 +29,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "update", subject: "Student" });
+  if (denied) return denied;
+
   try {
     const data = await request.json();
 
@@ -74,7 +81,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "delete", subject: "Student" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     await deleteStudent(id);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { updateMessage, deleteMessage } from '@/lib/chat/messages';
 import { prisma } from '@/lib/db/prisma';
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function PATCH(req: Request) {
   const session = await auth();
@@ -35,6 +36,9 @@ export async function DELETE(req: Request) {
 }
 
 export async function GET(req: Request) {
+  const denied = await requireApiAccess(req);
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });

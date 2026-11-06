@@ -7,8 +7,12 @@ import {
 } from "@/lib/db/customised-competition/crud";
 import { CustomisedCompetitionCreateInput } from "@/lib/db/customised-competition/type";
 import { auth } from "@/lib/auth/auth";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     if (id === "list") {
@@ -41,6 +45,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const data = await request.json();
@@ -72,7 +79,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     await deleteCustomisedCompetition(id);
@@ -89,6 +99,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const body = await request.json();

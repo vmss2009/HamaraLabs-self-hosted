@@ -8,9 +8,21 @@ import SelectField from "@/components/form/SelectField";
 import RadioButtonGroup from "@/components/form/RadioButtonGroup";
 import GuardianMultiform, { Guardian } from "@/components/form/GuardianMultiform";
 import { useRouter } from "next/navigation";
+import { Element, useAppAbility } from "@/components/authz";
+
+const STUDENT_FIELD_MAP: Record<string, string> = {
+  firstName: "field.first_name",
+  lastName: "field.last_name",
+  email: "field.email",
+  class: "field.class",
+  section: "field.section",
+  aspiration: "field.aspiration",
+  comments: "field.comments",
+};
 
 export default function StudentForm() {
   const router = useRouter();
+  const ability = useAppAbility();
   const [schools, setSchools] = useState<Array<{ id: number; name: string }>>(
     []
   );
@@ -31,6 +43,9 @@ export default function StudentForm() {
         }
         const data = await response.json();
         setSchools(data);
+        if (data.length === 1) {
+          setSelectedSchool(data[0].id.toString());
+        }
       } catch (error) {
         console.error("Error fetching schools:", error);
       }
@@ -127,76 +142,78 @@ export default function StudentForm() {
         )}
 
         <form onSubmit={onSubmit} className="space-y-8">
+          <Element subject="StudentForm" elementKey="section.school">
           <FormSection title="School Information">
-            <SelectField
-              label="Select School"
-              name="school"
-              options={schools.map((school) => ({
-                value: school.id.toString(),
-                label: school.name,
-              }))}
-              value={selectedSchool}
-              onChange={(e) => setSelectedSchool(e.target.value)}
-              required
-              className="w-full px-4 py-2rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
+            <Element subject="StudentForm" elementKey="field.school_id">
+              <SelectField
+                label="Select School"
+                name="school"
+                options={schools.map((school) => ({
+                  value: school.id.toString(),
+                  label: school.name,
+                }))}
+                value={selectedSchool}
+                onChange={(e) => setSelectedSchool(e.target.value)}
+                required
+                className="w-full px-4 py-2rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </Element>
           </FormSection>
+          </Element>
 
+          <Element subject="StudentForm" elementKey="section.basic">
           <FormSection title="Basic Information">
             <TextFieldGroup
               fields={[
                 { name: "firstName", label: "First Name", required: true },
                 { name: "lastName", label: "Last Name", required: true },
-                {
-                  name: "email",
-                  label: "Email",
-                  type: "email",
-                  required: true,
-                  placeholder: "student@example.com",
-                },
+                { name: "email", label: "Email", type: "email", required: true, placeholder: "student@example.com" },
                 { name: "class", label: "Class", required: true },
                 { name: "section", label: "Section", required: true },
                 { name: "aspiration", label: "Aspiration", required: true },
-                {
-                  name: "comments",
-                  label: "Comments",
-                  required: false,
-                  multiline: true,
-                  rows: 3,
-                },
-              ]}
+                { name: "comments", label: "Comments", required: false, multiline: true, rows: 3 },
+              ].filter(f => !STUDENT_FIELD_MAP[f.name] || ability.can("view", "StudentForm", STUDENT_FIELD_MAP[f.name]))}
             />
-            <RadioButtonGroup
-              legend="Gender"
-              name="gender"
-              options={[
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" },
-              ]}
-              value={gender}
-              onChange={(value) => setGender(value)}
-              required
-              className="mt-5"
-            />
+            {ability.can("view", "StudentForm", "field.gender") && (
+              <RadioButtonGroup
+                legend="Gender"
+                name="gender"
+                options={[
+                  { value: "Male", label: "Male" },
+                  { value: "Female", label: "Female" },
+                  { value: "Other", label: "Other" },
+                ]}
+                value={gender}
+                onChange={(value) => setGender(value)}
+                required
+                className="mt-5"
+              />
+            )}
           </FormSection>
+          </Element>
 
+          <Element subject="StudentForm" elementKey="section.guardians">
           <FormSection title="Guardian Information">
-            <GuardianMultiform
-              guardians={guardians}
-              onChange={setGuardians}
-            />
+            <Element subject="StudentForm" elementKey="field.guardians">
+              <GuardianMultiform
+                guardians={guardians}
+                onChange={setGuardians}
+              />
+            </Element>
           </FormSection>
+          </Element>
 
           <div className="flex justify-end mt-6">
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              size="lg"
-              className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
-            >
-              Submit
-            </Button>
+            <Element subject="StudentForm" elementKey="submit">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                size="lg"
+                className="px-8 py-3 font-semibold bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition"
+              >
+                Submit
+              </Button>
+            </Element>
           </div>
         </form>
       </div>
