@@ -150,7 +150,7 @@ export async function POST(req: Request) {
 - Run authentik (follow https://docs.goauthentik.io/docs/install-config/install/docker-compose) and postgresql containers in docker
 - Create an application and a provider in authentik admin interface
 - While creating provider enter atleast one redirect URI (eg:- http://localhost:3000/api/auth/callback/authentik)
-- Clone this repo, copy ".env.example", rename it to ".env" and enter necessary details
+- Clone this repo, copy "env.example", rename it to ".env" and enter necessary details
 - In the terminal run the following set of commands -
   - npm install
   - npx prisma migrate dev --name first_migration
