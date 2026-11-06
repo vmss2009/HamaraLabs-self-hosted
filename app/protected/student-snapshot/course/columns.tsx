@@ -1,3 +1,4 @@
+import React from "react";
 import { GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
 
@@ -5,10 +6,17 @@ import { DeleteIcon, EditIcon } from "@/components/form/Icons";
 
 type SnapshotItem = Record<string, unknown>;
 
+export type ColumnPerms = {
+  canUpdateStatus: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+};
+
 export const getCourseColumns = (
   handleModifyStatus: (row: SnapshotItem, type: string) => void,
   handleEditCourse: (row: SnapshotItem) => void,
-  handleDeleteCourse: (row: SnapshotItem) => void
+  handleDeleteCourse: (row: SnapshotItem) => void,
+  perms: ColumnPerms = { canUpdateStatus: true, canEdit: true, canDelete: true }
 ): GridColDef[] => [
   {
     field: "id",
@@ -136,38 +144,44 @@ export const getCourseColumns = (
     width: 200,
     getActions: (params) => [
       <div className="flex items-center space-x-2" key="actions">
-        <Button
-          variant="default"
-          color="primary"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleModifyStatus(params.row, "courses");
-          }}
-        >
-          Modify status
-        </Button>
+        {perms.canUpdateStatus && (
+          <Button
+            variant="default"
+            color="primary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleModifyStatus(params.row, "courses");
+            }}
+          >
+            Modify status
+          </Button>
+        )}
 
-        <GridActionsCellItem
-          key="edit"
-icon={<EditIcon />}
-          label="Edit"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEditCourse(params.row);
-          }}
-          showInMenu={false}
-        />
+        {perms.canEdit && (
+          <GridActionsCellItem
+            key="edit"
+            icon={<EditIcon />}
+            label="Edit"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditCourse(params.row);
+            }}
+            showInMenu={false}
+          />
+        )}
 
-        <GridActionsCellItem
-          icon={<DeleteIcon />}
-          label="Delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteCourse(params.row);
-          }}
-          showInMenu={false}
-        />
+        {perms.canDelete && (
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteCourse(params.row);
+            }}
+            showInMenu={false}
+          />
+        )}
       </div>,
     ],
   },

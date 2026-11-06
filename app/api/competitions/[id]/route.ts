@@ -5,8 +5,12 @@ import {
   deleteCompetition,
 } from "@/lib/db/competition/crud";
 import { competitionSchema } from "@/lib/db/competition/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     if (!id) {
@@ -28,7 +32,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "delete", subject: "Competition" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     if (!id) {
@@ -52,6 +59,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "update", subject: "Competition" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     if (!id) {

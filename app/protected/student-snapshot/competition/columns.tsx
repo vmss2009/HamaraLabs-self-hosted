@@ -13,10 +13,17 @@ type ModifyStatusHandler = (
 type DeleteCompetitionHandler = (competition: SnapshotItem) => void;
 type EditCompetitionHandler = (competition: SnapshotItem) => void;
 
+export type ColumnPerms = {
+  canUpdateStatus: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+};
+
 export function getCompetitionColumns(
   handleModifyStatus: ModifyStatusHandler,
   handleEditCompetition: EditCompetitionHandler,
-  handleDeleteCompetition: DeleteCompetitionHandler
+  handleDeleteCompetition: DeleteCompetitionHandler,
+  perms: ColumnPerms = { canUpdateStatus: true, canEdit: true, canDelete: true }
 ): GridColDef[] {
   return [
     {
@@ -121,38 +128,44 @@ export function getCompetitionColumns(
       width: 200,
       getActions: (params) => [
         <div className="flex items-center space-x-2" key="action-buttons">
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleModifyStatus(params.row, "competition");
-            }}
-          >
-            Modify status
-          </Button>
+          {perms.canUpdateStatus && (
+            <Button
+              variant="default"
+              color="primary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleModifyStatus(params.row, "competition");
+              }}
+            >
+              Modify status
+            </Button>
+          )}
 
-          <GridActionsCellItem
-            key="edit"
-icon={<EditIcon />}
-            label="Edit"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditCompetition(params.row);
-            }}
-            showInMenu={false}
-          />
+          {perms.canEdit && (
+            <GridActionsCellItem
+              key="edit"
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditCompetition(params.row);
+              }}
+              showInMenu={false}
+            />
+          )}
 
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteCompetition(params.row);
-            }}
-            showInMenu={false}
-          />
+          {perms.canDelete && (
+            <GridActionsCellItem
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteCompetition(params.row);
+              }}
+              showInMenu={false}
+            />
+          )}
         </div>,
       ],
     },

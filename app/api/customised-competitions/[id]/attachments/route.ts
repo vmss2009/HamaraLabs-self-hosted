@@ -1,7 +1,11 @@
 import { failure, success } from "@/lib/api/http";
 import { createCompetitionAttachments, SnapshotAttachmentInput } from "@/lib/db/snapshot-attachments/crud";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const body = await request.json();

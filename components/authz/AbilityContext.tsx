@@ -68,9 +68,21 @@ export function AbilityProvider({
   };
 
   useEffect(() => {
-    if (initialRules || fetchOnce.current) return;
-    fetchOnce.current = true;
-    void refresh();
+    // Always fetch fresh rules after mount so that mid-session permission
+    // changes made by an admin take effect without requiring a hard reload.
+    // initialRules (from SSR) are used immediately — no loading flash.
+    if (!fetchOnce.current) {
+      fetchOnce.current = true;
+      void refresh();
+    }
+
+    // Re-fetch when the user switches back to this tab, in case an admin
+    // changed their permissions while they were away.
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   const meta: AbilityMeta = useMemo(

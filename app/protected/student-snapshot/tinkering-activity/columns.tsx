@@ -12,10 +12,17 @@ type ModifyStatusHandler = (
 type EditTinkeringHandler = (item: SnapshotItem) => void;
 type DeleteTinkeringHandler = (item: SnapshotItem) => void;
 
+export type ColumnPerms = {
+  canUpdateStatus: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+};
+
 export function getTinkeringActivityColumns(
   handleModifyStatus: ModifyStatusHandler,
   handleEditTinkeringActivity: EditTinkeringHandler,
-  handleDeleteTinkeringActivity: DeleteTinkeringHandler
+  handleDeleteTinkeringActivity: DeleteTinkeringHandler,
+  perms: ColumnPerms = { canUpdateStatus: true, canEdit: true, canDelete: true }
 ): GridColDef[] {
   return [
     {
@@ -90,37 +97,43 @@ export function getTinkeringActivityColumns(
           className="flex items-center justify-center space-x-2 w-full h-full"
           key="tinkering-actions"
         >
-          <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleModifyStatus(params.row, "tinkering");
-            }}
-          >
-            Modify status
-          </Button>
+          {perms.canUpdateStatus && (
+            <Button
+              variant="default"
+              color="primary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleModifyStatus(params.row, "tinkering");
+              }}
+            >
+              Modify status
+            </Button>
+          )}
 
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditTinkeringActivity(params.row);
-            }}
-            showInMenu={false}
-          />
+          {perms.canEdit && (
+            <GridActionsCellItem
+              icon={<EditIcon />}
+              label="Edit"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditTinkeringActivity(params.row);
+              }}
+              showInMenu={false}
+            />
+          )}
 
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteTinkeringActivity(params.row);
-            }}
-            showInMenu={false}
-          />
+          {perms.canDelete && (
+            <GridActionsCellItem
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteTinkeringActivity(params.row);
+              }}
+              showInMenu={false}
+            />
+          )}
         </div>
       ),
     },

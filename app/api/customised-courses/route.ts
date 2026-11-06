@@ -1,8 +1,12 @@
 import { failure, success } from "@/lib/api/http";
 import { createCustomisedCourse } from "@/lib/db/customised-course/crud";
 import { CustomisedCourseCreateInput } from "@/lib/db/customised-course/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
 

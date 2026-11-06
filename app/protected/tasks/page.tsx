@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Slider } from "@mui/material";
 import {
   DataGrid,
   GridActionsCellItem,
@@ -75,6 +76,7 @@ function formatDate(value: string | null) {
 
 export default function TasksPage() {
   const ability = useAppAbility();
+  const [rowHeight, setRowHeight] = useState(52);
   const [activeTab, setActiveTab] = useState<"assigned" | "created">("assigned");
   const [assignedTasks, setAssignedTasks] = useState<TaskRow[]>([]);
   const [createdTasks, setCreatedTasks] = useState<TaskRow[]>([]);
@@ -288,6 +290,18 @@ export default function TasksPage() {
     setDrawerOpen(false);
   };
 
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
+
   const columnsAssigned: GridColDef[] = useMemo(
     () => [
       {
@@ -301,34 +315,39 @@ export default function TasksPage() {
         headerName: "Title",
         flex: 1,
         minWidth: 200,
+        renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
       },
       {
         field: "student",
         headerName: "Students",
         flex: 1,
         minWidth: 200,
-        valueGetter: (value, row) => {
-          if (!row.students || row.students.length === 0) return "";
-          return row.students
+        renderCell: (params: any) => {
+          if (!params.row.students || params.row.students.length === 0)
+            return <span style={clampStyle}>{""}</span>;
+          const text = params.row.students
             .map((s: any) => `${s.student.first_name} ${s.student.last_name}`)
             .join(", ");
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
         field: "school",
         headerName: "School",
         minWidth: 200,
-        valueGetter: (value, row) => {
-          const firstStudent = row.students?.[0]?.student;
-          if (!firstStudent?.school_id) return "";
-          return schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id;
+        renderCell: (params: any) => {
+          const firstStudent = params.row.students?.[0]?.student;
+          const text = firstStudent?.school_id
+            ? schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id
+            : "";
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
         field: "createdBy",
         headerName: "Created By",
         minWidth: 180,
-        valueGetter: (value, row) => row.createdBy.email,
+        renderCell: (params: any) => <span style={clampStyle}>{params.row.createdBy.email}</span>,
       },
       {
         field: "status",
@@ -384,7 +403,7 @@ export default function TasksPage() {
         },
       },
     ],
-    [schoolNameLookup, ability]
+    [schoolNameLookup, ability, lineClamp]
   );
 
   const columnsCreated: GridColDef[] = useMemo(
@@ -400,33 +419,37 @@ export default function TasksPage() {
         headerName: "Title",
         flex: 1,
         minWidth: 200,
+        renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
       },
       {
         field: "student",
         headerName: "Students",
         flex: 1,
         minWidth: 200,
-        valueGetter: (value, row) => {
-          if (!row.students || row.students.length === 0) return "";
-          return row.students
+        renderCell: (params: any) => {
+          if (!params.row.students || params.row.students.length === 0) return <span style={clampStyle}>{""}</span>;
+          const text = params.row.students
             .map((s: any) => `${s.student.first_name} ${s.student.last_name}`)
             .join(", ");
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
         field: "assignedTo",
         headerName: "Assigned To",
         minWidth: 180,
-        valueGetter: (value, row) => row.assignedTo?.email ?? "Unassigned",
+        renderCell: (params: any) => <span style={clampStyle}>{params.row.assignedTo?.email ?? "Unassigned"}</span>,
       },
       {
         field: "school",
         headerName: "School",
         minWidth: 200,
-        valueGetter: (value, row) => {
-          const firstStudent = row.students?.[0]?.student;
-          if (!firstStudent?.school_id) return "";
-          return schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id;
+        renderCell: (params: any) => {
+          const firstStudent = params.row.students?.[0]?.student;
+          const text = firstStudent?.school_id
+            ? schoolNameLookup[firstStudent.school_id] ?? firstStudent.school_id
+            : "";
+          return <span style={clampStyle}>{text}</span>;
         },
       },
       {
@@ -473,7 +496,7 @@ export default function TasksPage() {
         },
       },
     ],
-    [schoolNameLookup, ability]
+    [schoolNameLookup, ability, lineClamp]
   );
 
   const rows = activeTab === "assigned" ? assignedTasks : createdTasks;
@@ -624,7 +647,7 @@ export default function TasksPage() {
           columns={visibleColumns}
           getRowId={(row) => row.id}
           loading={loading}
-          autoHeight
+          rowHeight={rowHeight}
           disableRowSelectionOnClick
           onRowClick={handleRowClick}
           initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
@@ -634,7 +657,8 @@ export default function TasksPage() {
             backgroundColor: "#f3f4f6",
             "& .MuiDataGrid-cell": {
               color: "#1f2937",
-              paddingTop: "10px",
+              alignItems: rowHeight > 52 ? "flex-start" : "center",
+              paddingTop: rowHeight > 52 ? "12px" : "10px",
               paddingBottom: "10px",
             },
             "& .MuiDataGrid-columnHeaders": {
@@ -647,10 +671,22 @@ export default function TasksPage() {
           }}
           slots={{
             toolbar: () => (
-              <GridToolbarContainer className="bg-gray-50 p-2">
+              <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
                 <Element subject="TaskReport" elementKey="tool.quick-filter">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                  <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
                 </Element>
+                <div className="flex items-center gap-2 ml-2" style={{ minWidth: 200 }}>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                  <Slider
+                    size="small"
+                    min={36}
+                    max={200}
+                    value={rowHeight}
+                    onChange={(_, v) => setRowHeight(v as number)}
+                    sx={{ width: 120, color: "#6366f1" }}
+                  />
+                  <span className="text-xs text-gray-500 w-8 text-right">{rowHeight}</span>
+                </div>
               </GridToolbarContainer>
             ),
           }}

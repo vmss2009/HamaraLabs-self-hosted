@@ -1,3 +1,4 @@
+import React from "react";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 
 export type TaskSnapshotRow = {
@@ -23,7 +24,8 @@ type Formatter = (value: string | null) => string;
 
 export function getTaskColumns(
   handleStatusChange: StatusHandler,
-  formatDate: Formatter
+  formatDate: Formatter,
+  clampStyle?: React.CSSProperties
 ): GridColDef[] {
   return [
     {
@@ -37,19 +39,27 @@ export function getTaskColumns(
       headerName: "Title",
       flex: 1,
       minWidth: 180,
+      renderCell: (params) =>
+        clampStyle ? <span style={clampStyle}>{params.value ?? ""}</span> : (params.value ?? ""),
     },
     {
       field: "description",
       headerName: "Description",
       flex: 1,
       minWidth: 200,
-      valueGetter: (value, row) => row.description ?? "",
+      renderCell: (params: any) => {
+        const val = params.row.description ?? "";
+        return clampStyle ? <span style={clampStyle}>{val}</span> : val;
+      },
     },
     {
       field: "createdBy",
       headerName: "Created By",
       minWidth: 200,
-      valueGetter: (value, row) => row.createdBy?.email ?? "",
+      renderCell: (params: any) => {
+        const val = params.row.createdBy?.email ?? "";
+        return clampStyle ? <span style={clampStyle}>{val}</span> : val;
+      },
     },
     {
       field: "status",

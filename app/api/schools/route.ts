@@ -5,8 +5,12 @@ import { schoolSchema } from "@/lib/db/school/type";
 import { auth } from "@/lib/auth/auth";
 import { isAdminUser } from "@/lib/db/auth/user";
 import { prisma } from "@/lib/db/prisma";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const filter = {
@@ -48,6 +52,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "School" });
+  if (denied) return denied;
+
   try {
     const data = await request.json();
 

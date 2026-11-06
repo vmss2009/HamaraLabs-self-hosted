@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { listMessages, sendMessage } from '@/lib/chat/messages';
+import { requireApiAccess } from "@/lib/authz/guard";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export async function GET(req: Request) {
+  const denied = await requireApiAccess(req);
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url, BASE_URL);
   const roomId = searchParams.get('roomId');
   const cursor = searchParams.get('cursor') || undefined;

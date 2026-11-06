@@ -2,8 +2,12 @@ import { NextRequest } from "next/server";
 import { failure, success } from "@/lib/api/http";
 import { generateCustomisedTinkeringActivity } from "@/lib/db/customised-tinkering-activity/crud";
 import { DetailedTAGenerationInput } from "@/lib/db/customised-tinkering-activity/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function POST(req: NextRequest) {
+  const denied = await requireApiAccess(req);
+  if (denied) return denied;
+
   try {
     const body = await req.json();
     

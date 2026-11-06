@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DataGrid,
   GridColDef,
@@ -11,6 +11,7 @@ import {
   GridRowParams,
 } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/Button";
+import { Slider } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Alert from "@/components/ui/Alert";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
@@ -33,6 +34,7 @@ export default function CompetitionReport() {
   const [selectedActivity, setSelectedActivity] = useState<Competition | null>(
     null
   );
+  const [rowHeight, setRowHeight] = useState(52);
 
   const fetchCompetitions = async () => {
     try {
@@ -107,6 +109,18 @@ export default function CompetitionReport() {
     setSelectedActivity(null);
   };
 
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
+
   const columns: GridColDef[] = [
     {
       field: "id",
@@ -114,8 +128,8 @@ export default function CompetitionReport() {
       width: 100,
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
-    { field: "name", headerName: "Name", width: 200 },
-    { field: "organised_by", headerName: "Organised By", width: 200 },
+    { field: "name", headerName: "Name", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "organised_by", headerName: "Organised By", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     {
       field: "application_start_date",
       headerName: "Application Start",
@@ -140,7 +154,7 @@ export default function CompetitionReport() {
       width: 150,
       valueFormatter: (params) => formatDate(params),
     },
-    { field: "payment", headerName: "Payment", width: 100 },
+    { field: "payment", headerName: "Payment", width: 100, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     {
       field: "actions",
       type: "actions",
@@ -216,23 +230,33 @@ export default function CompetitionReport() {
               pagination: { paginationModel: { pageSize: 10 } },
             }}
             pageSizeOptions={[5, 10, 25, 50, 100]}
+            rowHeight={rowHeight}
             disableRowSelectionOnClick
             onRowClick={handleRowClick}
             slots={{
               toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
+                <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
                   <Element subject="CompetitionReport" elementKey="tool.quick-filter">
-                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                    <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
                   </Element>
                   <Element subject="CompetitionReport" elementKey="tool.column-visibility">
                     <GridToolbarColumnsButton />
                   </Element>
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                    <Slider size="small" min={52} max={300} step={4} value={rowHeight}
+                      onChange={(_, v) => setRowHeight(v as number)}
+                      sx={{ width: 100, color: "#6366f1" }} />
+                    <span className="text-xs text-gray-400 w-8 text-right">{rowHeight}</span>
+                  </div>
                 </GridToolbarContainer>
               ),
             }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
+                alignItems: rowHeight > 52 ? "flex-start" : "center",
+                paddingTop: rowHeight > 52 ? "8px" : undefined,
                 color: "#1f2937",
               },
               "& .MuiDataGrid-columnHeaders": {

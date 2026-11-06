@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { failure } from "@/lib/api/http";
+import { hasValidHMAC } from "@/lib/auth/hmac";
 import { buildAbilityForUser } from "./ability";
 import type { AppAbility, AppAction, AppSubject } from "./types";
 
@@ -60,4 +61,46 @@ export async function checkPermission(spec: GuardSpec): Promise<{
     ? ability.can(spec.action, spec.subject, spec.field)
     : ability.can(spec.action, spec.subject);
   return { allowed, ability, userId };
+}
+
+// Guard for route handlers that are also called by services signing requests with SALT_KEY.
+// Returns the response to send when access is denied, or null when the handler may proceed.
+export async function requireApiAccess(
+  request: Request,
+  spec?: GuardSpec,
+): Promise<Response | null> {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+
+  if (!userId) {
+    if (await hasValidHMAC(new URL(request.url).searchParams)) return null;
+    return failure("Not authenticated", 401, { code: "UNAUTHENTICATED" });
+  }
+
+  if (!spec) return null;
+
+  const { ability } = await buildAbilityForUser(userId);
+  const ok = spec.field
+    ? ability.can(spec.action, spec.subject, spec.field)
+    : ability.can(spec.action, spec.subject);
+  if (ok) return null;
+
+  return failure("Forbidden", 403, {
+    code: "FORBIDDEN",
+    details: { action: spec.action, subject: spec.subject, field: spec.field },
+  });
+}
+
+export async function requireSelfOrAdmin(targetUserId: string): Promise<Response | null> {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) {
+    return failure("Not authenticated", 401, { code: "UNAUTHENTICATED" });
+  }
+  if (userId === targetUserId) return null;
+
+  const { ability } = await buildAbilityForUser(userId);
+  if (ability.can("manage", "all")) return null;
+
+  return failure("Forbidden", 403, { code: "FORBIDDEN" });
 }

@@ -1,7 +1,11 @@
 import { failure, success } from "@/lib/api/http";
 import { getCitiesByState } from "@/lib/db/location/crud";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const stateId = searchParams.get("stateId");

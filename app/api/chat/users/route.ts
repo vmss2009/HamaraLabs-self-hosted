@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { requireApiAccess } from "@/lib/authz/guard";
 
 // Supports optional filtering via query parameters:
 // GET /api/chat/users?schoolId=<id>&role=INCHARGE|PRINCIPAL|CORRESPONDENT|MENTOR|STUDENT
 // Falls back to all users when no filter provided (legacy behavior).
 export async function GET(req: Request) {
+  const denied = await requireApiAccess(req);
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url);
   const schoolId = searchParams.get('schoolId');
   const role = searchParams.get('role');

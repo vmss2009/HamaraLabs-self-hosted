@@ -261,7 +261,10 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
           throw new Error("Failed to fetch schools");
         }
         const schoolsData = await schoolsResponse.json();
-        if (isMounted.current) setSchools(schoolsData);
+        if (isMounted.current) {
+          setSchools(schoolsData);
+          if (schoolsData.length === 1) setSelectedSchool(String(schoolsData[0].id));
+        }
       } catch (error) {
         console.error("Error fetching initial data:", error);
         if (isMounted.current)
@@ -450,8 +453,11 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
       if (!response.ok) {
         throw new Error("Failed to fetch students");
       }
-      const data = await response.json();
-      if (isMounted.current) setStudents(data);
+      const data: Student[] = await response.json();
+      if (isMounted.current) {
+        setStudents(data);
+        if (data.length === 1) setSelectedStudent(String(data[0].id));
+      }
     } catch (error) {
       console.error("Error fetching students:", error);
       if (isMounted.current) setError("Failed to load students");
@@ -1097,20 +1103,39 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
     [fetchTasks]
   );
 
+  const tinkeringColPerms = {
+    canUpdateStatus: ability.can("view", "Snapshot", "action.tinkering.update-status"),
+    canEdit: ability.can("view", "Snapshot", "row.tinkering.edit"),
+    canDelete: ability.can("view", "Snapshot", "row.tinkering.delete"),
+  };
+  const competitionColPerms = {
+    canUpdateStatus: ability.can("view", "Snapshot", "action.competition.update-status"),
+    canEdit: ability.can("view", "Snapshot", "row.competition.edit"),
+    canDelete: ability.can("view", "Snapshot", "row.competition.delete"),
+  };
+  const courseColPerms = {
+    canUpdateStatus: ability.can("view", "Snapshot", "action.course.update-status"),
+    canEdit: ability.can("view", "Snapshot", "row.course.edit"),
+    canDelete: ability.can("view", "Snapshot", "row.course.delete"),
+  };
+
   const tinkeringActivityColumns = (getTinkeringActivityColumns as any)(
     handleModifyactivity as any,
     handleEditTinkeringActivity as any,
-    handleDeleteTinkeringActivity as any
+    handleDeleteTinkeringActivity as any,
+    tinkeringColPerms
   ) as any;
   const competitionColumns = (getCompetitionColumns as any)(
     handleModifyCompetition as any,
     handleEditCompetition as any,
-    handleDeleteCompetition as any
+    handleDeleteCompetition as any,
+    competitionColPerms
   ) as any;
   const courseColumns = (getCourseColumns as any)(
     handleModifyCourse as any,
     handleEditCourse as any,
-    handleDeleteCourse as any
+    handleDeleteCourse as any,
+    courseColPerms
   ) as any;
   const taskColumns = useMemo(
     () => getTaskColumns(handleTaskStatusChange, formatTaskDueDate),
@@ -1518,20 +1543,22 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
                   <GridToolbarContainer className="bg-gray-50 p-2">
                     <GridToolbarQuickFilter sx={{ width: "100%" }} />
                     <GridToolbarColumnsButton />
-                    <UIButton
-                      variant="default"
-                      size="sm"
-                      className="ml-2"
-                      onClick={() => {
-                        if (selectedStudent) {
-                          fetchStudentDetails(selectedStudent);
-                        }
-                        setSelectedTinkeringActivities(tinkeringActivities);
-                        setGenerateTADialogOpen(true);
-                      }}
-                    >
-                      Generate TA
-                    </UIButton>
+                    {ability.can("view", "Snapshot", "action.generate-ta") && (
+                      <UIButton
+                        variant="default"
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => {
+                          if (selectedStudent) {
+                            fetchStudentDetails(selectedStudent);
+                          }
+                          setSelectedTinkeringActivities(tinkeringActivities);
+                          setGenerateTADialogOpen(true);
+                        }}
+                      >
+                        Generate TA
+                      </UIButton>
+                    )}
                   </GridToolbarContainer>
                 ),
               }}
@@ -1956,6 +1983,7 @@ Do not put large sentences or paragraphs. For example - goals, materials, instru
             open={statusDialogOpen}
             onClose={() => setStatusDialogOpen(false)}
             title="Modify Status"
+            disableBackdropClose
             footer={
               <>
                 <UIButton onClick={() => setStatusDialogOpen(false)} variant="outline">

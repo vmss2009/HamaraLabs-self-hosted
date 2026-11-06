@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
+import { requireSelfOrAdmin } from "@/lib/authz/guard";
 
 export async function GET(
   _request: NextRequest,
@@ -32,6 +33,9 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const denied = await requireSelfOrAdmin(id);
+    if (denied) return denied;
+
     const body = await request.json();
     
     // Check if user exists

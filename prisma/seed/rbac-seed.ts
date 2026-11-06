@@ -490,11 +490,18 @@ const UI_ELEMENTS: Record<string, string[]> = {
     "action.add-competition",
     "action.add-course",
     "action.add-task",
-    "action.update-status",
+    "action.generate-ta",
+    "action.tinkering.update-status",
+    "action.competition.update-status",
+    "action.course.update-status",
     "action.attach-file",
     "action.detach-file",
-    "row.edit",
-    "row.delete",
+    "row.tinkering.edit",
+    "row.tinkering.delete",
+    "row.competition.edit",
+    "row.competition.delete",
+    "row.course.edit",
+    "row.course.delete",
     "row.view",
     "modal.edit-tinkering",
     "modal.edit-competition",
@@ -782,6 +789,16 @@ async function main() {
     }
   }
 
+  async function revoke(roleId: string, subject: string, field: string) {
+    const p = allPerms.find(
+      (pp) => pp.action === "view" && pp.subject === subject && pp.field === field,
+    );
+    if (!p) return;
+    await prisma.rolePermission.deleteMany({
+      where: { role_id: roleId, permission_id: p.id },
+    });
+  }
+
   async function grantModel(roleId: string, subject: string, actions: string[]) {
     for (const action of actions) {
       const p = allPerms.find(
@@ -957,7 +974,9 @@ async function main() {
     "tab.courses",
     "tab.tasks",
     "row.view",
-    "action.update-status",
+    "action.tinkering.update-status",
+    "action.competition.update-status",
+    "action.course.update-status",
     "action.attach-file",
     "field.status",
     "field.comments",
@@ -993,6 +1012,20 @@ async function main() {
   ]);
   await grantUI(student.id, "Chats", "*");
   await grantUI(student.id, "ChatRoom", "*");
+
+  // Explicitly revoke generate-ta from roles that should not have it.
+  // Principal and mentor keep it; admin has manage:all.
+  for (const role of [incharge, correspondent, student]) {
+    await revoke(role.id, "Snapshot", "action.generate-ta");
+  }
+
+  // Clean up obsolete generic Snapshot keys that were replaced by type-specific ones.
+  const obsoleteSnapshotKeys = ["action.update-status", "row.edit", "row.delete"];
+  for (const role of [principal, incharge, correspondent, mentor, student]) {
+    for (const key of obsoleteSnapshotKeys) {
+      await revoke(role.id, "Snapshot", key);
+    }
+  }
 
   const totalPerms = await prisma.permission.count();
   const totalRoles = await prisma.role.count();

@@ -3,8 +3,12 @@ import { NextRequest } from "next/server";
 import { getSchoolById, updateSchool, deleteSchool } from "@/lib/db/school/crud";
 import { deleteAddress } from "@/lib/db/address/crud";
 import { SchoolUpdateInput, schoolSchema } from "@/lib/db/school/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const school = await getSchoolById(id);
@@ -23,6 +27,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "update", subject: "School" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
 
@@ -86,7 +93,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "delete", subject: "School" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const school = await getSchoolById(id);

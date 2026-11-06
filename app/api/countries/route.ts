@@ -1,7 +1,11 @@
 import { failure, success } from "@/lib/api/http";
 import { getCountries } from "@/lib/db/location/crud";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const countries = await getCountries();
 

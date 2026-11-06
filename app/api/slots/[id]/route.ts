@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(req, { action: "manage", subject: "Slot" });
+  if (denied) return denied;
+
   try {
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
@@ -14,6 +18,9 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
 }
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(req, { action: "manage", subject: "Slot" });
+  if (denied) return denied;
+
   try {
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
@@ -41,7 +48,10 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   }
 }
 
-export async function DELETE(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(req, { action: "manage", subject: "Slot" });
+  if (denied) return denied;
+
   try {
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });

@@ -5,8 +5,12 @@ import {
   deleteMentor,
 } from "@/lib/db/mentor/crud";
 import { MentorUpdateInput, mentorSchema } from "@/lib/db/mentor/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const mentor = await getMentorById(id);
@@ -23,6 +27,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "update", subject: "Mentor" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -55,7 +62,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireApiAccess(request, { action: "delete", subject: "Mentor" });
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     await deleteMentor(id);

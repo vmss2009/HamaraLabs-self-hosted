@@ -26,6 +26,7 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Slider,
 } from "@mui/material";
 import { FiEdit2, FiTrash2, FiShield, FiPlus } from "react-icons/fi";
 import ReportShell from "@/components/form/ReportShell";
@@ -69,6 +70,19 @@ export default function AdminRolesPage() {
   const [permSubjectFilter, setPermSubjectFilter] = useState("");
   const [permActionFilter, setPermActionFilter] = useState("");
   const [permAssignedOnly, setPermAssignedOnly] = useState(false);
+  const [rowHeight, setRowHeight] = useState(52);
+
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
 
   const fetchRoles = useCallback(async () => {
     setLoading(true);
@@ -291,12 +305,13 @@ export default function AdminRolesPage() {
       width: 60,
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
-    { field: "name", headerName: "Role Name", width: 180 },
+    { field: "name", headerName: "Role Name", width: 180, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     {
       field: "description",
       headerName: "Description",
       width: 300,
       valueGetter: (value: unknown) => (value as string | null) ?? "-",
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
     },
     {
       field: "is_system",
@@ -375,18 +390,25 @@ export default function AdminRolesPage() {
             rows={roles}
             columns={columns}
             loading={loading}
-            rowHeight={52}
+            rowHeight={rowHeight}
             initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
             pageSizeOptions={[10, 25, 50]}
             disableRowSelectionOnClick
             slots={{
               toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
-                  <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
+                  <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                    <Slider size="small" min={52} max={300} step={4} value={rowHeight}
+                      onChange={(_, v) => setRowHeight(v as number)}
+                      sx={{ width: 100, color: "#6366f1" }} />
+                    <span className="text-xs text-gray-400 w-8 text-right">{rowHeight}</span>
+                  </div>
                 </GridToolbarContainer>
               ),
             }}
-            sx={{ border: "none", borderRadius: "12px" }}
+            sx={{ border: "none", borderRadius: "12px", "& .MuiDataGrid-cell": { alignItems: rowHeight > 52 ? "flex-start" : "center", paddingTop: rowHeight > 52 ? "8px" : undefined } }}
           />
         </div>
       </div>

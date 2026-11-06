@@ -11,6 +11,7 @@ interface ModalProps {
   footer?: React.ReactNode;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
+  disableBackdropClose?: boolean;
 }
 
 const sizeClasses: Record<NonNullable<ModalProps["size"]>, string> = {
@@ -28,15 +29,16 @@ export default function Modal({
   footer,
   className,
   size = "md",
+  disableBackdropClose = false,
 }: ModalProps) {
   useEffect(() => {
-    if (!open) return;
+    if (!open || disableBackdropClose) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, onClose]);
+  }, [open, onClose, disableBackdropClose]);
 
   if (!open) return null;
 
@@ -44,7 +46,7 @@ export default function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={disableBackdropClose ? undefined : onClose}
       />
       <div
         className={cn(

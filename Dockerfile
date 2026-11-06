@@ -1,5 +1,5 @@
 # 1. Use official Node.js image as base
-FROM node:18-alpine AS deps
+FROM node:24-alpine AS deps
 
 # 2. Set working directory
 WORKDIR /app
@@ -19,7 +19,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # 7. Production image
-FROM node:18-alpine AS runner
+FROM node:24-alpine AS runner
 
 # 8. Set working directory
 WORKDIR /app

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DataGrid,
   GridColDef,
@@ -11,6 +11,7 @@ import {
   GridToolbarColumnsButton,
   GridRowParams,
 } from "@mui/x-data-grid";
+import { Slider } from "@mui/material";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { EditIcon, DeleteIcon } from "@/components/form/Icons";
@@ -36,6 +37,7 @@ export default function TinkeringActivityReport() {
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] =
     useState<TinkeringActivityWithSubtopic | null>(null);
+  const [rowHeight, setRowHeight] = useState(52);
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>({
       goals: false,
@@ -69,48 +71,13 @@ export default function TinkeringActivityReport() {
           extensions?: string[];
         }) => ({
           ...item,
-
-          instructions:
-            Array.isArray(item.instructions) && item.instructions.length > 0
-              ? item.instructions[0].slice(0, 50) +
-                (item.instructions[0].length > 50 ? "..." : "")
-              : "",
-
-          goals:
-            Array.isArray(item.goals) && item.goals.length > 0
-              ? item.goals[0].slice(0, 50) +
-                (item.goals[0].length > 50 ? "..." : "")
-              : "",
-
-          materials:
-            Array.isArray(item.materials) && item.materials.length > 0
-              ? item.materials[0].slice(0, 50) +
-                (item.materials[0].length > 50 ? "..." : "")
-              : "",
-
-          tips:
-            Array.isArray(item.tips) && item.tips.length > 0
-              ? item.tips[0].slice(0, 50) +
-                (item.tips[0].length > 50 ? "..." : "")
-              : "",
-
-          observations:
-            Array.isArray(item.observations) && item.observations.length > 0
-              ? item.observations[0].slice(0, 50) +
-                (item.observations[0].length > 50 ? "..." : "")
-              : "",
-
-          resources:
-            Array.isArray(item.resources) && item.resources.length > 0
-              ? item.resources[0].slice(0, 50) +
-                (item.resources[0].length > 50 ? "..." : "")
-              : "",
-
-          extensions:
-            Array.isArray(item.extensions) && item.extensions.length > 0
-              ? item.extensions[0].slice(0, 50) +
-                (item.extensions[0].length > 50 ? "..." : "")
-              : "",
+          instructions: Array.isArray(item.instructions) ? item.instructions.join(" ") : "",
+          goals: Array.isArray(item.goals) ? item.goals.join(" ") : "",
+          materials: Array.isArray(item.materials) ? item.materials.join(" ") : "",
+          tips: Array.isArray(item.tips) ? item.tips.join(" ") : "",
+          observations: Array.isArray(item.observations) ? item.observations.join(" ") : "",
+          resources: Array.isArray(item.resources) ? item.resources.join(" ") : "",
+          extensions: Array.isArray(item.extensions) ? item.extensions.join(" ") : "",
         })
       );
 
@@ -184,6 +151,18 @@ export default function TinkeringActivityReport() {
     setSelectedActivity(null);
   };
 
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
+
   const columns: GridColDef[] = [
     {
       field: "id",
@@ -191,43 +170,77 @@ export default function TinkeringActivityReport() {
       width: 100,
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
-
     {
       field: "name",
       headerName: "Activity Name",
       width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
     },
     {
       field: "introduction",
       headerName: "Introduction",
       width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
     },
     {
       field: "subtopic_name",
       headerName: "Subtopic",
       width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
     },
     {
       field: "topic_name",
       headerName: "Topic",
       width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
     },
-    { field: "goals", headerName: "Goals", width: 200 },
-
-    { field: "materials", headerName: "Materials", width: 200 },
-    { field: "instructions", headerName: "Instructions", width: 200 },
-    { field: "tips", headerName: "Tips", width: 200 },
-    { field: "observations", headerName: "Observations", width: 200 },
-    { field: "resources", headerName: "Resourses", width: 200 },
-    { field: "extensions", headerName: "Extensions", width: 200 },
-
+    {
+      field: "goals",
+      headerName: "Goals",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
+    {
+      field: "materials",
+      headerName: "Materials",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
+    {
+      field: "instructions",
+      headerName: "Instructions",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
+    {
+      field: "tips",
+      headerName: "Tips",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
+    {
+      field: "observations",
+      headerName: "Observations",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
+    {
+      field: "resources",
+      headerName: "Resources",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
+    {
+      field: "extensions",
+      headerName: "Extensions",
+      width: 200,
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
+    },
     {
       field: "subject_name",
       headerName: "Subject",
       width: 200,
-      renderCell: (params) => (
-        <div className="flex items-center h-full">{params.value}</div>
-      ),
+      renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span>,
     },
     {
       field: "actions",
@@ -303,6 +316,7 @@ export default function TinkeringActivityReport() {
             rows={activities}
             columns={visibleColumns}
             loading={loading}
+            rowHeight={rowHeight}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
@@ -315,22 +329,34 @@ export default function TinkeringActivityReport() {
             onRowClick={handleRowClick}
             slots={{
               toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
+                <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
                   <Element subject="TinkeringActivityReport" elementKey="tool.quick-filter">
-                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                    <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
                   </Element>
                   <Element subject="TinkeringActivityReport" elementKey="tool.column-visibility">
                     <GridToolbarColumnsButton />
                   </Element>
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                    <Slider
+                      size="small"
+                      min={52}
+                      max={300}
+                      step={4}
+                      value={rowHeight}
+                      onChange={(_, v) => setRowHeight(v as number)}
+                      sx={{ width: 100, color: "#6366f1" }}
+                    />
+                    <span className="text-xs text-gray-400 w-8 text-right">{rowHeight}</span>
+                  </div>
                 </GridToolbarContainer>
               ),
             }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
-                whiteSpace: "normal !important",
-                wordWrap: "break-word",
-                alignItems: "center",
+                alignItems: rowHeight > 52 ? "flex-start" : "center",
+                paddingTop: rowHeight > 52 ? "8px" : undefined,
                 color: "#1f2937",
               },
               "& .MuiDataGrid-columnHeaders": {

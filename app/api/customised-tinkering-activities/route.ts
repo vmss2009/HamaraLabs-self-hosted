@@ -3,8 +3,12 @@ import { auth } from "@/lib/auth/auth";
 import { createCustomisedTinkeringActivity } from "@/lib/db/customised-tinkering-activity/crud";
 import { CustomisedTinkeringActivityCreateInput } from "@/lib/db/customised-tinkering-activity/type";
 import { getTinkeringActivityById } from "@/lib/db/tinkering-activity/crud";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   const session = await auth();
   const userId = session?.user?.id;
 

@@ -1,31 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-async function verifyHMAC(code: string, signature: string, timestamp: number, secret: string): Promise<boolean> {
-  const encoder = new TextEncoder();
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  const allowedSkew = 40;
-
-  if (Math.abs(currentTimestamp - timestamp) > allowedSkew) {
-    throw new Error("Request expired or timestamp is invalid");
-  }
-
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"]
-  );
-
-  const message = `${code}:${timestamp}`;
-  const hex = signature.replace(/[^0-9a-f]/gi, "");
-  const signatureBytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    signatureBytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
-  }
-
-  return crypto.subtle.verify("HMAC", key, signatureBytes, encoder.encode(message));
-}
+import { verifyHMAC } from "@/lib/auth/hmac";
 
 function hasSessionCookie(req: NextRequest): boolean {
   return !!(
@@ -42,7 +16,8 @@ export default async function middleware(req: NextRequest) {
     return new Response("Not Found", { status: 404 });
   }
 
-  // Cookie-presence check: fast UX guard (actual DB validation is in protected/layout.tsx)
+  // Cookie-presence check only: a fast UX guard, not an access control. The cookie is not validated
+  // here, so every API route must check the session itself (see requireApiAccess in lib/authz/guard.ts).
   const authenticated = hasSessionCookie(req);
 
   if (!authenticated && pathname.startsWith("/protected")) {

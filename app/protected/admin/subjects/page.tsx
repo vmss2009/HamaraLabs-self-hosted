@@ -27,6 +27,7 @@ import {
 } from "react-icons/fi";
 import { MdOutlineBook, MdOutlineBookmark, MdOutlineLabel } from "react-icons/md";
 import ReportShell from "@/components/form/ReportShell";
+import { useAppAbility } from "@/components/authz";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,8 @@ const EMPTY_DELETE: DeleteDialog = {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminSubjectsPage() {
+  const ability = useAppAbility();
+  const canAddSubject = ability.can("view", "AdminSubjects", "action.create-subject");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -238,14 +241,16 @@ export default function AdminSubjectsPage() {
               Manage the subject → topic → subtopic curriculum hierarchy
             </p>
           </div>
-          <Button
-            variant="contained"
-            startIcon={<FiPlus />}
-            onClick={openAddSubject}
-            sx={{ whiteSpace: "nowrap" }}
-          >
-            Add Subject
-          </Button>
+          {canAddSubject && (
+            <Button
+              variant="contained"
+              startIcon={<FiPlus />}
+              onClick={openAddSubject}
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              Add Subject
+            </Button>
+          )}
         </div>
 
         {/* Stats */}
@@ -298,10 +303,12 @@ export default function AdminSubjectsPage() {
             <Typography color="rgba(255,255,255,0.5)" sx={{ mb: 2 }}>
               No subjects yet
             </Typography>
-            <Button variant="outlined" startIcon={<FiPlus />} onClick={openAddSubject}
-              sx={{ color: "white", borderColor: "rgba(255,255,255,0.4)" }}>
-              Add your first subject
-            </Button>
+            {canAddSubject && (
+              <Button variant="outlined" startIcon={<FiPlus />} onClick={openAddSubject}
+                sx={{ color: "white", borderColor: "rgba(255,255,255,0.4)" }}>
+                Add your first subject
+              </Button>
+            )}
           </Box>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -414,6 +421,10 @@ function SubjectCard({
   onEditSubtopic: (st: Subtopic) => void;
   onDeleteSubtopic: (st: Subtopic) => void;
 }) {
+  const ability = useAppAbility();
+  const canAddTopic = ability.can("view", "AdminSubjects", "action.create-topic");
+  const canEditSubject = ability.can("view", "AdminSubjects", "row.edit-subject");
+  const canDeleteSubject = ability.can("view", "AdminSubjects", "row.delete-subject");
   return (
     <Accordion
       expanded={expanded}
@@ -449,24 +460,30 @@ function SubjectCard({
           onClick={(e) => e.stopPropagation()}
           sx={{ display: "flex", gap: 0.5 }}
         >
-          <Tooltip title="Add topic">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <IconButton component={"span" as any} size="small" onClick={onAddTopic} sx={{ color: "#4ade80" }}>
-              <FiPlus size={15} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Edit subject">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <IconButton component={"span" as any} size="small" onClick={onEditSubject} sx={{ color: "#facc15" }}>
-              <FiEdit2 size={14} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete subject">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <IconButton component={"span" as any} size="small" onClick={onDeleteSubject} sx={{ color: "#f87171" }}>
-              <FiTrash2 size={14} />
-            </IconButton>
-          </Tooltip>
+          {canAddTopic && (
+            <Tooltip title="Add topic">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <IconButton component={"span" as any} size="small" onClick={onAddTopic} sx={{ color: "#4ade80" }}>
+                <FiPlus size={15} />
+              </IconButton>
+            </Tooltip>
+          )}
+          {canEditSubject && (
+            <Tooltip title="Edit subject">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <IconButton component={"span" as any} size="small" onClick={onEditSubject} sx={{ color: "#facc15" }}>
+                <FiEdit2 size={14} />
+              </IconButton>
+            </Tooltip>
+          )}
+          {canDeleteSubject && (
+            <Tooltip title="Delete subject">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <IconButton component={"span" as any} size="small" onClick={onDeleteSubject} sx={{ color: "#f87171" }}>
+                <FiTrash2 size={14} />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </AccordionSummary>
 
@@ -484,15 +501,17 @@ function SubjectCard({
             <Typography variant="body2" color="rgba(255,255,255,0.4)" sx={{ mb: 1 }}>
               No topics yet
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<FiPlus />}
-              onClick={onAddTopic}
-              sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)", fontSize: 12 }}
-            >
-              Add topic
-            </Button>
+            {canAddTopic && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<FiPlus />}
+                onClick={onAddTopic}
+                sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)", fontSize: 12 }}
+              >
+                Add topic
+              </Button>
+            )}
           </Box>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
@@ -537,6 +556,10 @@ function TopicCard({
   onEditSubtopic: (st: Subtopic) => void;
   onDeleteSubtopic: (st: Subtopic) => void;
 }) {
+  const ability = useAppAbility();
+  const canAddSubtopic = ability.can("view", "AdminSubjects", "action.create-subtopic");
+  const canEditTopic = ability.can("view", "AdminSubjects", "row.edit-topic");
+  const canDeleteTopic = ability.can("view", "AdminSubjects", "row.delete-topic");
   return (
     <Accordion
       expanded={expanded}
@@ -568,24 +591,30 @@ function TopicCard({
           sx={{ bgcolor: "rgba(167,139,250,0.15)", color: "#c4b5fd", fontSize: 11, height: 22, mr: 0.5 }}
         />
         <Box onClick={(e) => e.stopPropagation()} sx={{ display: "flex", gap: 0.5 }}>
-          <Tooltip title="Add subtopic">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <IconButton component={"span" as any} size="small" onClick={onAddSubtopic} sx={{ color: "#4ade80", p: "3px" }}>
-              <FiPlus size={13} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Edit topic">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <IconButton component={"span" as any} size="small" onClick={onEditTopic} sx={{ color: "#facc15", p: "3px" }}>
-              <FiEdit2 size={12} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete topic">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <IconButton component={"span" as any} size="small" onClick={onDeleteTopic} sx={{ color: "#f87171", p: "3px" }}>
-              <FiTrash2 size={12} />
-            </IconButton>
-          </Tooltip>
+          {canAddSubtopic && (
+            <Tooltip title="Add subtopic">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <IconButton component={"span" as any} size="small" onClick={onAddSubtopic} sx={{ color: "#4ade80", p: "3px" }}>
+                <FiPlus size={13} />
+              </IconButton>
+            </Tooltip>
+          )}
+          {canEditTopic && (
+            <Tooltip title="Edit topic">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <IconButton component={"span" as any} size="small" onClick={onEditTopic} sx={{ color: "#facc15", p: "3px" }}>
+                <FiEdit2 size={12} />
+              </IconButton>
+            </Tooltip>
+          )}
+          {canDeleteTopic && (
+            <Tooltip title="Delete topic">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <IconButton component={"span" as any} size="small" onClick={onDeleteTopic} sx={{ color: "#f87171", p: "3px" }}>
+                <FiTrash2 size={12} />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </AccordionSummary>
 
@@ -603,15 +632,17 @@ function TopicCard({
             <Typography variant="caption" color="rgba(255,255,255,0.35)" sx={{ display: "block", mb: 0.5 }}>
               No subtopics yet
             </Typography>
-            <Button
-              size="small"
-              variant="text"
-              startIcon={<FiPlus size={11} />}
-              onClick={onAddSubtopic}
-              sx={{ color: "rgba(255,255,255,0.4)", fontSize: 11, py: 0.25 }}
-            >
-              Add subtopic
-            </Button>
+            {canAddSubtopic && (
+              <Button
+                size="small"
+                variant="text"
+                startIcon={<FiPlus size={11} />}
+                onClick={onAddSubtopic}
+                sx={{ color: "rgba(255,255,255,0.4)", fontSize: 11, py: 0.25 }}
+              >
+                Add subtopic
+              </Button>
+            )}
           </Box>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
@@ -641,6 +672,9 @@ function SubtopicRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const ability = useAppAbility();
+  const canEditSubtopic = ability.can("view", "AdminSubjects", "row.edit-subtopic");
+  const canDeleteSubtopic = ability.can("view", "AdminSubjects", "row.delete-subtopic");
   return (
     <Box
       sx={{
@@ -660,16 +694,20 @@ function SubtopicRow({
       <Typography variant="body2" color="rgba(255,255,255,0.8)" sx={{ flexGrow: 1, fontSize: 13 }}>
         {subtopic.subtopic_name}
       </Typography>
-      <Tooltip title="Edit subtopic">
-        <IconButton size="small" onClick={onEdit} sx={{ color: "#facc15", p: "3px" }}>
-          <FiEdit2 size={12} />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="Delete subtopic">
-        <IconButton size="small" onClick={onDelete} sx={{ color: "#f87171", p: "3px" }}>
-          <FiTrash2 size={12} />
-        </IconButton>
-      </Tooltip>
+      {canEditSubtopic && (
+        <Tooltip title="Edit subtopic">
+          <IconButton size="small" onClick={onEdit} sx={{ color: "#facc15", p: "3px" }}>
+            <FiEdit2 size={12} />
+          </IconButton>
+        </Tooltip>
+      )}
+      {canDeleteSubtopic && (
+        <Tooltip title="Delete subtopic">
+          <IconButton size="small" onClick={onDelete} sx={{ color: "#f87171", p: "3px" }}>
+            <FiTrash2 size={12} />
+          </IconButton>
+        </Tooltip>
+      )}
     </Box>
   );
 }

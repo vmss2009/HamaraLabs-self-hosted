@@ -1,8 +1,12 @@
 import { failure, success } from "@/lib/api/http";
 import { createCompetition, getCompetitions } from "@/lib/db/competition/crud";
 import { CompetitionCreateInput, competitionSchema } from "@/lib/db/competition/type";
+import { requireApiAccess } from "@/lib/authz/guard";
 
 export async function POST(request: Request) {
+  const denied = await requireApiAccess(request, { action: "create", subject: "Competition" });
+  if (denied) return denied;
+
   try {
     const body = await request.json();
 
@@ -63,7 +67,10 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireApiAccess(request);
+  if (denied) return denied;
+
   try {
     const competitions = await getCompetitions();
     return success(competitions);

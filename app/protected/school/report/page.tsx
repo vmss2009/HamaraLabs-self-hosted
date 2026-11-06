@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Slider } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -80,6 +81,19 @@ export default function Page() {
 
   const [selectedRow, setSelectedRow] = useState<School | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [rowHeight, setRowHeight] = useState(52);
+
+  const lineClamp = Math.max(1, Math.floor((rowHeight - 28) / 22));
+  const clampStyle = {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: lineClamp,
+    overflow: "hidden",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: "22px",
+    width: "100%",
+  } as React.CSSProperties;
 
   const columns: GridColDef[] = [
     {
@@ -88,24 +102,25 @@ export default function Page() {
       width: 100,
       renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1,
     },
-    { field: "name", headerName: "Name", width: 200 },
-    { field: "udise_code", headerName: "UDISE Code", width: 150 },
-    { field: "is_ATL", headerName: "Is ATL ?", width: 200 },
+    { field: "name", headerName: "Name", width: 200, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "udise_code", headerName: "UDISE Code", width: 150, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "is_ATL", headerName: "Is ATL ?", width: 200, renderCell: (params) => <span style={clampStyle}>{String(params.value ?? "")}</span> },
     {
       field: "ATL_establishment_year",
       headerName: "ATL Establishment Year",
       width: 200,
+      renderCell: (params) => <span style={clampStyle}>{String(params.value ?? "")}</span>,
     },
-    { field: "paid_subscription", headerName: "Paid subscription", width: 200 },
-    { field: "website_url", headerName: "Website URL", width: 300 },
+    { field: "paid_subscription", headerName: "Paid subscription", width: 200, renderCell: (params) => <span style={clampStyle}>{String(params.value ?? "")}</span> },
+    { field: "website_url", headerName: "Website URL", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     { field: "social_links", headerName: "Social Links", width: 300 },
     { field: "syllabus", headerName: "Syllabus", width: 300 },
-    { field: "addressLine1", headerName: "Address Line 1", width: 300 },
-    { field: "addressLine2", headerName: "Address Line 2", width: 300 },
-    { field: "city", headerName: "City", width: 300 },
-    { field: "state", headerName: "State", width: 300 },
-    { field: "country", headerName: "Country", width: 300 },
-    { field: "pincode", headerName: "Pincode", width: 300 },
+    { field: "addressLine1", headerName: "Address Line 1", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "addressLine2", headerName: "Address Line 2", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "city", headerName: "City", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "state", headerName: "State", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "country", headerName: "Country", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
+    { field: "pincode", headerName: "Pincode", width: 300, renderCell: (params) => <span style={clampStyle}>{params.value ?? ""}</span> },
     { 
       field: "principals", 
       headerName: "Principals", 
@@ -120,11 +135,9 @@ export default function Page() {
         const displayText = firstNames.join(', ');
         
         return (
-          <div className="py-2">
-            <div className="font-medium text-sm text-blue-600 truncate" title={fullNamesList}>
-              {displayText}
-            </div>
-          </div>
+          <span style={clampStyle} className="font-medium text-sm text-blue-600" title={fullNamesList}>
+            {displayText}
+          </span>
         );
       }
     },
@@ -142,11 +155,9 @@ export default function Page() {
         const displayText = firstNames.join(', ');
         
         return (
-          <div className="py-2">
-            <div className="font-medium text-sm text-green-600 truncate" title={fullNamesList}>
-              {displayText}
-            </div>
-          </div>
+          <span style={clampStyle} className="font-medium text-sm text-green-600" title={fullNamesList}>
+            {displayText}
+          </span>
         );
       }
     },
@@ -164,11 +175,9 @@ export default function Page() {
         const displayText = firstNames.join(', ');
         
         return (
-          <div className="py-2">
-            <div className="font-medium text-sm text-purple-600 truncate" title={fullNamesList}>
-              {displayText}
-            </div>
-          </div>
+          <span style={clampStyle} className="font-medium text-sm text-purple-600" title={fullNamesList}>
+            {displayText}
+          </span>
         );
       }
     },
@@ -353,6 +362,7 @@ export default function Page() {
             rows={schools}
             columns={visibleColumns}
             loading={loading}
+            rowHeight={rowHeight}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },
             }}
@@ -365,19 +375,28 @@ export default function Page() {
             onRowClick={handleRowClick}
             slots={{
               toolbar: () => (
-                <GridToolbarContainer className="bg-gray-50 p-2">
+                <GridToolbarContainer className="bg-gray-50 p-2 flex flex-wrap gap-2 items-center">
                   <Element subject="SchoolReport" elementKey="tool.quick-filter">
-                    <GridToolbarQuickFilter sx={{ width: "100%" }} />
+                    <GridToolbarQuickFilter sx={{ flex: 1, minWidth: 160 }} />
                   </Element>
                   <Element subject="SchoolReport" elementKey="tool.column-visibility">
                     <GridToolbarColumnsButton />
                   </Element>
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">Row height</span>
+                    <Slider size="small" min={52} max={300} step={4} value={rowHeight}
+                      onChange={(_, v) => setRowHeight(v as number)}
+                      sx={{ width: 100, color: "#6366f1" }} />
+                    <span className="text-xs text-gray-400 w-8 text-right">{rowHeight}</span>
+                  </div>
                 </GridToolbarContainer>
               ),
             }}
             sx={{
               borderRadius: "12px",
               "& .MuiDataGrid-cell": {
+                alignItems: rowHeight > 52 ? "flex-start" : "center",
+                paddingTop: rowHeight > 52 ? "8px" : undefined,
                 color: "#1f2937",
               },
               "& .MuiDataGrid-columnHeaders": {

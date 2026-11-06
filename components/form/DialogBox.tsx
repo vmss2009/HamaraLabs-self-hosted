@@ -53,8 +53,9 @@ export default function AssignDialog({
     try {
       const response = await fetch("/api/schools");
       if (!response.ok) throw new Error("Failed to fetch schools");
-      const data = await response.json();
+      const data: School[] = await response.json();
       setSchools(data);
+      if (data.length === 1) setSelectedSchool(data[0].id);
     } catch (error) {
       console.error("Error fetching schools:", error);
     }
@@ -64,8 +65,9 @@ export default function AssignDialog({
     try {
       const response = await fetch(`/api/students?school_id=${schoolId}`);
       if (!response.ok) throw new Error("Failed to fetch students");
-      const data = await response.json();
+      const data: Student[] = await response.json();
       setStudents(data);
+      if (data.length === 1) setSelectedStudents([String(data[0].id)]);
     } catch (error) {
       console.error("Error fetching students:", error);
     }
@@ -157,6 +159,7 @@ export default function AssignDialog({
       onClose={handleClose}
       title={`Assign ${formtype}`}
       size="md"
+      disableBackdropClose
       footer={
         <>
           <Button
